@@ -1,0 +1,731 @@
+// =============================================================================
+// SasyaVahini — Prisma Schema
+// Database: PostgreSQL
+// Owner: Member 1 (Backend Core & Data)
+//
+// WORKFLOW CONTRACT (preserved as invariants in code):
+//   BuyerRequirement → AllocationProposal → explicit Farmer/FPO CONSENT
+//   → authoritative inventory validation → atomic Reservation
+//   → shortfall-only rematching after rejection/unavailability
+//   → Order fulfilment → DeliveryRecord verification → Settlement/Payment
+//
+// INVARIANTS:
+//   1. A proposal is NOT a reservation (different models).
+//   2. A forecast is NOT a confirmed order.
+//   3. Inventory cannot be double-reserved (reservedQty + freeQty = totalQty).
+//   4. Existing accepted/reserved quantities must not be silently reassigned.
+//   5. Order state changes validated server-side only.
+//   6. Users must not access another role's resources without permission.
+//   7. Payment release tied to verified delivery workflow.
+// =============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// =============================================================================
+// ENUMS
+// =============================================================================
+
+enum Role {
+  FARMER
+  FPO
+  BUYER
+  LOGISTICS
+  ADMIN
+}
+
+enum UserStatus {
+  PENDING_VERIFICATION
+  ACTIVE
+  SUSPENDED
+}
+
+enum QualityGrade {
+  GRADE_A
+  GRADE_B
+  GRADE_C
+  ORGANIC_PREMIUM
+}
+
+enum ListingStatus {
+  AVAILABLE      // Fully available, no reservations
+  PARTIALLY_RESERVED // Part of the quantity is reserved
+  RESERVED       // Fully reserved — do not match further
+  SOLD           // Order fulfilled and settled
+  EXPIRED        // Past harvest date / withdrawn by farmer
+}
+
+enum ProposalStatus {
+  PENDING        // Sent to farmer/FPO, awaiting consent
+  ACCEPTED       // Farmer/FPO explicitly accepted — triggers Reservation
+  REJECTED       // Farmer/FPO rejected — triggers shortfall rematching
+  CANCELLED      // Cancelled by system before farmer responded
+  EXPIRED        // Farmer did not respond within deadline
+}
+
+enum OrderStatus {
+  // State machine — transitions validated server-side (Member 1)
+  PLACED         // Buyer requirement matched and order created
+  MATCHED        // Allocation proposals accepted, reservations made
+  RESERVED       // All inventory atomically reserved
+  CONFIRMED      // Confirmed by all parties
+  PICKED_UP      // Logistics confirmed all pickup stops
+  IN_TRANSIT     // Vehicle en route to delivery location
+  DELIVERED      // Logistics marked delivered (unverified)
+  DELIVERY_VERIFIED // Buyer + OTP/photo proof confirmed
+  SETTLED        // Payment released to farmers/FPOs
+  CANCELLED      // Order cancelled (before RESERVED)
+  DISPUTED       // Dispute raised — held for admin
+}
+
+enum RequirementStatus {
+  OPEN           // Accepting supplier matches
+  MATCHING       // System is running matching algorithm
+  PARTIALLY_MATCHED
+  FULLY_MATCHED  // All quantity allocated and accepted
+  FULFILLED      // Order settled end-to-end
+  CANCELLED
+  EXPIRED
+}
+
+enum PaymentStatus {
+  ESCROW_HELD    // Buyer paid, held in escrow
+  RELEASED       // Released to farmers/FPOs after delivery verification
+  REFUNDED       // Refunded to buyer (dispute/cancellation)
+  DISPUTED
+}
+
+enum NotificationType {
+  INFO
+  ORDER_UPDATE
+  PROPOSAL
+  PAYMENT
+  ALERT
+  SYSTEM
+}
+
+enum VehicleStatus {
+  AVAILABLE
+  ASSIGNED
+  IN_TRANSIT
+  MAINTENANCE
+}
+
+enum DeliveryProofType {
+  OTP
+  PHOTO
+  BOTH
+}
+
+enum AuditAction {
+  USER_REGISTERED
+  USER_APPROVED
+  USER_SUSPENDED
+  LISTING_CREATED
+  LISTING_UPDATED
+  REQUIREMENT_POSTED
+  PROPOSAL_CREATED
+  PROPOSAL_ACCEPTED
+  PROPOSAL_REJECTED
+  RESERVATION_CREATED
+  RESERVATION_RELEASED
+  ORDER_STATUS_CHANGED
+  DELIVERY_VERIFIED
+  PAYMENT_RELEASED
+  ADMIN_ACTION
+}
+
+// =============================================================================
+// AUTHENTICATION
+// =============================================================================
+
+model User {
+  id               String      @id @default(uuid())
+  email            String      @unique
+  phone            String      @unique
+  passwordHash     String
+  name             String
+  role             Role
+  status           UserStatus  @default(PENDING_VERIFICATION)
+  isEmailVerified  Boolean     @default(false)
+  isPhoneVerified  Boolean     @default(false)
+  preferredLocale  String      @default("en") // "en" | "hi" | "mr"
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  // Profiles (exactly one for the given role)
+  farmerProfile    FarmerProfile?
+  fpoProfile       FPOProfile?
+  buyerProfile     BuyerProfile?
+  logisticsProfile LogisticsProfile?
+  adminProfile     AdminProfile?
+
+  // Auth
+  refreshTokens    RefreshToken[]
+  otpCodes         OtpCode[]
+
+  // Activity
+  notifications    Notification[]
+  auditLogs        AuditLog[]
+
+  @@index([email])
+  @@index([phone])
+  @@index([role])
+  @@index([status])
+}
+
+model RefreshToken {
+  id          String    @id @default(uuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash   String    @unique  // Store bcrypt hash, never plaintext
+  expiresAt   DateTime
+  revokedAt   DateTime?
+  userAgent   String?
+  ipAddress   String?
+  createdAt   DateTime  @default(now())
+
+  @@index([userId])
+  @@index([tokenHash])
+}
+
+model OtpCode {
+  id          String    @id @default(uuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  code        String    // Store hashed in production
+  purpose     String    // "LOGIN" | "PHONE_VERIFY" | "EMAIL_VERIFY" | "PASSWORD_RESET"
+  expiresAt   DateTime
+  usedAt      DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([userId])
+}
+
+// =============================================================================
+// ROLE PROFILES
+// =============================================================================
+
+model FarmerProfile {
+  id              String    @id @default(uuid())
+  userId          String    @unique
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // FPO membership (optional)
+  fpoId           String?
+  fpo             FPOProfile? @relation(fields: [fpoId], references: [id])
+
+  // Farm details
+  landSizeAcres   Float     @default(1.0)
+  produceTypes    String[]  // e.g. ["Tomato", "Onion"]
+  state           String
+  district        String
+  village         String?
+  latitude        Float?
+  longitude       Float?
+
+  // Verification documents
+  aadhaarVerified Boolean   @default(false)
+  bankAccountVerified Boolean @default(false)
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  listings        ProduceListing[]
+  allocations     AllocationItem[]
+
+  @@index([fpoId])
+  @@index([district])
+}
+
+model FPOProfile {
+  id               String    @id @default(uuid())
+  userId           String    @unique
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  fpoName          String
+  registrationNo   String    @unique
+  memberCount      Int       @default(0)
+  state            String
+  district         String
+  address          String?
+  latitude         Float?
+  longitude        Float?
+
+  registrationCertVerified Boolean @default(false)
+
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  members          FarmerProfile[]
+  listings         ProduceListing[]
+  allocations      AllocationItem[]
+
+  @@index([district])
+}
+
+model BuyerProfile {
+  id               String    @id @default(uuid())
+  userId           String    @unique
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  organizationName String
+  buyerType        String    // "Wholesaler" | "Supermarket" | "Hotel" | "Retailer" | "Government"
+  gstNumber        String?
+  deliveryState    String?
+  deliveryDistrict String?
+  deliveryAddress  String?
+  latitude         Float?
+  longitude        Float?
+
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  requirements     BuyerRequirement[]
+  orders           Order[]
+  payments         Payment[]
+
+  @@index([buyerType])
+}
+
+model LogisticsProfile {
+  id               String    @id @default(uuid())
+  userId           String    @unique
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  companyName      String
+  licenseNo        String?
+  serviceStates    String[]
+  serviceDistricts String[]
+
+  licenseVerified  Boolean   @default(false)
+
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  vehicles         Vehicle[]
+  deliveries       DeliveryRecord[]
+
+  @@index([licenseNo])
+}
+
+model AdminProfile {
+  id               String    @id @default(uuid())
+  userId           String    @unique
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  department       String    @default("DoCA")
+  designation      String?
+
+  createdAt        DateTime  @default(now())
+}
+
+// =============================================================================
+// PRODUCE & INVENTORY
+// =============================================================================
+
+model ProduceListing {
+  id               String        @id @default(uuid())
+  farmerId         String
+  farmer           FarmerProfile @relation(fields: [farmerId], references: [id], onDelete: Cascade)
+
+  // Optional FPO aggregation context
+  fpoId            String?
+  fpo              FPOProfile?   @relation(fields: [fpoId], references: [id])
+
+  // Product info
+  cropName         String
+  category         String        // "Vegetables" | "Fruits" | "Grains" | "Pulses" | "Spices"
+  qualityGrade     QualityGrade  @default(GRADE_A)
+  isOrganic        Boolean       @default(false)
+
+  // Quantity tracking — INVARIANT: reservedQty <= totalQuantityKg
+  totalQuantityKg  Float
+  reservedQty      Float         @default(0)  // atomically updated on Reservation
+  soldQty          Float         @default(0)
+
+  askingPricePerKg Float
+  minPricePerKg    Float
+
+  harvestDate      DateTime
+  expiryDate       DateTime?
+
+  // Location
+  state            String
+  district         String
+  village          String?
+  latitude         Float?
+  longitude        Float?
+
+  imageUrl         String?
+  description      String?
+
+  status           ListingStatus @default(AVAILABLE)
+
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  allocationItems  AllocationItem[]
+
+  @@index([cropName])
+  @@index([status])
+  @@index([district])
+  @@index([harvestDate])
+  @@index([farmerId])
+}
+
+// =============================================================================
+// BUYER REQUIREMENTS
+// =============================================================================
+
+model BuyerRequirement {
+  id               String            @id @default(uuid())
+  buyerId          String
+  buyer            BuyerProfile      @relation(fields: [buyerId], references: [id], onDelete: Cascade)
+
+  cropName         String
+  quantityKg       Float
+  maxPricePerKg    Float
+  requiredByDate   DateTime
+  qualityGrade     QualityGrade?
+
+  deliveryState    String
+  deliveryDistrict String
+  deliveryAddress  String?
+  latitude         Float?
+  longitude        Float?
+
+  notes            String?
+
+  status           RequirementStatus @default(OPEN)
+
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  proposals        AllocationProposal[]
+  order            Order?
+
+  @@index([cropName])
+  @@index([status])
+  @@index([buyerId])
+  @@index([requiredByDate])
+}
+
+// =============================================================================
+// ALLOCATION — PROPOSAL → CONSENT → RESERVATION
+// =============================================================================
+
+// An AllocationProposal is created by the matching engine.
+// It is NOT a reservation. Inventory is not decremented until
+// the farmer/FPO explicitly ACCEPTS and the system creates a Reservation.
+model AllocationProposal {
+  id              String            @id @default(uuid())
+  requirementId   String
+  requirement     BuyerRequirement  @relation(fields: [requirementId], references: [id], onDelete: Cascade)
+
+  // Aggregated set of supplier assignments
+  totalAllocatedKg Float
+  matchScore       Float             // 0–100 composite score
+
+  status           ProposalStatus   @default(PENDING)
+  consentDeadline  DateTime          // After this, status → EXPIRED
+
+  notes            String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  items            AllocationItem[]
+  reservation      Reservation?
+
+  @@index([requirementId])
+  @@index([status])
+}
+
+// Each item in a proposal targets one farmer/FPO's listing.
+model AllocationItem {
+  id               String             @id @default(uuid())
+  proposalId       String
+  proposal         AllocationProposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  listingId        String
+  listing          ProduceListing     @relation(fields: [listingId], references: [id])
+
+  farmerId         String?
+  farmer           FarmerProfile?     @relation(fields: [farmerId], references: [id])
+  fpoId            String?
+  fpo              FPOProfile?        @relation(fields: [fpoId], references: [id])
+
+  allocatedQtyKg   Float
+  proposedPricePerKg Float
+
+  // Consent tracking per item
+  status           ProposalStatus     @default(PENDING)
+  consentAt        DateTime?
+  rejectionReason  String?
+
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+
+  @@index([proposalId])
+  @@index([listingId])
+  @@index([farmerId])
+  @@index([fpoId])
+}
+
+// A Reservation is created ONLY after ACCEPTED proposals.
+// Atomic: all-or-nothing within a database transaction.
+// INVARIANT: A listing's reservedQty never exceeds totalQuantityKg.
+model Reservation {
+  id               String             @id @default(uuid())
+  proposalId       String             @unique
+  proposal         AllocationProposal @relation(fields: [proposalId], references: [id])
+  orderId          String?            @unique
+  order            Order?             @relation(fields: [orderId], references: [id])
+
+  totalReservedKg  Float
+  expiresAt        DateTime?          // Reservations expire if order not confirmed
+
+  releasedAt       DateTime?          // Set when reservation is released (rejection/cancellation)
+  createdAt        DateTime           @default(now())
+
+  @@index([proposalId])
+}
+
+// =============================================================================
+// ORDERS
+// =============================================================================
+
+model Order {
+  id               String        @id @default(uuid())
+  buyerId          String
+  buyer            BuyerProfile  @relation(fields: [buyerId], references: [id])
+  requirementId    String        @unique
+  requirement      BuyerRequirement @relation(fields: [requirementId], references: [id])
+  reservation      Reservation?
+
+  orderNumber      String        @unique // human-readable e.g. SV-2026-00001
+
+  totalQuantityKg  Float
+  agreedPriceTotal Float
+
+  status           OrderStatus   @default(PLACED)
+
+  deliveryAddress  String
+  deliveryLatitude Float?
+  deliveryLongitude Float?
+  scheduledDelivery DateTime?
+  actualDelivery   DateTime?
+
+  notes            String?
+
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  statusHistory    OrderStatusEvent[]
+  delivery         DeliveryRecord?
+  payment          Payment?
+  notifications    Notification[]
+
+  @@index([buyerId])
+  @@index([status])
+  @@index([orderNumber])
+}
+
+// Immutable log of every status transition.
+model OrderStatusEvent {
+  id          String      @id @default(uuid())
+  orderId     String
+  order       Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  fromStatus  OrderStatus?
+  toStatus    OrderStatus
+  changedBy   String      // userId of actor
+  reason      String?
+  metadata    Json?
+  createdAt   DateTime    @default(now())
+
+  @@index([orderId])
+}
+
+// =============================================================================
+// LOGISTICS
+// =============================================================================
+
+model Vehicle {
+  id               String           @id @default(uuid())
+  logisticsId      String
+  logistics        LogisticsProfile @relation(fields: [logisticsId], references: [id], onDelete: Cascade)
+
+  vehicleNumber    String           @unique
+  vehicleType      String           // "Truck" | "Mini-Truck" | "Tempo" | "Refrigerated"
+  capacityKg       Float
+  driverName       String
+  driverPhone      String
+
+  status           VehicleStatus    @default(AVAILABLE)
+  currentLatitude  Float?
+  currentLongitude Float?
+  lastLocationAt   DateTime?
+
+  rcVerified       Boolean          @default(false)
+  insuranceVerified Boolean         @default(false)
+
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  deliveries       DeliveryRecord[]
+
+  @@index([status])
+  @@index([logisticsId])
+}
+
+model DeliveryRecord {
+  id                String           @id @default(uuid())
+  orderId           String           @unique
+  order             Order            @relation(fields: [orderId], references: [id])
+
+  vehicleId         String?
+  vehicle           Vehicle?         @relation(fields: [vehicleId], references: [id])
+  logisticsId       String?
+  logistics         LogisticsProfile? @relation(fields: [logisticsId], references: [id])
+
+  // OR-Tools CVRP result (stored as JSON)
+  routeJson         Json?            // Waypoints, distances, ETA from logistics service
+  totalDistanceKm   Float?
+  estimatedMinutes  Int?
+  estimatedFuelCost Float?
+
+  // Pickup tracking
+  pickedUpAt        DateTime?
+  pickedUpProof     String?
+
+  // Delivery tracking
+  deliveredAt       DateTime?
+  proofType         DeliveryProofType?
+  proofValue        String?          // OTP or photo URL
+  verifiedAt        DateTime?        // Set when buyer confirms
+  verifiedBy        String?          // userId of verifier
+
+  // GPS tracking (stored as JSON array of {lat, lng, ts})
+  gpsTrackJson      Json?
+
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  @@index([orderId])
+  @@index([vehicleId])
+}
+
+// =============================================================================
+// PAYMENTS & SETTLEMENT
+// =============================================================================
+
+// INVARIANT: Payment is released only after delivery is verified.
+model Payment {
+  id               String        @id @default(uuid())
+  orderId          String        @unique
+  order            Order         @relation(fields: [orderId], references: [id])
+  buyerId          String
+  buyer            BuyerProfile  @relation(fields: [buyerId], references: [id])
+
+  totalAmount      Float
+  platformFee      Float         @default(0)
+  taxAmount        Float         @default(0)
+  netFarmerPayout  Float
+
+  status           PaymentStatus @default(ESCROW_HELD)
+
+  // External provider (Member 3 — test mode initially)
+  providerName     String?       // "Razorpay" | "Stripe" | "MOCK"
+  providerRef      String?       // External transaction ID
+
+  paidAt           DateTime?
+  releasedAt       DateTime?     // Set only after delivery verified
+  refundedAt       DateTime?
+
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  @@index([orderId])
+  @@index([status])
+}
+
+// =============================================================================
+// NOTIFICATIONS
+// =============================================================================
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orderId   String?
+  order     Order?           @relation(fields: [orderId], references: [id])
+
+  type      NotificationType @default(INFO)
+  title     String
+  body      String
+  isRead    Boolean          @default(false)
+  readAt    DateTime?
+
+  // Delivery channels (Member 3)
+  sentViaSms    Boolean   @default(false)
+  sentViaEmail  Boolean   @default(false)
+  sentViaWhatsapp Boolean @default(false)
+
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
+}
+
+// =============================================================================
+// AUDIT LOG
+// =============================================================================
+
+model AuditLog {
+  id          String      @id @default(uuid())
+  userId      String?
+  user        User?       @relation(fields: [userId], references: [id])
+  action      AuditAction
+  entityType  String      // "User" | "Order" | "Reservation" etc.
+  entityId    String?
+  metadata    Json?
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime    @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}
+
+// =============================================================================
+// ML DEMAND FORECAST (cached results from ML service — Member 5)
+// =============================================================================
+
+model DemandForecast {
+  id                 String    @id @default(uuid())
+  cropName           String
+  district           String
+  state              String
+  predictedDemandKg  Float
+  currentSupplyKg    Float
+  demandGapKg        Float
+  demandLevel        String    // "HIGH" | "MEDIUM" | "LOW"
+  recommendedPricePerKg Float?
+  confidenceScore    Float?
+  explainabilityJson Json?     // Factors from FastAPI ML service
+  forecastPeriodStart DateTime
+  forecastPeriodEnd   DateTime
+  modelVersion       String?
+  createdAt          DateTime  @default(now())
+
+  @@index([cropName, district])
+  @@index([forecastPeriodStart])
+}
