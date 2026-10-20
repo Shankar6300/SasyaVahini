@@ -6,11 +6,11 @@ import RoleBadge from './RoleBadge';
 import { useState } from 'react';
 
 const ROLE_NAV = {
-  FARMER:    [{ label: 'Dashboard', to: '/farmer' }, { label: 'My Produce', to: '/farmer/produce' }],
-  FPO:       [{ label: 'Dashboard', to: '/fpo' },    { label: 'Members', to: '/fpo/members' }],
-  BUYER:     [{ label: 'Dashboard', to: '/buyer' },  { label: 'Marketplace', to: '/buyer/marketplace' }],
+  FARMER:    [{ label: 'Dashboard', to: '/farmer' }, { label: 'My Produce', to: '/farmer/produce' }, { label: 'Mandi Advisory', to: '/forecast' }],
+  FPO:       [{ label: 'Dashboard', to: '/fpo' },    { label: 'Members', to: '/fpo/members' }, { label: 'Mandi Advisory', to: '/forecast' }],
+  BUYER:     [{ label: 'Dashboard', to: '/buyer' },  { label: 'Marketplace', to: '/buyer/marketplace' }, { label: 'Demand Forecast', to: '/forecast' }],
   LOGISTICS: [{ label: 'Dashboard', to: '/logistics' }, { label: 'Deliveries', to: '/logistics/deliveries' }],
-  ADMIN:     [{ label: 'Dashboard', to: '/admin' },  { label: 'Users', to: '/admin/users' }],
+  ADMIN:     [{ label: 'Dashboard', to: '/admin' },  { label: 'Users', to: '/admin/users' }, { label: 'ML Analytics', to: '/forecast' }],
 };
 
 export default function Navbar() {
@@ -33,6 +33,7 @@ export default function Navbar() {
           {!isAuthenticated && (
             <>
               <li><NavLink to="/" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`} end>Home</NavLink></li>
+              <li><NavLink to="/forecast" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>Mandi Advisory</NavLink></li>
               <li><NavLink to="/about" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>About</NavLink></li>
             </>
           )}
