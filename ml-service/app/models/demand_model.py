@@ -240,6 +240,9 @@ def predict_price(
     }
 
 
+recommend_price = predict_price
+
+
 def _build_explanations(feature_row: dict, predicted_demand: float, supply: float) -> list[str]:
     """
     Build human-readable explanations from actual feature importances.

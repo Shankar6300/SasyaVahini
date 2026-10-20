@@ -226,13 +226,13 @@ def train_models(df: pd.DataFrame | None = None):
     print("\n[4/4] Saving trained model artifacts...")
 
     joblib.dump(demand_model, DEMAND_MODEL_PATH)
-    print(f"  ✓ {DEMAND_MODEL_PATH.name}")
+    print(f"  [OK] {DEMAND_MODEL_PATH.name}")
 
     joblib.dump(price_model, PRICE_MODEL_PATH)
-    print(f"  ✓ {PRICE_MODEL_PATH.name}")
+    print(f"  [OK] {PRICE_MODEL_PATH.name}")
 
     joblib.dump(feature_cols, FEATURE_COLUMNS_PATH)
-    print(f"  ✓ {FEATURE_COLUMNS_PATH.name}")
+    print(f"  [OK] {FEATURE_COLUMNS_PATH.name}")
 
     metadata = {
         "model_version": MODEL_VERSION,
@@ -245,7 +245,7 @@ def train_models(df: pd.DataFrame | None = None):
         "data_source": "synthetic",
     }
     joblib.dump(metadata, MODEL_METADATA_PATH)
-    print(f"  ✓ {MODEL_METADATA_PATH.name}")
+    print(f"  [OK] {MODEL_METADATA_PATH.name}")
 
     print("\n" + "=" * 60)
     print("  Training complete!")
