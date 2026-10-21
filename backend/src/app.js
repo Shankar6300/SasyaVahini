@@ -27,7 +27,6 @@ const prisma = require('./lib/prisma');
 // Routes
 const authRoutes = require('./routes/auth.routes');
 const roleDemoRoutes = require('./routes/roleDemo.routes');
-const mlRoutes = require('./routes/ml.routes');
 
 const app = express();
 
@@ -103,7 +102,6 @@ app.get('/api/health', async (req, res) => {
 
 // ─── API Routes ───────────────────────────────────────────────────────────────
 app.use('/api/auth', authLimiter, authRoutes);
-app.use('/api/ml', mlRoutes);
 app.use('/api', roleDemoRoutes); // RBAC demo — /api/farmer/dashboard, /api/admin/dashboard, etc.
 
 // Future routes (registered by members in feature branches):
@@ -113,6 +111,7 @@ app.use('/api', roleDemoRoutes); // RBAC demo — /api/farmer/dashboard, /api/ad
 // app.use('/api/marketplace', require('./routes/marketplace.routes'));
 // app.use('/api/orders', require('./routes/order.routes'));
 // app.use('/api/logistics', require('./routes/logistics.routes'));
+// app.use('/api/ml', require('./routes/ml.routes'));
 // app.use('/api/admin', require('./routes/admin.routes'));
 // app.use('/api/notifications', require('./routes/notification.routes'));
 

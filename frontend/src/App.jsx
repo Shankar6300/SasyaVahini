@@ -17,7 +17,6 @@ import FPODashboard      from './pages/fpo/FPODashboard';
 import BuyerDashboard    from './pages/buyer/BuyerDashboard';
 import LogisticsDashboard from './pages/logistics/LogisticsDashboard';
 import AdminDashboard    from './pages/admin/AdminDashboard';
-import DemandForecastPage from './pages/forecast/DemandForecastPage';
 
 /**
  * Auto-redirect authenticated users from / to their role dashboard.
@@ -40,8 +39,6 @@ export default function App() {
         <Route path="/login"    element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/unauthorized" element={<UnauthorizedPage />} />
-        <Route path="/forecast" element={<DemandForecastPage />} />
-        <Route path="/farmer/prices" element={<DemandForecastPage />} />
 
         {/* Farmer — Member 2 will add child routes */}
         <Route

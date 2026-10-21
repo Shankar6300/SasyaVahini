@@ -13,5 +13,3 @@ export { Toast, useToast }         from './Toast';
 export { default as FormField }    from './FormField';
 export { default as RoleBadge }    from './RoleBadge';
 export { default as ProtectedRoute } from './ProtectedRoute';
-export { default as MandiPriceChart } from './MandiPriceChart';
-export { default as SpoilageIndicator } from './SpoilageIndicator';
