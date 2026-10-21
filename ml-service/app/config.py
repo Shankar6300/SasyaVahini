@@ -24,8 +24,12 @@ ARTIFACTS_DIR.mkdir(parents=True, exist_ok=True)
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 # ── Model file paths ────────────────────────────────────────────────────────
-DEMAND_MODEL_PATH = ARTIFACTS_DIR / "demand_model.joblib"
+DEMAND_MODEL_PATH = ARTIFACTS_DIR / "demand_model.joblib"  # Legacy / default
+DEMAND_P10_MODEL_PATH = ARTIFACTS_DIR / "demand_p10.joblib"  # 10th percentile (risk floor)
+DEMAND_P50_MODEL_PATH = ARTIFACTS_DIR / "demand_p50.joblib"  # 50th percentile (median)
+DEMAND_P90_MODEL_PATH = ARTIFACTS_DIR / "demand_p90.joblib"  # 90th percentile (surge ceiling)
 PRICE_MODEL_PATH = ARTIFACTS_DIR / "price_model.joblib"
+MANDI_MATRIX_PATH = ARTIFACTS_DIR / "mandi_matrix.joblib"
 FEATURE_COLUMNS_PATH = ARTIFACTS_DIR / "feature_columns.joblib"
 MODEL_METADATA_PATH = ARTIFACTS_DIR / "model_metadata.joblib"
 
@@ -35,4 +39,4 @@ SERVICE_PORT = int(os.getenv("ML_PORT", "8000"))
 CORS_ORIGINS = os.getenv("ML_CORS_ORIGINS", "http://localhost:5000,http://localhost:5173").split(",")
 
 # ── Model defaults ──────────────────────────────────────────────────────────
-MODEL_VERSION = "0.1.0-synthetic"  # Updated when retrained with real data
+MODEL_VERSION = "0.2.0-advanced-quantile"
