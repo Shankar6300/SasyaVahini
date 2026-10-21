@@ -12,11 +12,17 @@ import RegisterPage     from './pages/RegisterPage';
 import UnauthorizedPage from './pages/UnauthorizedPage';
 
 // Role dashboards
-import FarmerDashboard   from './pages/farmer/FarmerDashboard';
-import FPODashboard      from './pages/fpo/FPODashboard';
-import BuyerDashboard    from './pages/buyer/BuyerDashboard';
+import FarmerDashboard    from './pages/farmer/FarmerDashboard';
+import FPODashboard       from './pages/fpo/FPODashboard';
+import BuyerDashboard     from './pages/buyer/BuyerDashboard';
 import LogisticsDashboard from './pages/logistics/LogisticsDashboard';
-import AdminDashboard    from './pages/admin/AdminDashboard';
+import AdminDashboard     from './pages/admin/AdminDashboard';
+
+// Buyer auth pages (Phase 1)
+import BuyerLoginPage     from './pages/buyer/auth/BuyerLoginPage';
+import BuyerRegisterPage  from './pages/buyer/auth/BuyerRegisterPage';
+import ForgotPasswordPage from './pages/buyer/auth/ForgotPasswordPage';
+import ResetPasswordPage  from './pages/buyer/auth/ResetPasswordPage';
 
 /**
  * Auto-redirect authenticated users from / to their role dashboard.
@@ -35,10 +41,16 @@ export default function App() {
       <Navbar />
       <Routes>
         {/* Public */}
-        <Route path="/"         element={<HomeRedirect />} />
-        <Route path="/login"    element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/"            element={<HomeRedirect />} />
+        <Route path="/login"       element={<LoginPage />} />
+        <Route path="/register"    element={<RegisterPage />} />
         <Route path="/unauthorized" element={<UnauthorizedPage />} />
+
+        {/* ── Buyer auth routes (Phase 1) ─────────────────────────── */}
+        <Route path="/buyer/login"          element={<BuyerLoginPage />} />
+        <Route path="/buyer/register"       element={<BuyerRegisterPage />} />
+        <Route path="/buyer/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/buyer/reset-password" element={<ResetPasswordPage />} />
 
         {/* Farmer — Member 2 will add child routes */}
         <Route
@@ -60,7 +72,7 @@ export default function App() {
           }
         />
 
-        {/* Buyer — Member 3 */}
+        {/* Buyer — protected dashboard (auth routes above are public) */}
         <Route
           path="/buyer/*"
           element={

@@ -1,0 +1,100 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# SasyaVahini — Docker Compose (Development Mode)
+#
+# Services:
+#   - db:       PostgreSQL 16 with persistent volume
+#   - backend:  Express API with nodemon hot-reload
+#   - frontend: Vite React dev server with HMR
+#
+# Usage:
+#   docker compose -f docker-compose.dev.yml up --build
+#   docker compose -f docker-compose.dev.yml down -v   (to remove volumes)
+# ──────────────────────────────────────────────────────────────────────────────
+
+services:
+  # ── PostgreSQL Database ────────────────────────────────────────────────────
+  db:
+    image: postgres:16-alpine
+    container_name: sasyavahini-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: sasyavahini
+    ports:
+      - "5433:5432"   # Use 5433 on host to avoid conflict with local PostgreSQL
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d sasyavahini"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ── Backend API (Express + Prisma + Nodemon) ───────────────────────────────
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile.dev
+    container_name: sasyavahini-backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      PORT: 5000
+      DATABASE_URL: "postgresql://postgres:postgres@db:5432/sasyavahini?schema=public"
+      JWT_ACCESS_SECRET: "docker-dev-access-secret-change-in-production"
+      JWT_REFRESH_SECRET: "docker-dev-refresh-secret-change-in-production"
+      JWT_ACCESS_EXPIRES_IN: "15m"
+      JWT_REFRESH_EXPIRES_IN: "7d"
+      ENABLE_REAL_OTP: "false"
+      OTP_EXPIRY_SECONDS: "300"
+      ML_SERVICE_URL: "http://ml-service:8000"
+      ML_SERVICE_TIMEOUT_MS: "5000"
+      LOGISTICS_SERVICE_URL: "http://logistics-service:8001"
+      CORS_ORIGIN: "http://localhost:5173,http://localhost:3000"
+    ports:
+      - "5000:5000"
+    volumes:
+      # Mount source code for hot-reload — node_modules stays in container
+      - ./backend/src:/app/backend/src
+      - ./backend/prisma:/app/backend/prisma
+    depends_on:
+      db:
+        condition: service_healthy
+    # Run migrations, seed, then start dev server
+    command: >
+      sh -c "
+        echo '⏳ Running Prisma migrations...' &&
+        cd backend &&
+        npx prisma migrate deploy &&
+        npx prisma generate &&
+        echo '🌱 Seeding database...' &&
+        node prisma/seed.js || true &&
+        echo '🚀 Starting backend dev server...' &&
+        npx nodemon src/index.js
+      "
+
+  # ── Frontend (Vite + React + HMR) ─────────────────────────────────────────
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile.dev
+    container_name: sasyavahini-frontend
+    restart: unless-stopped
+    environment:
+      VITE_API_BASE_URL: "http://localhost:5000/api"
+      VITE_APP_NAME: "SasyaVahini"
+    ports:
+      - "5173:5173"
+    volumes:
+      # Mount source code for HMR — node_modules stays in container
+      - ./frontend/src:/app/frontend/src
+      - ./frontend/public:/app/frontend/public
+      - ./frontend/index.html:/app/frontend/index.html
+      - ./frontend/vite.config.js:/app/frontend/vite.config.js
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:
+    driver: local

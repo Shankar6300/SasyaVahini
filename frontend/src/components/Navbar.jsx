@@ -30,19 +30,33 @@ export default function Navbar() {
 
         {/* Desktop nav links */}
         <ul className="nav-links" aria-label="Navigation links">
-          {!isAuthenticated && (
+          {!isAuthenticated ? (
             <>
-              <li><NavLink to="/" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`} end>Home</NavLink></li>
-              <li><NavLink to="/about" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>About</NavLink></li>
+              <li>
+                <NavLink to="/" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`} end>
+                  Home
+                </NavLink>
+              </li>
+              <li>
+                <NavLink to="/about" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
+                  About
+                </NavLink>
+              </li>
+              <li>
+                <NavLink to="/buyer/login" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
+                  Buyer Portal
+                </NavLink>
+              </li>
             </>
+          ) : (
+            navItems.map((item) => (
+              <li key={item.to}>
+                <NavLink to={item.to} className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`} end>
+                  {item.label}
+                </NavLink>
+              </li>
+            ))
           )}
-          {navItems.map((item) => (
-            <li key={item.to}>
-              <NavLink to={item.to} className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`} end>
-                {item.label}
-              </NavLink>
-            </li>
-          ))}
         </ul>
 
         {/* Actions */}
@@ -67,6 +81,9 @@ export default function Navbar() {
             </>
           ) : (
             <>
+              <NavLink to="/buyer/login" className="btn btn-ghost btn-sm" style={{ color: 'var(--color-primary)', fontWeight: 600 }}>
+                Buyer Login
+              </NavLink>
               <NavLink to="/login" className="btn btn-ghost btn-sm">Sign In</NavLink>
               <NavLink to="/register" className="btn btn-primary btn-sm">Get Started</NavLink>
             </>
