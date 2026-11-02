@@ -17,7 +17,7 @@ load_dotenv(_project_root / ".env", override=False)
 # ── Paths ────────────────────────────────────────────────────────────────────
 APP_DIR = Path(__file__).resolve().parent
 ARTIFACTS_DIR = APP_DIR / "artifacts"
-DATA_DIR = APP_DIR / "data"
+DATA_DIR = APP_DIR.parent / "data"
 
 # Ensure directories exist
 ARTIFACTS_DIR.mkdir(parents=True, exist_ok=True)

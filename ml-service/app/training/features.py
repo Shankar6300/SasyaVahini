@@ -19,7 +19,7 @@ import pandas as pd
 COMMODITY_PROFILES: Dict[str, dict] = {
     "Tomato": {
         "baseline_demand_kg": 16000,
-        "base_modal_price": 26.0,
+        "base_modal_price": 30.0,  # Empirical Agmarknet median (Nov 2026 bulletin)
         "price_elasticity": -0.45,  # Inelastic staple with perishability vulnerability
         "perishability_days": 7,
         "perishability_tier": "HIGH",
@@ -27,7 +27,7 @@ COMMODITY_PROFILES: Dict[str, dict] = {
     },
     "Onion": {
         "baseline_demand_kg": 18500,
-        "base_modal_price": 22.5,
+        "base_modal_price": 54.0,  # Empirical Agmarknet median (Nov 2026 bulletin)
         "price_elasticity": -0.32,  # Highly inelastic essential staple (key DoCA monitored item)
         "perishability_days": 45,
         "perishability_tier": "LOW",
@@ -35,7 +35,7 @@ COMMODITY_PROFILES: Dict[str, dict] = {
     },
     "Potato": {
         "baseline_demand_kg": 15000,
-        "base_modal_price": 19.0,
+        "base_modal_price": 20.0,  # Empirical Agmarknet median (Nov 2026 bulletin)
         "price_elasticity": -0.28,  # Highly inelastic cold-storage buffer
         "perishability_days": 60,
         "perishability_tier": "LOW",
@@ -43,7 +43,7 @@ COMMODITY_PROFILES: Dict[str, dict] = {
     },
     "Wheat": {
         "baseline_demand_kg": 11000,
-        "base_modal_price": 28.5,
+        "base_modal_price": 28.3,  # Empirical Agmarknet median (Nov 2026 bulletin, MSP-anchored)
         "price_elasticity": -0.20,  # Essential cereal
         "perishability_days": 180,
         "perishability_tier": "DRY_GRAIN",
@@ -51,7 +51,7 @@ COMMODITY_PROFILES: Dict[str, dict] = {
     },
     "Rice": {
         "baseline_demand_kg": 12500,
-        "base_modal_price": 36.0,
+        "base_modal_price": 42.0,  # Empirical Agmarknet median (Nov 2026 bulletin)
         "price_elasticity": -0.24,  # Essential cereal
         "perishability_days": 180,
         "perishability_tier": "DRY_GRAIN",
@@ -59,7 +59,7 @@ COMMODITY_PROFILES: Dict[str, dict] = {
     },
     "Grapes": {
         "baseline_demand_kg": 6500,
-        "base_modal_price": 60.0,
+        "base_modal_price": 100.0,  # Empirical Agmarknet median (Nov 2026 bulletin)
         "price_elasticity": -0.72,  # Elastic fruit (export / premium retail)
         "perishability_days": 5,
         "perishability_tier": "HIGH",
@@ -67,7 +67,7 @@ COMMODITY_PROFILES: Dict[str, dict] = {
     },
     "Pomegranate": {
         "baseline_demand_kg": 5200,
-        "base_modal_price": 85.0,
+        "base_modal_price": 140.0,  # Empirical Agmarknet median (Nov 2026 bulletin)
         "price_elasticity": -0.65,  # Moderate fruit elasticity
         "perishability_days": 20,
         "perishability_tier": "MEDIUM",
@@ -83,7 +83,7 @@ COMMODITY_PROFILES: Dict[str, dict] = {
     },
     "Maize": {
         "baseline_demand_kg": 9200,
-        "base_modal_price": 21.0,
+        "base_modal_price": 25.8,  # Empirical Agmarknet median
         "price_elasticity": -0.35,  # Animal feed / starch processing
         "perishability_days": 120,
         "perishability_tier": "DRY_GRAIN",
@@ -99,7 +99,7 @@ COMMODITY_PROFILES: Dict[str, dict] = {
     },
     "Cotton": {
         "baseline_demand_kg": 7200,
-        "base_modal_price": 62.0,
+        "base_modal_price": 88.2,  # Empirical Agmarknet median
         "price_elasticity": -0.42,  # Fiber cash crop
         "perishability_days": 240,
         "perishability_tier": "NON_PERISHABLE",
@@ -107,7 +107,7 @@ COMMODITY_PROFILES: Dict[str, dict] = {
     },
     "Chilli": {
         "baseline_demand_kg": 4200,
-        "base_modal_price": 48.0,
+        "base_modal_price": 45.0,  # Empirical Agmarknet median
         "price_elasticity": -0.30,  # Spice essential
         "perishability_days": 12,
         "perishability_tier": "MEDIUM",
@@ -139,7 +139,7 @@ COMMODITY_PROFILES: Dict[str, dict] = {
     },
     "Banana": {
         "baseline_demand_kg": 11500,
-        "base_modal_price": 32.0,
+        "base_modal_price": 48.8,  # Empirical Agmarknet median
         "price_elasticity": -0.40,  # Ubiquitous fruit
         "perishability_days": 6,
         "perishability_tier": "HIGH",
