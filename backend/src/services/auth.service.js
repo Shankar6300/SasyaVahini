@@ -48,7 +48,33 @@ function calcRefreshExpiry() {
 // ─── Registration ─────────────────────────────────────────────────────────────
 
 async function register(data) {
-  const { name, email, phone, password, role, preferredLocale } = data;
+  const {
+    name,
+    email,
+    phone,
+    password,
+    role,
+    preferredLocale,
+    // Role-specific fields
+    landSizeAcres,
+    state,
+    district,
+    village,
+    produceTypes,
+    organizationName,
+    buyerType,
+    gstNumber,
+    deliveryState,
+    deliveryDistrict,
+    deliveryAddress,
+    companyName,
+    licenseNo,
+    serviceStates,
+    serviceDistricts,
+    fpoName,
+    registrationNo,
+    memberCount,
+  } = data;
 
   // Unique checks
   const existing = await prisma.user.findFirst({
@@ -63,6 +89,25 @@ async function register(data) {
 
   const passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
 
+  // Normalize array fields
+  const parsedProduce = Array.isArray(produceTypes)
+    ? produceTypes
+    : typeof produceTypes === 'string' && produceTypes.trim()
+    ? produceTypes.split(',').map((s) => s.trim())
+    : [];
+
+  const parsedStates = Array.isArray(serviceStates)
+    ? serviceStates
+    : typeof serviceStates === 'string' && serviceStates.trim()
+    ? serviceStates.split(',').map((s) => s.trim())
+    : state ? [state] : [];
+
+  const parsedDistricts = Array.isArray(serviceDistricts)
+    ? serviceDistricts
+    : typeof serviceDistricts === 'string' && serviceDistricts.trim()
+    ? serviceDistricts.split(',').map((s) => s.trim())
+    : district ? [district] : [];
+
   const user = await prisma.user.create({
     data: {
       name,
@@ -72,16 +117,61 @@ async function register(data) {
       role,
       preferredLocale: preferredLocale || 'en',
       status: 'PENDING_VERIFICATION',
-      // Create role profile in same transaction
-      farmerProfile: role === 'FARMER' ? { create: { state: '', district: '', produceTypes: [] } } : undefined,
-      fpoProfile: role === 'FPO' ? { create: { fpoName: '', registrationNo: '', state: '', district: '' } } : undefined,
-      buyerProfile: role === 'BUYER' ? { create: { organizationName: '', buyerType: 'Retailer' } } : undefined,
-      logisticsProfile: role === 'LOGISTICS' ? { create: { companyName: '', serviceStates: [], serviceDistricts: [] } } : undefined,
+      // Create role profile with provided attributes
+      farmerProfile:
+        role === 'FARMER'
+          ? {
+              create: {
+                state: state || 'Maharashtra',
+                district: district || 'Pune',
+                village: village || '',
+                landSizeAcres: landSizeAcres ? Number(landSizeAcres) : 1.0,
+                produceTypes: parsedProduce,
+              },
+            }
+          : undefined,
+      fpoProfile:
+        role === 'FPO'
+          ? {
+              create: {
+                fpoName: fpoName || `${name} Producer Co.`,
+                registrationNo: registrationNo || `FPO-${Date.now().toString().slice(-6)}`,
+                memberCount: memberCount ? Number(memberCount) : 10,
+                state: state || 'Maharashtra',
+                district: district || 'Pune',
+                address: village || district || '',
+              },
+            }
+          : undefined,
+      buyerProfile:
+        role === 'BUYER'
+          ? {
+              create: {
+                organizationName: organizationName || `${name} Enterprise`,
+                buyerType: buyerType || 'Wholesaler',
+                gstNumber: gstNumber || null,
+                deliveryState: deliveryState || state || 'Maharashtra',
+                deliveryDistrict: deliveryDistrict || district || 'Pune',
+                deliveryAddress: deliveryAddress || '',
+              },
+            }
+          : undefined,
+      logisticsProfile:
+        role === 'LOGISTICS'
+          ? {
+              create: {
+                companyName: companyName || `${name} Transport & Logistics`,
+                licenseNo: licenseNo || `LOG-${Date.now().toString().slice(-6)}`,
+                serviceStates: parsedStates.length ? parsedStates : ['Maharashtra'],
+                serviceDistricts: parsedDistricts.length ? parsedDistricts : ['Pune', 'Nashik'],
+              },
+            }
+          : undefined,
     },
     select: { id: true, name: true, email: true, phone: true, role: true, status: true, createdAt: true },
   });
 
-  logger.info('User registered', { userId: user.id, role });
+  logger.info('User registered with enriched profile', { userId: user.id, role });
   return user;
 }
 

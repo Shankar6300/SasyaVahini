@@ -11,6 +11,7 @@
 const ACCESS_KEY  = 'sv_access_token';
 const REFRESH_KEY = 'sv_refresh_token';
 const USER_KEY    = 'sv_user';
+const PREVIEW_KEY = 'sv_logistics_preview';
 
 export const getAccessToken  = () => sessionStorage.getItem(ACCESS_KEY);
 export const getRefreshToken = () => localStorage.getItem(REFRESH_KEY);
@@ -28,8 +29,15 @@ export const setStoredUser = (user) => {
   localStorage.setItem(USER_KEY, JSON.stringify(user));
 };
 
+export const setPreviewSession = () => {
+  sessionStorage.setItem(PREVIEW_KEY, 'true');
+};
+
+export const isPreviewSession = () => sessionStorage.getItem(PREVIEW_KEY) === 'true';
+
 export const clearSession = () => {
   sessionStorage.removeItem(ACCESS_KEY);
+  sessionStorage.removeItem(PREVIEW_KEY);
   localStorage.removeItem(REFRESH_KEY);
   localStorage.removeItem(USER_KEY);
 };

@@ -34,6 +34,14 @@ ml-service/__pycache__/
 ml-service/models/*.pkl
 ml-service/models/*.joblib
 
+# ML service — trained artifacts and generated data (not source-controlled)
+ml-service/app/artifacts/*.joblib
+ml-service/app/artifacts/*.pkl
+ml-service/app/data/*.csv
+ml-service/app/data/*.parquet
+!ml-service/app/artifacts/.gitkeep
+!ml-service/app/data/.gitkeep
+
 # ─── Logs ────────────────────────────────────────────────────────────────────
 *.log
 logs/
@@ -78,3 +86,6 @@ desktop.ini
 *.p12
 *.pfx
 
+
+# Backend environment secrets
+backend/.env

@@ -1,0 +1,87 @@
+name: sasyavahini
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-sasyavahini}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-sasyavahini}"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+
+  routing-service:
+    build:
+      context: .
+      dockerfile: routing-service/Dockerfile
+    restart: unless-stopped
+    expose: ["8001"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/docs')"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  ml-service:
+    build:
+      context: .
+      dockerfile: ml-service/Dockerfile
+    restart: unless-stopped
+    expose: ["8000"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 5000
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-sasyavahini}?schema=public
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-sasyavahini_jwt_access_secret_production_2026}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-sasyavahini_jwt_refresh_secret_production_2026}
+      JWT_ACCESS_EXPIRES_IN: ${JWT_ACCESS_EXPIRES_IN:-15m}
+      JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN:-7d}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:8080}
+      LOGISTICS_DATA_SOURCE: prisma
+      ROUTING_SERVICE_URL: http://routing-service:8001
+      OSRM_URL: ${OSRM_URL:-https://router.project-osrm.org}
+      ML_SERVICE_URL: ${ML_SERVICE_URL:-http://ml-service:8000}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      routing-service:
+        condition: service_healthy
+      ml-service:
+        condition: service_healthy
+    expose: ["5000"]
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:5000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-8080}:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  postgres_data:

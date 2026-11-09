@@ -7,7 +7,7 @@
  */
 
 const path = require('path');
-require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
+require('dotenv').config({ path: path.resolve(__dirname, '../.env'), override: true });
 require('dotenv').config({ path: path.resolve(__dirname, '../../.env') });
 
 const { validateEnv } = require('./utils/validateEnv');
@@ -27,6 +27,7 @@ const prisma = require('./lib/prisma');
 // Routes
 const authRoutes = require('./routes/auth.routes');
 const roleDemoRoutes = require('./routes/roleDemo.routes');
+const mlRoutes = require('./routes/ml.routes');
 
 const app = express();
 
@@ -35,7 +36,7 @@ app.use(helmet());
 
 const allowedOrigins = process.env.CORS_ORIGIN
   ? process.env.CORS_ORIGIN.split(',').map((o) => o.trim())
-  : ['http://localhost:5173', 'http://localhost:3000'];
+  : ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:3000'];
 
 app.use(
   cors({
@@ -102,17 +103,21 @@ app.get('/api/health', async (req, res) => {
 
 // ─── API Routes ───────────────────────────────────────────────────────────────
 app.use('/api/auth', authLimiter, authRoutes);
-app.use('/api', roleDemoRoutes); // RBAC demo — /api/farmer/dashboard, /api/admin/dashboard, etc.
 
-// Future routes (registered by members in feature branches):
-// app.use('/api/farmers', require('./routes/farmer.routes'));
-// app.use('/api/fpo', require('./routes/fpo.routes'));
-// app.use('/api/buyers', require('./routes/buyer.routes'));
-// app.use('/api/marketplace', require('./routes/marketplace.routes'));
-// app.use('/api/orders', require('./routes/order.routes'));
-// app.use('/api/logistics', require('./routes/logistics.routes'));
-// app.use('/api/ml', require('./routes/ml.routes'));
-// app.use('/api/admin', require('./routes/admin.routes'));
+// Member 2 Routes: Farmer & FPO
+app.use('/api/farmers', require('./routes/farmer.routes'));
+app.use('/api/fpo', require('./routes/fpo.routes'));
+app.use('/api/notifications', require('./routes/notification.routes'));
+
+// Member 4 Routes: Logistics
+app.use('/api/logistics', require('./routes/logistics.routes'));
+
+// Member 5 Routes: AI Demand Forecasting & Pricing Intelligence
+app.use('/api/ml', mlRoutes);
+app.use('/api/forecast', mlRoutes);
+
+// RBAC demo / stubs for remaining roles (buyer, admin)
+app.use('/api', roleDemoRoutes);
 // app.use('/api/notifications', require('./routes/notification.routes'));
 
 // ─── 404 handler ──────────────────────────────────────────────────────────────

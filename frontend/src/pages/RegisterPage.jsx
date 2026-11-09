@@ -1,31 +1,54 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Leaf } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import FormField from '../components/FormField';
 import Button from '../components/Button';
 import Alert from '../components/Alert';
-
-const ROLES = [
-  { value: 'FARMER',    label: 'Farmer',    emoji: '🌾', desc: 'I grow and sell produce' },
-  { value: 'FPO',       label: 'FPO',       emoji: '🤝', desc: 'I represent a producer organization' },
-  { value: 'BUYER',     label: 'Buyer',     emoji: '🏪', desc: 'I purchase produce in bulk' },
-  { value: 'LOGISTICS', label: 'Logistics', emoji: '🚚', desc: 'I provide transport services' },
-];
+import LanguageSelector from '../components/LanguageSelector';
+import VoiceInput from '../components/VoiceInput';
 
 export default function RegisterPage() {
   const { register } = useAuth();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const presetRole = searchParams.get('role');
+
+  const ROLES = [
+    { value: 'FARMER',    label: t('roles.farmer', 'Farmer'),    emoji: '🌾', desc: t('roles.farmerDesc', 'I grow and sell produce') },
+    { value: 'FPO',       label: t('roles.fpo', 'FPO'),          emoji: '🤝', desc: t('roles.fpoDesc', 'I represent a producer organization') },
+    { value: 'BUYER',     label: t('roles.buyer', 'Buyer'),      emoji: '🏪', desc: t('roles.buyerDesc', 'I purchase produce in bulk') },
+    { value: 'LOGISTICS', label: t('roles.logistics', 'Logistics'), emoji: '🚚', desc: t('roles.logisticsDesc', 'I provide transport services') },
+  ];
 
   const [form, setForm] = useState({
     name: '',
     email: '',
     phone: '',
     password: '',
-    role: ROLES.find((r) => r.value === presetRole)?.value || '',
-    preferredLocale: 'en',
+    role: ROLES.find((r) => r.value === presetRole)?.value || 'FARMER',
+    preferredLocale: i18n.language || 'en',
+    // Farmer-specific attributes
+    landSizeAcres: '2.5',
+    state: 'Maharashtra',
+    district: 'Pune',
+    village: '',
+    produceTypes: 'Tomato, Onion',
+    // Buyer-specific attributes
+    organizationName: '',
+    buyerType: 'Wholesaler',
+    gstNumber: '',
+    deliveryAddress: '',
+    // Logistics-specific attributes
+    companyName: '',
+    licenseNo: '',
+    serviceDistricts: 'Pune, Nashik, Ahmednagar',
+    // FPO-specific attributes
+    fpoName: '',
+    registrationNo: '',
+    memberCount: '25',
   });
   const [errors, setErrors] = useState({});
   const [apiError, setApiError] = useState('');
@@ -34,16 +57,29 @@ export default function RegisterPage() {
 
   const validate = () => {
     const errs = {};
-    if (!form.name.trim() || form.name.length < 2) errs.name = 'Name must be at least 2 characters';
-    if (!form.email) errs.email = 'Email is required';
-    else if (!/\S+@\S+\.\S+/.test(form.email)) errs.email = 'Invalid email';
-    if (!form.phone) errs.phone = 'Phone number is required';
-    else if (!/^\+?[0-9]{10,15}$/.test(form.phone)) errs.phone = 'Enter a valid 10-15 digit phone number';
-    if (!form.password) errs.password = 'Password is required';
-    else if (form.password.length < 8) errs.password = 'At least 8 characters';
-    else if (!/[A-Z]/.test(form.password)) errs.password = 'Must contain an uppercase letter';
-    else if (!/[0-9]/.test(form.password)) errs.password = 'Must contain a number';
-    if (!form.role) errs.role = 'Please select a role';
+    if (!form.name.trim() || form.name.length < 2) errs.name = t('auth.nameRequired', 'Name must be at least 2 characters');
+    if (!form.email) errs.email = t('auth.emailRequired', 'Email is required');
+    else if (!/\S+@\S+\.\S+/.test(form.email)) errs.email = t('auth.invalidEmail', 'Invalid email');
+    if (!form.phone) errs.phone = t('auth.phoneRequired', 'Phone number is required');
+    else if (!/^\+?[0-9]{10,15}$/.test(form.phone)) errs.phone = t('auth.phoneInvalid', 'Enter a valid 10-15 digit phone number');
+    if (!form.password) errs.password = t('auth.passwordRequired', 'Password is required');
+    else if (form.password.length < 8) errs.password = t('auth.passwordLength', 'At least 8 characters');
+    else if (!/[A-Z]/.test(form.password)) errs.password = t('auth.passwordUpper', 'Must contain an uppercase letter');
+    else if (!/[0-9]/.test(form.password)) errs.password = t('auth.passwordNumber', 'Must contain a number');
+    if (!form.role) errs.role = t('auth.selectRole', 'Please select a role');
+
+    // Role-specific validation
+    if (form.role === 'FARMER') {
+      if (!form.district.trim()) errs.district = 'District is required for farmers';
+    } else if (form.role === 'BUYER') {
+      if (!form.organizationName.trim()) errs.organizationName = 'Company/Firm name is required for buyers';
+    } else if (form.role === 'LOGISTICS') {
+      if (!form.companyName.trim()) errs.companyName = 'Transport or fleet agency name is required';
+      if (!form.licenseNo.trim()) errs.licenseNo = 'Carrier operator license number is required';
+    } else if (form.role === 'FPO') {
+      if (!form.fpoName.trim()) errs.fpoName = 'FPO organization name is required';
+    }
+
     return errs;
   };
 
@@ -67,10 +103,17 @@ export default function RegisterPage() {
     setLoading(true);
     setApiError('');
     try {
-      await register(form);
+      await register({
+        ...form,
+        name: form.name.trim(),
+        email: form.email.trim().toLowerCase(),
+        phone: form.phone.replace(/[\s\-+]/g, ''),
+        landSizeAcres: form.landSizeAcres ? parseFloat(form.landSizeAcres) : undefined,
+        memberCount: form.memberCount ? parseInt(form.memberCount, 10) : undefined,
+      });
       setSuccess(true);
     } catch (err) {
-      setApiError(err.message || 'Registration failed. Please try again.');
+      setApiError(err.message || t('auth.registerFailed', 'Registration failed. Please try again.'));
     } finally {
       setLoading(false);
     }
@@ -81,15 +124,15 @@ export default function RegisterPage() {
       <div className="auth-page">
         <div className="auth-card" style={{ textAlign: 'center' }}>
           <div style={{ fontSize: 48, marginBottom: 'var(--space-4)' }}>✅</div>
-          <h1 className="auth-title">Account Created!</h1>
+          <h1 className="auth-title">{t('auth.accountCreated', 'Account Created!')}</h1>
           <p className="auth-subtitle" style={{ marginBottom: 'var(--space-8)' }}>
-            Your account is pending verification. You can sign in and explore the platform.
+            {t('auth.pendingReview', 'Your account is pending verification. You can sign in and explore the platform.')}
           </p>
           <Alert variant="info" className="mb-6">
-            Account status: <strong>Pending Verification</strong>. An admin will review and activate your account.
+            {t('auth.reviewStatus', 'Account status: Pending Verification. An admin will review and activate your account.')}
           </Alert>
           <Button variant="primary" fullWidth onClick={() => navigate('/login')}>
-            Go to Sign In
+            {t('auth.goToLogin', 'Go to Sign In')}
           </Button>
         </div>
       </div>
@@ -98,7 +141,12 @@ export default function RegisterPage() {
 
   return (
     <div className="auth-page" style={{ alignItems: 'flex-start', paddingTop: 'var(--space-12)' }}>
-      <div className="auth-card" style={{ maxWidth: 520 }}>
+      <div className="auth-card relative" style={{ maxWidth: 520 }}>
+        {/* Language selector in top-right */}
+        <div className="flex justify-end mb-4">
+          <LanguageSelector />
+        </div>
+
         {/* Logo */}
         <div className="auth-logo">
           <Leaf size={28} color="#07875B" strokeWidth={2.5} />
@@ -107,15 +155,15 @@ export default function RegisterPage() {
           </span>
         </div>
 
-        <h1 className="auth-title">Create your account</h1>
-        <p className="auth-subtitle">Join the platform and start trading fairly</p>
+        <h1 className="auth-title">{t('auth.registerTitle', 'Create your account')}</h1>
+        <p className="auth-subtitle">{t('auth.registerSubtitle', 'Join the platform and start trading fairly')}</p>
 
         {apiError && <Alert variant="error" className="mb-6">{apiError}</Alert>}
 
         <form onSubmit={handleSubmit} noValidate>
           {/* Role selector */}
           <div className="form-group" style={{ marginBottom: 'var(--space-6)' }}>
-            <label className="form-label required">I am a</label>
+            <label className="form-label required">{t('auth.iAmA', 'I am a')}</label>
             <div className="role-grid">
               {ROLES.map((r) => (
                 <button
@@ -136,17 +184,260 @@ export default function RegisterPage() {
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
-            <FormField id="reg-name" label="Full name" name="name" required value={form.name} onChange={handleChange} error={errors.name} placeholder="Ramesh Kulkarni" />
-            <FormField id="reg-email" label="Email address" name="email" type="email" autoComplete="email" required value={form.email} onChange={handleChange} error={errors.email} placeholder="you@example.com" />
-            <FormField id="reg-phone" label="Mobile number" name="phone" type="tel" autoComplete="tel" required value={form.phone} onChange={handleChange} error={errors.phone} placeholder="+919876543210" hint="With country code, e.g. +91 for India" />
-            <FormField id="reg-password" label="Password" name="password" type="password" autoComplete="new-password" required value={form.password} onChange={handleChange} error={errors.password} hint="Min 8 chars, one uppercase, one number" />
+            <div className="flex items-center gap-2">
+              <div className="flex-1">
+                <FormField
+                  id="reg-name"
+                  label={t('auth.fullName', 'Full name')}
+                  name="name"
+                  required
+                  value={form.name}
+                  onChange={handleChange}
+                  error={errors.name}
+                  placeholder={t('auth.namePlaceholder', 'e.g. Ramesh Kulkarni')}
+                />
+              </div>
+              <div className="pt-6">
+                <VoiceInput
+                  onResult={(transcript) => setForm(f => ({ ...f, name: transcript }))}
+                  title="Speak your full name"
+                />
+              </div>
+            </div>
+
+            <FormField
+              id="reg-email"
+              label={t('auth.email', 'Email address')}
+              name="email"
+              type="email"
+              autoComplete="email"
+              required
+              value={form.email}
+              onChange={handleChange}
+              error={errors.email}
+              placeholder="you@example.com"
+            />
+
+            <div className="flex items-center gap-2">
+              <div className="flex-1">
+                <FormField
+                  id="reg-phone"
+                  label={t('auth.phone', 'Mobile number')}
+                  name="phone"
+                  type="tel"
+                  autoComplete="tel"
+                  required
+                  value={form.phone}
+                  onChange={handleChange}
+                  error={errors.phone}
+                  placeholder="+919876543210"
+                  hint={t('auth.phoneHint', 'With country code, e.g. +91 for India')}
+                />
+              </div>
+              <div className="pt-6">
+                <VoiceInput
+                  onResult={(transcript) => {
+                    // Extract numbers if spoken
+                    const cleaned = transcript.replace(/[^0-9+]/g, '');
+                    setForm(f => ({ ...f, phone: cleaned || transcript }));
+                  }}
+                  title="Speak your phone number"
+                />
+              </div>
+            </div>
+
+            <FormField
+              id="reg-password"
+              label={t('auth.password', 'Password')}
+              name="password"
+              type="password"
+              autoComplete="new-password"
+              required
+              value={form.password}
+              onChange={handleChange}
+              error={errors.password}
+              hint={t('auth.passwordHint', 'Min 8 chars, one uppercase, one number')}
+            />
+
+            {/* ── Role-Specific Custom Profile Fields ───────────────────────── */}
+            {form.role === 'FARMER' && (
+              <div className="p-4 rounded-xl bg-emerald-50/70 border border-emerald-200 space-y-3">
+                <p className="text-xs font-bold uppercase tracking-wider text-emerald-800">🌾 Farm & Location Details</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <FormField
+                    id="reg-village"
+                    label="Village / Taluka"
+                    name="village"
+                    value={form.village}
+                    onChange={handleChange}
+                    placeholder="e.g. Manchar"
+                  />
+                  <FormField
+                    id="reg-district"
+                    label="District *"
+                    name="district"
+                    value={form.district}
+                    onChange={handleChange}
+                    error={errors.district}
+                    placeholder="e.g. Pune"
+                  />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <FormField
+                    id="reg-land"
+                    label="Land Holding (Acres)"
+                    name="landSizeAcres"
+                    type="number"
+                    step="0.5"
+                    value={form.landSizeAcres}
+                    onChange={handleChange}
+                    placeholder="e.g. 2.5"
+                  />
+                  <FormField
+                    id="reg-crops"
+                    label="Primary Crops"
+                    name="produceTypes"
+                    value={form.produceTypes}
+                    onChange={handleChange}
+                    placeholder="e.g. Tomato, Onion, Wheat"
+                  />
+                </div>
+              </div>
+            )}
+
+            {form.role === 'LOGISTICS' && (
+              <div className="p-4 rounded-xl bg-teal-50/70 border border-teal-200 space-y-3">
+                <p className="text-xs font-bold uppercase tracking-wider text-teal-800">🚚 Transport Fleet & Agency Details</p>
+                <FormField
+                  id="reg-companyName"
+                  label="Fleet / Agency Name *"
+                  name="companyName"
+                  value={form.companyName}
+                  onChange={handleChange}
+                  error={errors.companyName}
+                  placeholder="e.g. Sahyadri Agro Freight Services"
+                />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <FormField
+                    id="reg-licenseNo"
+                    label="Carrier Permit / License No. *"
+                    name="licenseNo"
+                    value={form.licenseNo}
+                    onChange={handleChange}
+                    error={errors.licenseNo}
+                    placeholder="e.g. MH-RTO-2026-LOG491"
+                  />
+                  <FormField
+                    id="reg-serviceDistricts"
+                    label="Operating Districts / Corridors"
+                    name="serviceDistricts"
+                    value={form.serviceDistricts}
+                    onChange={handleChange}
+                    placeholder="e.g. Pune, Nashik, Mumbai"
+                  />
+                </div>
+              </div>
+            )}
+
+            {form.role === 'BUYER' && (
+              <div className="p-4 rounded-xl bg-blue-50/70 border border-blue-200 space-y-3">
+                <p className="text-xs font-bold uppercase tracking-wider text-blue-800">🏪 Business & Procurement Details</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <FormField
+                    id="reg-orgName"
+                    label="Firm / Company Name *"
+                    name="organizationName"
+                    value={form.organizationName}
+                    onChange={handleChange}
+                    error={errors.organizationName}
+                    placeholder="e.g. FreshB2B Wholesale Traders"
+                  />
+                  <div className="form-group">
+                    <label className="form-label">Buyer Category</label>
+                    <select
+                      name="buyerType"
+                      className="form-select"
+                      value={form.buyerType}
+                      onChange={handleChange}
+                    >
+                      <option value="Wholesaler">Wholesaler / Distributor</option>
+                      <option value="Supermarket">Supermarket / Retail Chain</option>
+                      <option value="Processor">Food Processor / Exporter</option>
+                      <option value="Hotel">Hotel / Restaurant Bulk Buyer</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <FormField
+                    id="reg-gst"
+                    label="GSTIN (Optional)"
+                    name="gstNumber"
+                    value={form.gstNumber}
+                    onChange={handleChange}
+                    placeholder="27AAAAA0000A1Z5"
+                  />
+                  <FormField
+                    id="reg-address"
+                    label="Delivery Warehouse Address"
+                    name="deliveryAddress"
+                    value={form.deliveryAddress}
+                    onChange={handleChange}
+                    placeholder="e.g. APMC Market Yard, Hadapsar"
+                  />
+                </div>
+              </div>
+            )}
+
+            {form.role === 'FPO' && (
+              <div className="p-4 rounded-xl bg-amber-50/70 border border-amber-200 space-y-3">
+                <p className="text-xs font-bold uppercase tracking-wider text-amber-800">🤝 FPO Producer Organization Details</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <FormField
+                    id="reg-fpoName"
+                    label="FPO Organization Name *"
+                    name="fpoName"
+                    value={form.fpoName}
+                    onChange={handleChange}
+                    error={errors.fpoName}
+                    placeholder="e.g. Junnar Farmers Producer Co."
+                  />
+                  <FormField
+                    id="reg-regNo"
+                    label="Registration Number *"
+                    name="registrationNo"
+                    value={form.registrationNo}
+                    onChange={handleChange}
+                    error={errors.registrationNo}
+                    placeholder="e.g. FPO-MH-2024-8842"
+                  />
+                </div>
+                <FormField
+                  id="reg-members"
+                  label="Registered Member Farmers Count"
+                  name="memberCount"
+                  type="number"
+                  value={form.memberCount}
+                  onChange={handleChange}
+                  placeholder="e.g. 50"
+                />
+              </div>
+            )}
 
             <div className="form-group">
-              <label htmlFor="reg-locale" className="form-label">Preferred language</label>
-              <select id="reg-locale" name="preferredLocale" className="form-select" value={form.preferredLocale} onChange={handleChange}>
+              <label htmlFor="reg-locale" className="form-label">{t('auth.preferredLanguage', 'Preferred language')}</label>
+              <select
+                id="reg-locale"
+                name="preferredLocale"
+                className="form-select"
+                value={form.preferredLocale}
+                onChange={(e) => {
+                  handleChange(e);
+                  i18n.changeLanguage(e.target.value);
+                }}
+              >
                 <option value="en">English</option>
                 <option value="hi">हिंदी (Hindi)</option>
-                <option value="mr">मराठी (Marathi)</option>
+                <option value="te">తెలుగు (Telugu)</option>
               </select>
             </div>
           </div>
@@ -160,13 +451,15 @@ export default function RegisterPage() {
             className="mt-6"
             id="register-submit-btn"
           >
-            Create Account
+            {t('auth.createAccount', 'Create Account')}
           </Button>
         </form>
 
         <p style={{ textAlign: 'center', marginTop: 'var(--space-6)', fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)' }}>
-          Already have an account?{' '}
-          <Link to="/login" style={{ color: 'var(--color-primary)', fontWeight: 600 }}>Sign in</Link>
+          {t('auth.alreadyHaveAccount', 'Already have an account?')}{' '}
+          <Link to="/login" style={{ color: 'var(--color-primary)', fontWeight: 600 }}>
+            {t('auth.signIn', 'Sign In')}
+          </Link>
         </p>
       </div>
     </div>

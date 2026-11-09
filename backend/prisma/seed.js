@@ -9,10 +9,11 @@
  * Owner: Member 1
  */
 
-require('dotenv').config({ path: require('path').resolve(__dirname, '../.env') });
+require('dotenv').config({ path: require('path').resolve(__dirname, '../.env'), override: true });
 
 const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcryptjs');
+const { seedLogistics } = require('./seed.logistics');
 
 const prisma = new PrismaClient();
 
@@ -156,13 +157,22 @@ async function main() {
 
   // ─── Demo produce listing ────────────────────────────────────────────────
   const farmerProfile = await prisma.farmerProfile.findUnique({ where: { userId: farmer.id } });
-  if (farmerProfile) {
+  const fpoProfile = await prisma.fPOProfile.findUnique({ where: { userId: fpo.id } });
+
+  if (farmerProfile && fpoProfile) {
+    // Link farmer to FPO for collective aggregation and member directory
+    await prisma.farmerProfile.update({
+      where: { id: farmerProfile.id },
+      data: { fpoId: fpoProfile.id },
+    });
+
     await prisma.produceListing.upsert({
       where: { id: 'seed-listing-tomato-001' },
       update: {},
       create: {
         id: 'seed-listing-tomato-001',
         farmerId: farmerProfile.id,
+        fpoId: fpoProfile.id,
         cropName: 'Tomato',
         category: 'Vegetables',
         qualityGrade: 'GRADE_A',
@@ -178,7 +188,53 @@ async function main() {
         description: '[DEMO DATA] Fresh Grade A tomatoes. Not a real listing.',
       },
     });
+
+    // Seed listing matching prompt test case: 100 kg at ₹20/kg
+    await prisma.produceListing.upsert({
+      where: { id: 'seed-listing-onion-001' },
+      update: {},
+      create: {
+        id: 'seed-listing-onion-001',
+        farmerId: farmerProfile.id,
+        fpoId: fpoProfile.id,
+        cropName: 'Onion',
+        category: 'Vegetables',
+        qualityGrade: 'GRADE_A',
+        totalQuantityKg: 100,
+        askingPricePerKg: 20,
+        minPricePerKg: 16,
+        harvestDate: new Date('2026-11-02'),
+        state: 'Maharashtra',
+        district: 'Pune',
+        village: 'Manchar',
+        description: '[DEMO DATA] Member lot A: 100 kg at ₹20/kg',
+      },
+    });
+
+    // Seed second listing matching prompt test case: 200 kg at ₹25/kg
+    await prisma.produceListing.upsert({
+      where: { id: 'seed-listing-onion-002' },
+      update: {},
+      create: {
+        id: 'seed-listing-onion-002',
+        farmerId: farmerProfile.id,
+        fpoId: fpoProfile.id,
+        cropName: 'Onion',
+        category: 'Vegetables',
+        qualityGrade: 'GRADE_A',
+        totalQuantityKg: 200,
+        askingPricePerKg: 25,
+        minPricePerKg: 20,
+        harvestDate: new Date('2026-11-02'),
+        state: 'Maharashtra',
+        district: 'Pune',
+        village: 'Manchar',
+        description: '[DEMO DATA] Member lot B: 200 kg at ₹25/kg',
+      },
+    });
   }
+
+  await seedLogistics(prisma);
 
   console.log('\n✅ Demo seed complete. All data is clearly labeled simulation data.\n');
   console.log('Demo credentials (password for all: DemoPass1)');
