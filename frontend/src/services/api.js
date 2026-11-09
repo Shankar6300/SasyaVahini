@@ -12,7 +12,7 @@
  */
 
 import axios from 'axios';
-import { getAccessToken, setTokens, clearSession } from './auth.storage';
+import { getAccessToken, setTokens, clearSession, isPreviewSession } from './auth.storage';
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
 
@@ -42,6 +42,10 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+
+    if (error.response?.status === 401 && isPreviewSession()) {
+      return Promise.reject(normalizeError(error));
+    }
 
     // Do not attempt token refresh for authentication requests
     const isAuthEndpoint = originalRequest?.url?.includes('/auth/login') ||

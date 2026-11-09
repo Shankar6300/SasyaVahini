@@ -731,3 +731,290 @@ model DemandForecast {
   @@index([cropName, district])
   @@index([forecastPeriodStart])
 }
+
+
+// =============================================================================
+// ===== M4 LOGISTICS (Member 4) ===============================================
+// =============================================================================
+
+enum ShipmentStatus {
+  UNASSIGNED
+  ASSIGNED
+  PICKUP
+  TRANSIT
+  OUT_FOR_DELIVERY
+  DELIVERED
+  CANCELLED
+}
+
+enum StopType {
+  PICKUP
+  DELIVERY
+}
+
+enum StopStatus {
+  PENDING
+  ARRIVED
+  COMPLETED
+  SKIPPED
+}
+
+enum LogisticsLegType {
+  FEEDER
+  LINEHAUL
+  LASTMILE
+  DIRECT
+}
+
+enum LogisticsOfferStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+  DECLINED
+  CANCELLED
+}
+
+model Shipment {
+  id                  String                  @id @default(uuid())
+  trackingNumber      String                  @unique
+  orderId             String                  @unique
+  vehicleId           String?
+  logisticsId         String?
+
+  status              ShipmentStatus          @default(UNASSIGNED)
+  deliveryOtp         String?                 // 6-digit OTP for delivery verification
+
+  totalWeightKg       Float
+  totalDistanceKm     Float?
+  baselineDistanceKm  Float?
+  savedDistanceKm     Float?
+  estimatedFuelSavedRs Float?
+  utilizationPercent  Float?
+  estimatedMinutes    Int?
+
+  routeGeometryJson   Json?                   // GeoJSON LineString coordinates
+  costBreakdownJson   Json?                   // Auditable TLC ledger
+  
+  scheduledPickupAt   DateTime?
+  deliveredAt         DateTime?
+  
+  createdAt           DateTime                @default(now())
+  updatedAt           DateTime                @updatedAt
+
+  stops               ShipmentStop[]
+  milestoneHistory    ShipmentMilestoneEvent[]
+  locationPings       LocationPing[]
+  legs                ShipmentLeg[]
+  transferEvents      TransferEvent[]
+
+  @@index([orderId])
+  @@index([vehicleId])
+  @@index([status])
+  @@index([trackingNumber])
+}
+
+// M4 planning and execution persistence. Vehicle remains intentionally
+// unchanged; vehicleClass links these records to the existing fleet.
+model VehicleSpec {
+  id               String   @id @default(uuid())
+  vehicleClass     String   @unique
+  capacityKg       Float
+  minRoadClass     String
+  baseFare         Float    @default(0)
+  perKmRate        Float    @default(0)
+  avgSpeedKmh      Float    @default(40)
+  serviceRadiusKm  Float    @default(100)
+  heavyVehicle     Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model TransferPoint {
+  id              String   @id @default(uuid())
+  name            String
+  latitude        Float
+  longitude       Float
+  roadAccess      String
+  capacityKg      Float
+  handlingFeePerKg Float   @default(0)
+  openHours       String?
+  zone            String?
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  legs            ShipmentLeg[]
+  transferEvents  TransferEvent[]
+
+  @@index([roadAccess])
+  @@index([isActive])
+}
+
+model PlanQuote {
+  id              String   @id @default(uuid())
+  quoteId         String   @unique
+  crop            String
+  requestedQtyKg  Float
+  maxBudget       Float
+  radiusUsedKm    Float?
+  ringsTried      Json
+  payload         Json
+  explanation     String
+  expiresAt       DateTime
+  confirmedAt     DateTime?
+  priceLocked     Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  legs            ShipmentLeg[]
+  offers          LogisticsOffer[]
+
+  @@index([expiresAt])
+}
+
+model ShipmentLeg {
+  id               String          @id @default(uuid())
+  shipmentId       String?
+  shipment         Shipment?       @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  planQuoteId      String?
+  planQuote        PlanQuote?       @relation(fields: [planQuoteId], references: [id], onDelete: Cascade)
+  transferPointId  String?
+  transferPoint    TransferPoint?   @relation(fields: [transferPointId], references: [id])
+  sequence         Int
+  type             LogisticsLegType
+  vehicleClass     String
+  fromJson         Json
+  toJson           Json
+  km               Float
+  etaMin           Int
+  cost             Float
+  kg               Float
+  status           String          @default("PLANNED")
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  offers           LogisticsOffer[]
+
+  @@index([shipmentId])
+  @@index([planQuoteId])
+  @@index([transferPointId])
+  @@index([status])
+}
+
+model LogisticsOffer {
+  id            String               @id @default(uuid())
+  planQuoteId   String?
+  planQuote     PlanQuote?           @relation(fields: [planQuoteId], references: [id], onDelete: Cascade)
+  shipmentLegId String?
+  shipmentLeg   ShipmentLeg?         @relation(fields: [shipmentLegId], references: [id], onDelete: Cascade)
+  vehicleId     String
+  status        LogisticsOfferStatus  @default(PENDING)
+  expiresAt     DateTime
+  acceptedAt    DateTime?
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+
+  @@index([shipmentLegId, status])
+  @@index([vehicleId, status])
+  @@index([expiresAt])
+}
+
+model TransferEvent {
+  id              String         @id @default(uuid())
+  shipmentId      String?
+  shipment        Shipment?      @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  transferPointId String
+  transferPoint   TransferPoint  @relation(fields: [transferPointId], references: [id])
+  feederDriverId  String?
+  linehaulDriverId String?
+  feederKg        Float
+  linehaulKg      Float
+  toleranceKg     Float
+  status          String
+  disputeReason   String?
+  feederConfirmedAt DateTime?
+  linehaulConfirmedAt DateTime?
+  createdAt       DateTime       @default(now())
+
+  @@index([shipmentId])
+  @@index([transferPointId])
+  @@index([status])
+}
+
+model RoadAccessCache {
+  id          String   @id @default(uuid())
+  cacheKey    String   @unique
+  latitude    Float
+  longitude   Float
+  roadClass   String
+  source      String   @default("OSM")
+  expiresAt   DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([expiresAt])
+}
+
+model ShipmentStop {
+  id           String      @id @default(uuid())
+  shipmentId   String
+  shipment     Shipment    @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+
+  stopType     StopType    @default(PICKUP)
+  sequence     Int
+  farmerId     String?
+  listingId    String?
+  stopName     String
+  address      String?
+  latitude     Float
+  longitude    Float
+  quantityKg   Float
+  
+  status       StopStatus  @default(PENDING)
+  arrivalEta   DateTime?
+  arrivedAt    DateTime?
+  completedAt  DateTime?
+  proofNotes   String?
+
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  @@index([shipmentId])
+  @@index([sequence])
+}
+
+model ShipmentMilestoneEvent {
+  id           String         @id @default(uuid())
+  shipmentId   String
+  shipment     Shipment       @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+
+  status       ShipmentStatus
+  milestone    String
+  latitude     Float?
+  longitude    Float?
+  temperatureC Float?
+  notes        String?
+  recordedBy   String?        // userId
+
+  recordedAt   DateTime       @default(now())
+
+  @@index([shipmentId])
+  @@index([status])
+}
+
+model LocationPing {
+  id           String      @id @default(uuid())
+  vehicleId    String?
+  shipmentId   String?
+  shipment     Shipment?   @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+
+  latitude     Float
+  longitude    Float
+  speedKmh     Float?
+  temperatureC Float?      // Cold-chain monitoring
+  recordedAt   DateTime    @default(now())
+
+  @@index([vehicleId])
+  @@index([shipmentId])
+  @@index([recordedAt])
+}

@@ -9,7 +9,7 @@ import Alert from '../components/Alert';
 import LanguageSelector from '../components/LanguageSelector';
 
 export default function LoginPage() {
-  const { login } = useAuth();
+  const { login, previewLogin } = useAuth();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
@@ -58,6 +58,12 @@ export default function LoginPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleLogisticsPreview = () => {
+    const user = previewLogin();
+    navigate('/logistics', { replace: true });
+    return user;
   };
 
   return (
@@ -125,6 +131,16 @@ export default function LoginPage() {
         </form>
 
         <div className="divider mt-6">{t('common.or', 'or')}</div>
+
+        {import.meta.env.DEV && (
+          <button
+            type="button"
+            className="btn btn-secondary w-full mb-4"
+            onClick={handleLogisticsPreview}
+          >
+            Open Logistics Preview (no database)
+          </button>
+        )}
 
         {/* Demo credentials */}
         <details style={{ marginBottom: 'var(--space-4)' }}>
