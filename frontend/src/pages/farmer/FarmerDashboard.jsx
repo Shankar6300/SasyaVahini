@@ -8,6 +8,7 @@ import {
   Layers, Bell, UserCheck, Sparkles, Sliders, LayoutDashboard,
   HandCoins, User, Wheat, Menu, X as XIcon, RefreshCw, ArrowUpRight, Info, Mic
 } from 'lucide-react';
+import MarketIntelligenceWidget from '../../components/ml/MarketIntelligenceWidget';
 
 import ProduceListingModal from '../../components/farmer/ProduceListingModal';
 import ProduceDetailsModal from '../../components/farmer/ProduceDetailsModal';
@@ -198,12 +199,13 @@ const FarmerDashboard = () => {
   });
 
   const navItems = [
-    { key: 'OVERVIEW',  label: t('farmer.overview', 'Overview'),           icon: LayoutDashboard },
-    { key: 'LISTINGS',  label: t('farmer.myListings', 'My Listings'),         icon: Package,   badge: produceListings.length },
-    { key: 'INVENTORY', label: t('farmer.inventory', 'Inventory'),           icon: Layers },
-    { key: 'PROPOSALS', label: t('farmer.proposals', 'Allocation Requests'), icon: HandCoins, badge: proposalsCount },
-    { key: 'EARNINGS',  label: t('farmer.earnings', 'Earnings'),            icon: TrendingUp },
-    { key: 'PROFILE',   label: t('farmer.profile', 'Profile'),             icon: User },
+    { key: 'OVERVIEW',     label: t('farmer.overview', 'Overview'),                     icon: LayoutDashboard },
+    { key: 'INTELLIGENCE', label: t('farmer.marketIntelligence', 'Market Intelligence'), icon: Sparkles },
+    { key: 'LISTINGS',     label: t('farmer.myListings', 'My Listings'),               icon: Package,   badge: produceListings.length },
+    { key: 'INVENTORY',    label: t('farmer.inventory', 'Inventory'),                 icon: Layers },
+    { key: 'PROPOSALS',    label: t('farmer.proposals', 'Allocation Requests'),       icon: HandCoins, badge: proposalsCount },
+    { key: 'EARNINGS',     label: t('farmer.earnings', 'Earnings'),                  icon: TrendingUp },
+    { key: 'PROFILE',      label: t('farmer.profile', 'Profile'),                   icon: User },
   ];
 
   // ── Loading ──────────────────────────────────────────────────────────────
@@ -649,8 +651,9 @@ const FarmerDashboard = () => {
 
         {/* Content */}
         <div className="flex-1 min-w-0">
-          {activeSection === 'OVERVIEW'   && <OverviewSection />}
-          {activeSection === 'LISTINGS'   && <ListingsSection />}
+          {activeSection === 'OVERVIEW'      && <OverviewSection />}
+          {activeSection === 'INTELLIGENCE' && <MarketIntelligenceWidget initialDistrict={user?.district || 'Pune'} />}
+          {activeSection === 'LISTINGS'      && <ListingsSection />}
           {activeSection === 'INVENTORY'  && <InventorySection />}
           {activeSection === 'PROPOSALS'  && <AllocationConsentSection onAllocationStatusChanged={fetchFarmerData} />}
           {activeSection === 'EARNINGS'   && <FarmerEarningsSection />}

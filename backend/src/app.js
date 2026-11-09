@@ -27,6 +27,7 @@ const prisma = require('./lib/prisma');
 // Routes
 const authRoutes = require('./routes/auth.routes');
 const roleDemoRoutes = require('./routes/roleDemo.routes');
+const mlRoutes = require('./routes/ml.routes');
 
 const app = express();
 
@@ -108,14 +109,15 @@ app.use('/api/farmers', require('./routes/farmer.routes'));
 app.use('/api/fpo', require('./routes/fpo.routes'));
 app.use('/api/notifications', require('./routes/notification.routes'));
 
-// RBAC demo / stubs for remaining roles (buyer, logistics, admin)
-app.use('/api', roleDemoRoutes);
-// app.use('/api/buyers', require('./routes/buyer.routes'));
-// app.use('/api/marketplace', require('./routes/marketplace.routes'));
-// app.use('/api/orders', require('./routes/order.routes'));
+// Member 4 Routes: Logistics
 app.use('/api/logistics', require('./routes/logistics.routes'));
-// app.use('/api/ml', require('./routes/ml.routes'));
-// app.use('/api/admin', require('./routes/admin.routes'));
+
+// Member 5 Routes: AI Demand Forecasting & Pricing Intelligence
+app.use('/api/ml', mlRoutes);
+app.use('/api/forecast', mlRoutes);
+
+// RBAC demo / stubs for remaining roles (buyer, admin)
+app.use('/api', roleDemoRoutes);
 // app.use('/api/notifications', require('./routes/notification.routes'));
 
 // ─── 404 handler ──────────────────────────────────────────────────────────────
