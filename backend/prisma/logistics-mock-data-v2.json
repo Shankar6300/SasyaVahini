@@ -1,0 +1,82 @@
+{
+  "vehicleClasses": {
+    "TEMPO": { "capacityKg": 1500, "minRoadClass": "LANE", "baseFare": 500, "perKmRate": 18, "avgSpeedKmh": 35 },
+    "MINI_TRUCK": { "capacityKg": 3000, "minRoadClass": "LOCAL", "baseFare": 800, "perKmRate": 24, "avgSpeedKmh": 40 },
+    "MEDIUM_TRUCK": { "capacityKg": 5000, "minRoadClass": "MAIN", "baseFare": 1200, "perKmRate": 32, "avgSpeedKmh": 40 }
+  },
+  "transferPoints": [
+    {
+      "id": "tp_chakan",
+      "name": "Chakan Transfer Yard",
+      "lat": 18.7606,
+      "lng": 73.8636,
+      "roadAccess": "MAIN",
+      "capacityKg": 10000,
+      "feePerKg": 0.25,
+      "openHours": "5-22",
+      "zone": "CHAKAN"
+    }
+  ],
+  "trafficProfiles": [
+    { "zone": "PUNE", "hour": 8, "factor": 1.6 },
+    { "zone": "PUNE", "hour": 14, "factor": 1.0 },
+    { "zone": "PUNE", "hour": 18, "factor": 1.5 }
+  ],
+  "entryRestrictions": [
+    { "zone": "PUNE", "hour": 8, "vehicleClass": "MEDIUM_TRUCK", "allowed": false }
+  ],
+  "radiusSteps": [15, 30, 50, 80, 120],
+  "scenarios": [
+    { "id": "S9", "name": "first feasible ring", "expect": "radiusUsedKm is the first ring that fits the buyer budget" },
+    { "id": "S10", "name": "road access feeder", "expect": "lane farmer uses FEEDER instead of direct medium truck" },
+    { "id": "S11", "name": "traffic window", "expect": "bestDepartureWindow chooses the cheapest traffic window" },
+    { "id": "S12", "name": "over budget", "expect": "closest plan includes overBudgetBy and a hint" },
+    { "id": "S13", "name": "external failures", "expect": "OSRM and solver failures fall back without failing the plan" }
+  ],
+  "farmers": [
+    {
+      "id": "batch_v2_001",
+      "farmerId": "farmer_v2_001",
+      "farmerName": "Asha Pawar",
+      "cropName": "Onion",
+      "qualityGrade": "GRADE_A",
+      "availableQuantityKg": 700,
+      "pricePerKg": 20,
+      "latitude": 18.82,
+      "longitude": 73.88,
+      "village": "Chakan Lane",
+      "accessRoadClass": "LANE",
+      "farmerReliability": 0.92
+    },
+    {
+      "id": "batch_v2_002",
+      "farmerId": "farmer_v2_002",
+      "farmerName": "Bharat Jadhav",
+      "cropName": "Onion",
+      "qualityGrade": "GRADE_A",
+      "availableQuantityKg": 650,
+      "pricePerKg": 21,
+      "latitude": 18.86,
+      "longitude": 73.91,
+      "village": "Khed",
+      "accessRoadClass": "LOCAL",
+      "farmerReliability": 0.9
+    },
+    {
+      "id": "batch_v2_003",
+      "farmerId": "farmer_v2_003",
+      "farmerName": "Chitra Shinde",
+      "cropName": "Onion",
+      "qualityGrade": "GRADE_B",
+      "availableQuantityKg": 450,
+      "pricePerKg": 22,
+      "latitude": 18.91,
+      "longitude": 73.94,
+      "village": "Manchar",
+      "accessRoadClass": "MAIN",
+      "farmerReliability": 0.88
+    }
+  ],
+  "listings": [],
+  "buyers": []
+}

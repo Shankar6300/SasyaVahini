@@ -7,7 +7,7 @@
  */
 
 const path = require('path');
-require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
+require('dotenv').config({ path: path.resolve(__dirname, '../.env'), override: true });
 require('dotenv').config({ path: path.resolve(__dirname, '../../.env') });
 
 const { validateEnv } = require('./utils/validateEnv');
@@ -35,7 +35,7 @@ app.use(helmet());
 
 const allowedOrigins = process.env.CORS_ORIGIN
   ? process.env.CORS_ORIGIN.split(',').map((o) => o.trim())
-  : ['http://localhost:5173', 'http://localhost:3000'];
+  : ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:3000'];
 
 app.use(
   cors({
@@ -110,7 +110,7 @@ app.use('/api', roleDemoRoutes); // RBAC demo — /api/farmer/dashboard, /api/ad
 // app.use('/api/buyers', require('./routes/buyer.routes'));
 // app.use('/api/marketplace', require('./routes/marketplace.routes'));
 // app.use('/api/orders', require('./routes/order.routes'));
-// app.use('/api/logistics', require('./routes/logistics.routes'));
+app.use('/api/logistics', require('./routes/logistics.routes'));
 // app.use('/api/ml', require('./routes/ml.routes'));
 // app.use('/api/admin', require('./routes/admin.routes'));
 // app.use('/api/notifications', require('./routes/notification.routes'));

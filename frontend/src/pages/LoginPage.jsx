@@ -7,7 +7,7 @@ import Button from '../components/Button';
 import Alert from '../components/Alert';
 
 export default function LoginPage() {
-  const { login } = useAuth();
+  const { login, previewLogin } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from?.pathname || null;
@@ -55,6 +55,12 @@ export default function LoginPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleLogisticsPreview = () => {
+    const user = previewLogin();
+    navigate('/logistics', { replace: true });
+    return user;
   };
 
   return (
@@ -117,6 +123,16 @@ export default function LoginPage() {
         </form>
 
         <div className="divider mt-6">or</div>
+
+        {import.meta.env.DEV && (
+          <button
+            type="button"
+            className="btn btn-secondary w-full mb-4"
+            onClick={handleLogisticsPreview}
+          >
+            Open Logistics Preview (no database)
+          </button>
+        )}
 
         {/* Demo credentials */}
         <details style={{ marginBottom: 'var(--space-4)' }}>

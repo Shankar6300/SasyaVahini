@@ -9,10 +9,11 @@
  * Owner: Member 1
  */
 
-require('dotenv').config({ path: require('path').resolve(__dirname, '../.env') });
+require('dotenv').config({ path: require('path').resolve(__dirname, '../.env'), override: true });
 
 const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcryptjs');
+const { seedLogistics } = require('./seed.logistics');
 
 const prisma = new PrismaClient();
 
@@ -179,6 +180,8 @@ async function main() {
       },
     });
   }
+
+  await seedLogistics(prisma);
 
   console.log('\n✅ Demo seed complete. All data is clearly labeled simulation data.\n');
   console.log('Demo credentials (password for all: DemoPass1)');

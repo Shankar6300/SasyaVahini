@@ -16,6 +16,7 @@ import {
   setStoredUser,
   clearSession,
   getRefreshToken,
+  setPreviewSession,
 } from '../services/auth.storage';
 
 // ─── State & Actions ──────────────────────────────────────────────────────
@@ -24,6 +25,13 @@ const initialState = {
   isAuthenticated: false,
   isLoading: true, // true while restoring session on app start
   error: null,
+};
+
+const DEV_PREVIEW_USER = {
+  id: 'dev-logistics-preview',
+  name: 'Logistics Preview User',
+  email: 'logistics-preview@local.test',
+  role: 'LOGISTICS',
 };
 
 const AUTH_ACTIONS = {
@@ -99,6 +107,15 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
+  const previewLogin = useCallback(() => {
+    if (!import.meta.env.DEV) {
+      throw new Error('Logistics preview is only available in development.');
+    }
+    setPreviewSession();
+    dispatch({ type: AUTH_ACTIONS.LOGIN_SUCCESS, payload: DEV_PREVIEW_USER });
+    return DEV_PREVIEW_USER;
+  }, []);
+
   const register = useCallback(async (formData) => {
     dispatch({ type: AUTH_ACTIONS.CLEAR_ERROR });
     try {
@@ -131,6 +148,7 @@ export function AuthProvider({ children }) {
       value={{
         ...state,
         login,
+        previewLogin,
         register,
         logout,
         clearError,

@@ -11,6 +11,7 @@
     "db:migrate": "prisma migrate dev",
     "db:migrate:deploy": "prisma migrate deploy",
     "db:seed": "node prisma/seed.js",
+    "db:seed:demo-logistics": "node prisma/seed.demo-logistics.js",
     "db:reset": "prisma migrate reset --force",
     "db:studio": "prisma studio",
     "test": "jest --forceExit",
