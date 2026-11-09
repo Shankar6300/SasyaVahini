@@ -2,6 +2,7 @@ import React from 'react';
 import { Leaf, TrendingUp, ShoppingBag, Wallet, Clock } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { StatCard } from '../../components/Card';
+import MarketIntelligenceWidget from '../../components/ml/MarketIntelligenceWidget';
 
 const PLANNED_FEATURES = [
   'Produce listing creation and management (Member 2)',
@@ -47,6 +48,9 @@ export default function FarmerDashboard() {
           <StatCard value="₹—" label="Earnings this month" icon={<Wallet size={22} />} trend="DEMO DATA — not real" />
           <StatCard value="—" label="Completed Orders" icon={<TrendingUp size={22} />} trend="DEMO DATA — not real" />
         </div>
+
+        {/* AI Market Intelligence & Demand Advisory */}
+        <MarketIntelligenceWidget />
 
         {/* Planned features */}
         <div className="card">

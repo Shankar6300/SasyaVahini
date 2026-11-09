@@ -1,0 +1,29 @@
+/**
+ * SasyaVahini — ML & Market Intelligence Routes
+ *
+ * Exposes AI demand forecasts, price recommendations, and APMC arbitrage advisories.
+ *
+ * SIH 2026 Problem Statement 26033 (DoCA)
+ * Owner: Member 5 (AI Demand Forecasting & Pricing Intelligence)
+ */
+
+const express = require('express');
+const router = express.Router();
+
+const mlController = require('../controllers/ml.controller');
+const { validate } = require('../middleware/validate');
+const { demandForecastSchema, priceRecommendSchema } = require('../schemas/ml.schema');
+
+// Health check
+router.get('/health', mlController.getHealth);
+
+// Demand Forecasting
+router.post('/demand', validate(demandForecastSchema), mlController.predictDemand);
+router.post('/predict-demand', validate(demandForecastSchema), mlController.predictDemand);
+
+// Price Recommendation
+router.post('/price', validate(priceRecommendSchema), mlController.recommendPrice);
+router.post('/recommend-price', validate(priceRecommendSchema), mlController.recommendPrice);
+
+module.exports = router;
+
