@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Leaf } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import FormField from '../components/FormField';
 import Button from '../components/Button';
 import Alert from '../components/Alert';
+import LanguageSelector from '../components/LanguageSelector';
 
 export default function LoginPage() {
   const { login } = useAuth();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from?.pathname || null;
@@ -27,9 +30,9 @@ export default function LoginPage() {
 
   const validate = () => {
     const errs = {};
-    if (!form.email) errs.email = 'Email is required';
-    else if (!/\S+@\S+\.\S+/.test(form.email)) errs.email = 'Invalid email address';
-    if (!form.password) errs.password = 'Password is required';
+    if (!form.email) errs.email = t('auth.emailRequired', 'Email is required');
+    else if (!/\S+@\S+\.\S+/.test(form.email)) errs.email = t('auth.invalidEmail', 'Invalid email address');
+    if (!form.password) errs.password = t('auth.passwordRequired', 'Password is required');
     return errs;
   };
 
@@ -51,7 +54,7 @@ export default function LoginPage() {
       const dest = from || ROLE_REDIRECTS[user.role] || '/';
       navigate(dest, { replace: true });
     } catch (err) {
-      setApiError(err.message || 'Login failed. Please try again.');
+      setApiError(err.message || t('auth.loginFailed', 'Login failed. Please try again.'));
     } finally {
       setLoading(false);
     }
@@ -59,7 +62,12 @@ export default function LoginPage() {
 
   return (
     <div className="auth-page">
-      <div className="auth-card">
+      <div className="auth-card relative">
+        {/* Language selector in top-right */}
+        <div className="flex justify-end mb-4">
+          <LanguageSelector />
+        </div>
+
         {/* Logo */}
         <div className="auth-logo">
           <Leaf size={32} color="#07875B" strokeWidth={2.5} />
@@ -68,8 +76,8 @@ export default function LoginPage() {
           </span>
         </div>
 
-        <h1 className="auth-title">Welcome back</h1>
-        <p className="auth-subtitle">Sign in to your account</p>
+        <h1 className="auth-title">{t('auth.loginTitle', 'Welcome back')}</h1>
+        <p className="auth-subtitle">{t('auth.loginSubtitle', 'Sign in to your account')}</p>
 
         {apiError && (
           <Alert variant="error" className="mb-6">{apiError}</Alert>
@@ -79,7 +87,7 @@ export default function LoginPage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
             <FormField
               id="login-email"
-              label="Email address"
+              label={t('auth.email', 'Email address')}
               name="email"
               type="email"
               autoComplete="email"
@@ -91,7 +99,7 @@ export default function LoginPage() {
             />
             <FormField
               id="login-password"
-              label="Password"
+              label={t('auth.password', 'Password')}
               name="password"
               type="password"
               autoComplete="current-password"
@@ -99,7 +107,7 @@ export default function LoginPage() {
               value={form.password}
               onChange={handleChange}
               error={errors.password}
-              placeholder="Enter your password"
+              placeholder="••••••••"
             />
           </div>
 
@@ -112,25 +120,27 @@ export default function LoginPage() {
             className="mt-6"
             id="login-submit-btn"
           >
-            Sign In
+            {t('auth.signIn', 'Sign In')}
           </Button>
         </form>
 
-        <div className="divider mt-6">or</div>
+        <div className="divider mt-6">{t('common.or', 'or')}</div>
 
         {/* Demo credentials */}
         <details style={{ marginBottom: 'var(--space-4)' }}>
           <summary style={{ cursor: 'pointer', fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', userSelect: 'none' }}>
-            Demo credentials (SIH prototype)
+            {t('auth.demoCredentials', 'Demo credentials (SIH prototype)')}
           </summary>
           <div style={{ marginTop: 'var(--space-3)', fontSize: 'var(--text-xs)', background: 'var(--color-bg)', borderRadius: 'var(--radius-md)', padding: 'var(--space-3)' }}>
-            <p style={{ marginBottom: 'var(--space-2)', color: 'var(--color-text-secondary)' }}>Password for all: <code>DemoPass1</code></p>
+            <p style={{ marginBottom: 'var(--space-2)', color: 'var(--color-text-secondary)' }}>
+              {t('auth.demoPassword', 'Password for all: <code>DemoPass1</code>')}
+            </p>
             {[
-              ['Farmer',    'farmer@demo.sasyavahini.in'],
-              ['FPO',       'fpo@demo.sasyavahini.in'],
-              ['Buyer',     'buyer@demo.sasyavahini.in'],
-              ['Logistics', 'logistics@demo.sasyavahini.in'],
-              ['Admin',     'admin@demo.sasyavahini.in'],
+              ['Farmer (Ramesh)',  'farmer@demo.sasyavahini.in'],
+              ['FPO (Sahyadri)',   'fpo@demo.sasyavahini.in'],
+              ['Buyer (FreshB2B)', 'buyer@demo.sasyavahini.in'],
+              ['Logistics (Speed)','logistics@demo.sasyavahini.in'],
+              ['Admin (Govt)',     'admin@demo.sasyavahini.in'],
             ].map(([role, email]) => (
               <button
                 key={role}
@@ -146,9 +156,9 @@ export default function LoginPage() {
         </details>
 
         <p style={{ textAlign: 'center', fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)' }}>
-          Don&apos;t have an account?{' '}
+          {t('auth.dontHaveAccount', "Don't have an account?")}{' '}
           <Link to="/register" style={{ color: 'var(--color-primary)', fontWeight: 600 }}>
-            Create account
+            {t('auth.createAccount', 'Create account')}
           </Link>
         </p>
       </div>

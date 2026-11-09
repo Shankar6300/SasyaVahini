@@ -102,11 +102,14 @@ app.get('/api/health', async (req, res) => {
 
 // ─── API Routes ───────────────────────────────────────────────────────────────
 app.use('/api/auth', authLimiter, authRoutes);
-app.use('/api', roleDemoRoutes); // RBAC demo — /api/farmer/dashboard, /api/admin/dashboard, etc.
 
-// Future routes (registered by members in feature branches):
-// app.use('/api/farmers', require('./routes/farmer.routes'));
-// app.use('/api/fpo', require('./routes/fpo.routes'));
+// Member 2 Routes: Farmer & FPO
+app.use('/api/farmers', require('./routes/farmer.routes'));
+app.use('/api/fpo', require('./routes/fpo.routes'));
+app.use('/api/notifications', require('./routes/notification.routes'));
+
+// RBAC demo / stubs for remaining roles (buyer, logistics, admin)
+app.use('/api', roleDemoRoutes);
 // app.use('/api/buyers', require('./routes/buyer.routes'));
 // app.use('/api/marketplace', require('./routes/marketplace.routes'));
 // app.use('/api/orders', require('./routes/order.routes'));

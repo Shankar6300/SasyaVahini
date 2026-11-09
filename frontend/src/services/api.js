@@ -43,7 +43,12 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // Do not attempt token refresh for authentication requests
+    const isAuthEndpoint = originalRequest?.url?.includes('/auth/login') ||
+                           originalRequest?.url?.includes('/auth/register') ||
+                           originalRequest?.url?.includes('/auth/refresh');
+
+    if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
       if (isRefreshing) {
         // Queue this request until token refresh completes
         return new Promise((resolve, reject) => {
@@ -77,8 +82,10 @@ api.interceptors.response.use(
         pendingRequests.forEach(({ reject }) => reject(new Error('Session expired')));
         pendingRequests = [];
         clearSession();
-        window.location.href = '/login';
-        return Promise.reject(error);
+        if (window.location.pathname !== '/login') {
+          window.location.href = '/login';
+        }
+        return Promise.reject(normalizeError(error));
       } finally {
         isRefreshing = false;
       }
