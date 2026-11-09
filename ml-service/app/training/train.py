@@ -8,6 +8,7 @@ SIH 2026 — Ministry of Consumer Affairs, Food & Public Distribution (DoCA).
 
 import os
 import sys
+from pathlib import Path
 
 # Ensure imports work whether run as module or script
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
@@ -75,7 +76,17 @@ def load_real_agmarknet_dataset() -> pd.DataFrame:
     """
     Ingests, cleans, and featurizes genuine daily market records from Agmarknet
     (data.gov.in official feed: min, max, modal prices across 1,200+ mandis).
+    Option A: First checks external Data Lake (outside Git repo).
+    Fallback: Uses internal seed dataset in DATA_DIR.
     """
+    # ── Option A: External Data Lake ──────────────────────────────────────────
+    data_lake_csv = Path(r"D:\Projects\Capstone\data_lake\unified_training_dataset.csv")
+    if data_lake_csv.exists():
+        print(f"  [OK] Ingesting unified dataset from Data Lake (Option A): {data_lake_csv.name}")
+        df = pd.read_csv(data_lake_csv)
+        print(f"  [OK] Loaded {len(df):,} records from Data Lake")
+        return df
+
     csv_path = DATA_DIR / "agmarknet_real_market_data.csv"
     if not csv_path.exists():
         print(f"  [WARN] {csv_path.name} not found, generating fallback dataset...")

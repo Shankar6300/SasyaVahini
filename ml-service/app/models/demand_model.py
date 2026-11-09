@@ -29,6 +29,11 @@ from app.training.features import (
     compute_mandi_arbitrage,
     detect_season,
 )
+from app.training.agronomic_matrix import (
+    calculate_festival_multiplier,
+    calculate_fourier_harmonics,
+    calculate_perishability_depreciation,
+)
 
 # ─── Module Level State ──────────────────────────────────────────────────────
 _model_p10 = None
@@ -148,6 +153,10 @@ def predict_demand(
     prev_demand = previous_demand_kg if previous_demand_kg is not None else float(base_demand)
     temp = temperature_celsius if temperature_celsius is not None else 26.0
 
+    # Auto-detect festival proximity from Indian Festival & Holiday Calendar
+    fest_mult, active_fest = calculate_festival_multiplier(datetime.now(), crop)
+    effective_festival = bool(festival_period) or (fest_mult > 1.05)
+
     if _models_loaded and _model_p50 is not None:
         # ── Multi-Quantile HistGradientBoosting Inference ─────────────────────
         row = build_advanced_feature_row(
@@ -155,7 +164,7 @@ def predict_demand(
             district=district,
             month=month,
             season=season,
-            festival_period=festival_period,
+            festival_period=effective_festival,
             previous_demand_kg=prev_demand,
             current_supply_kg=supply,
             temperature_celsius=temp,
@@ -166,6 +175,12 @@ def predict_demand(
         p10 = float(_model_p10.predict(df_input)[0])
         p50 = float(_model_p50.predict(df_input)[0])
         p90 = float(_model_p90.predict(df_input)[0])
+
+        # If festival proximity detected, apply calibrated harmonic surge
+        if fest_mult > 1.0:
+            p10 = round(p10 * fest_mult)
+            p50 = round(p50 * fest_mult)
+            p90 = round(p90 * fest_mult)
 
         p10 = max(400.0, round(p10))
         p50 = max(p10 + 200.0, round(p50))
@@ -182,8 +197,8 @@ def predict_demand(
 
     else:
         # ── Microeconomic Heuristic Fallback ─────────────────────────────────
-        festival_mult = 1.25 if festival_period else 1.0
-        p50 = round(base_demand * 0.5 + prev_demand * 0.4 * festival_mult)
+        heuristic_mult = fest_mult if fest_mult > 1.0 else (1.25 if festival_period else 1.0)
+        p50 = round(base_demand * 0.5 + prev_demand * 0.4 * heuristic_mult)
         p10 = round(p50 * 0.78)
         p90 = round(p50 * 1.28)
         predicted_demand = p50
@@ -206,11 +221,13 @@ def predict_demand(
     arbitrage_advisory = compute_mandi_arbitrage(crop, district, recommended_price, supply)
 
     # 7-day daily trajectory
-    daily_trajectory = _generate_7day_trajectory(p10, p50, p90, recommended_price, demand_level, festival_period)
+    daily_trajectory = _generate_7day_trajectory(p10, p50, p90, recommended_price, demand_level, effective_festival)
 
     # True instance-level marginal explainability breakdown
     explanations = []
-    if festival_period:
+    if active_fest:
+        explanations.append(f"Indian Festival Calendar: Proximity to {active_fest} generates a {fest_mult:.2f}x demand surge multiplier")
+    elif festival_period:
         explanations.append(f"Festival period creates a projected demand surge for {crop} (DoCA calendar lift)")
     if gap > 0:
         gap_pct = round((gap / max(1.0, supply)) * 100.0, 1)
@@ -296,16 +313,24 @@ def predict_price(
     price_min = max(3.0, round(rec_price * (1.0 - band_pct), 2))
     price_max = round(rec_price * (1.0 + band_pct), 2)
 
-    # Perishable decay discounting: if transit exceeds threshold, quality discount applies
-    decay_daily_rate = 0.04 if profile["perishability_tier"] in ("HIGH", "CRITICAL") else 0.008
-    spoilage_adjusted_price = max(price_min * 0.85, round(rec_price * (1.0 - transit * decay_daily_rate), 2))
+    # Agronomic Perishability Matrix: fair price depreciation discount (gamma * C_perish)
+    depreciation_info = calculate_perishability_depreciation(
+        crop=crop,
+        base_modal_price=rec_price,
+        transit_days=transit,
+        harvest_age_days=0.5,
+        temp_c=28.0,
+        gamma=0.30,
+    )
+    spoilage_adjusted_price = depreciation_info["fair_gate_price_per_kg"]
 
     # Market clearing volume projected at recommended price
     clearing_vol = round(quantity_kg * (1.0 if rec_price <= base_price else max(0.65, 1.0 + elasticity * ((rec_price - base_price) / base_price))))
 
     explanations = [
-        f"Price elasticity (elasticity = {elasticity:.2f}) informs farmer price sensitivity and clearance capacity",
+        f"Price elasticity (ε = {elasticity:.2f}) informs farmer price sensitivity and clearance capacity",
         f"At Rs. {rec_price}/kg, estimated market absorption is {clearing_vol:,.0f} kg ({round((clearing_vol/quantity_kg)*100)}% of lot)",
+        f"Agronomic Decay Discount: {depreciation_info['respiration_tier']} (gamma*C_perish discount: -Rs. {depreciation_info['discount_per_kg']}/kg, status: {depreciation_info['urgency_status']})",
         f"Direct platform sale retains intermediary margin (avg +18-24% higher than field agent quotes)",
     ]
 
