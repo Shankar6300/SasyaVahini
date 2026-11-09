@@ -78,3 +78,6 @@ desktop.ini
 *.p12
 *.pfx
 
+
+# Backend environment secrets
+backend/.env
