@@ -1,10 +1,12 @@
 # ──────────────────────────────────────────────────────────────────────────────
 # SasyaVahini — Docker Compose (Development Mode)
 #
-# Services:
-#   - db:       PostgreSQL 16 with persistent volume
-#   - backend:  Express API with nodemon hot-reload
-#   - frontend: Vite React dev server with HMR
+# Complete microservice stack with live hot-reload:
+#   - postgres:        PostgreSQL 16 with persistent volume (exposed on host port 5433)
+#   - routing-service: FastAPI CVRP logistics solver with uvicorn --reload (port 8001)
+#   - ml-service:      FastAPI Quantile Demand & Pricing engine with uvicorn --reload (port 8000)
+#   - backend:         Express API with nodemon hot-reload & Prisma migrations (port 5000)
+#   - frontend:        Vite React dev server with HMR (port 5173)
 #
 # Usage:
 #   docker compose -f docker-compose.dev.yml up --build
@@ -13,7 +15,7 @@
 
 services:
   # ── PostgreSQL Database ────────────────────────────────────────────────────
-  db:
+  postgres:
     image: postgres:16-alpine
     container_name: sasyavahini-db
     restart: unless-stopped
@@ -31,6 +33,43 @@ services:
       timeout: 5s
       retries: 10
 
+  # ── Logistics Routing Service (FastAPI + OR-Tools + CVRP) ──────────────────
+  routing-service:
+    build:
+      context: .
+      dockerfile: routing-service/Dockerfile
+    container_name: sasyavahini-routing
+    restart: unless-stopped
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./routing-service/main.py:/app/main.py
+    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8001", "--reload"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/docs')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── AI Demand Forecasting & Pricing Intelligence (FastAPI + Scikit-Learn) ──
+  ml-service:
+    build:
+      context: .
+      dockerfile: ml-service/Dockerfile
+    container_name: sasyavahini-ml
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./ml-service/app:/app/app
+      - ./ml-service/data:/app/data
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   # ── Backend API (Express + Prisma + Nodemon) ───────────────────────────────
   backend:
     build:
@@ -41,7 +80,7 @@ services:
     environment:
       NODE_ENV: development
       PORT: 5000
-      DATABASE_URL: "postgresql://postgres:postgres@db:5432/sasyavahini?schema=public"
+      DATABASE_URL: "postgresql://postgres:postgres@postgres:5432/sasyavahini?schema=public"
       JWT_ACCESS_SECRET: "docker-dev-access-secret-change-in-production"
       JWT_REFRESH_SECRET: "docker-dev-refresh-secret-change-in-production"
       JWT_ACCESS_EXPIRES_IN: "15m"
@@ -50,7 +89,10 @@ services:
       OTP_EXPIRY_SECONDS: "300"
       ML_SERVICE_URL: "http://ml-service:8000"
       ML_SERVICE_TIMEOUT_MS: "5000"
-      LOGISTICS_SERVICE_URL: "http://logistics-service:8001"
+      ROUTING_SERVICE_URL: "http://routing-service:8001"
+      LOGISTICS_SERVICE_URL: "http://routing-service:8001"
+      LOGISTICS_DATA_SOURCE: "mock"
+      OSRM_URL: "https://router.project-osrm.org"
       CORS_ORIGIN: "http://localhost:5173,http://localhost:3000"
     ports:
       - "5000:5000"
@@ -59,9 +101,13 @@ services:
       - ./backend/src:/app/backend/src
       - ./backend/prisma:/app/backend/prisma
     depends_on:
-      db:
+      postgres:
         condition: service_healthy
-    # Run migrations, seed, then start dev server
+      ml-service:
+        condition: service_healthy
+      routing-service:
+        condition: service_healthy
+    # Run migrations, generate client, seed, then start dev server with nodemon
     command: >
       sh -c "
         echo '⏳ Running Prisma migrations...' &&
@@ -93,7 +139,8 @@ services:
       - ./frontend/index.html:/app/frontend/index.html
       - ./frontend/vite.config.js:/app/frontend/vite.config.js
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
 
 volumes:
   pgdata:
