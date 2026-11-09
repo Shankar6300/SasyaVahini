@@ -151,6 +151,13 @@ export default function BuyerLoginPage() {
             <Link to="/buyer/register">Create one</Link>
           </p>
         </div>
+
+        <div className="mt-4 p-3 rounded-xl bg-slate-50 border border-slate-200 text-center text-xs text-slate-600">
+          Are you a farmer or FPO partner?{' '}
+          <Link to="/login" className="font-bold text-[#07875B] hover:underline">
+            Go to Farmer Portal →
+          </Link>
+        </div>
       </div>
     </AuthLayout>
   );

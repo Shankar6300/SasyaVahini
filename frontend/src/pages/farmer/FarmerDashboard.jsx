@@ -6,7 +6,8 @@ import {
   Package, Plus, TrendingUp, DollarSign, AlertCircle, Trash2, Edit3,
   CheckCircle, ChevronRight, ShieldCheck, MapPin, Eye, Search,
   Layers, Bell, UserCheck, Sparkles, Sliders, LayoutDashboard,
-  HandCoins, User, Wheat, Menu, X as XIcon, RefreshCw, ArrowUpRight, Info, Mic
+  HandCoins, User, Wheat, Menu, X as XIcon, RefreshCw, ArrowUpRight, Info, Mic,
+  Truck
 } from 'lucide-react';
 import MarketIntelligenceWidget from '../../components/ml/MarketIntelligenceWidget';
 

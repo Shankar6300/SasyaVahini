@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import RoleBadge from '@/components/RoleBadge';
+import MarketIntelligenceWidget from '@/components/ml/MarketIntelligenceWidget';
 import '@/styles/buyer-auth.css';
 
 /* ── Sidebar navigation structure ───────────────────────────────────────── */
@@ -15,6 +16,7 @@ const SIDEBAR_SECTIONS = [
     title: 'Overview',
     links: [
       { to: '/buyer', icon: LayoutDashboard, label: 'Dashboard', end: true },
+      { to: '/market-intelligence', icon: TrendingUp, label: 'AI Price Intelligence' },
     ],
   },
   {
@@ -29,7 +31,7 @@ const SIDEBAR_SECTIONS = [
     title: 'Orders',
     links: [
       { to: '/buyer/orders', icon: ClipboardList, label: 'My Orders', badge: 'Soon' },
-      { to: '/buyer/tracking', icon: Truck, label: 'Track Delivery', badge: 'Soon' },
+      { to: '/buyer/tracking', icon: Truck, label: 'Order Tracking', badge: 'Soon' },
       { to: '/buyer/invoices', icon: FileText, label: 'Invoices', badge: 'Soon' },
     ],
   },
@@ -54,8 +56,8 @@ const STATS = [
 /* ── Quick actions ──────────────────────────────────────────────────────── */
 const QUICK_ACTIONS = [
   { label: 'Browse Produce', icon: Search, to: '/buyer/marketplace' },
-  { label: 'View Orders', icon: ClipboardList, to: '/buyer/orders' },
-  { label: 'Track Delivery', icon: Truck, to: '/buyer/tracking' },
+  { label: 'AI Price Discovery', icon: TrendingUp, to: '/market-intelligence' },
+  { label: 'My Orders', icon: ClipboardList, to: '/buyer/orders' },
   { label: 'Manage Addresses', icon: MapPin, to: '/buyer/addresses' },
 ];
 
@@ -130,6 +132,11 @@ export default function BuyerDashboard() {
               </div>
             );
           })}
+        </div>
+
+        {/* AI Market Intelligence & Wholesale Price Discovery */}
+        <div style={{ marginBottom: 'var(--space-6)' }}>
+          <MarketIntelligenceWidget initialDistrict="Pune" />
         </div>
 
         {/* Content Grid */}

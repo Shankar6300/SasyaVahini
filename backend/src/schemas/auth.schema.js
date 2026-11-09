@@ -16,6 +16,33 @@ const registerSchema = z.object({
     .regex(/[0-9]/, 'Must contain a number'),
   role: z.enum(['FARMER', 'FPO', 'BUYER', 'LOGISTICS']), // ADMIN created separately
   preferredLocale: z.enum(['en', 'hi', 'mr']).optional().default('en'),
+
+  // Role-specific profile attributes (optional on base schema)
+  // Farmer attributes
+  landSizeAcres: z.number().positive().optional(),
+  state: z.string().optional(),
+  district: z.string().optional(),
+  village: z.string().optional(),
+  produceTypes: z.union([z.array(z.string()), z.string()]).optional(),
+
+  // Buyer attributes
+  organizationName: z.string().optional(),
+  buyerType: z.string().optional(),
+  gstNumber: z.string().optional(),
+  deliveryState: z.string().optional(),
+  deliveryDistrict: z.string().optional(),
+  deliveryAddress: z.string().optional(),
+
+  // Logistics attributes
+  companyName: z.string().optional(),
+  licenseNo: z.string().optional(),
+  serviceStates: z.union([z.array(z.string()), z.string()]).optional(),
+  serviceDistricts: z.union([z.array(z.string()), z.string()]).optional(),
+
+  // FPO attributes
+  fpoName: z.string().optional(),
+  registrationNo: z.string().optional(),
+  memberCount: z.number().int().nonnegative().optional(),
 });
 
 const loginSchema = z.object({

@@ -13,11 +13,32 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const ROLE_NAV = {
-    FARMER:    [{ label: t('nav.dashboard', 'Dashboard'), to: '/farmer' }, { label: t('farmer.myListings', 'My Produce'), to: '/farmer' }],
-    FPO:       [{ label: t('nav.dashboard', 'Dashboard'), to: '/fpo' },    { label: t('fpo.members', 'Members'), to: '/fpo' }],
-    BUYER:     [{ label: t('nav.dashboard', 'Dashboard'), to: '/buyer' },  { label: 'Marketplace', to: '/buyer' }],
-    LOGISTICS: [{ label: t('nav.dashboard', 'Dashboard'), to: '/logistics' }, { label: 'Deliveries', to: '/logistics' }],
-    ADMIN:     [{ label: t('nav.dashboard', 'Dashboard'), to: '/admin' },  { label: 'Users', to: '/admin' }],
+    FARMER: [
+      { label: t('nav.dashboard', 'Dashboard'), to: '/farmer' },
+      { label: t('nav.marketIntelligence', 'Market Intelligence'), to: '/market-intelligence' },
+      { label: t('farmer.myListings', 'My Listings'), to: '/farmer' },
+    ],
+    FPO: [
+      { label: t('nav.dashboard', 'Dashboard'), to: '/fpo' },
+      { label: t('nav.marketIntelligence', 'Market Intelligence'), to: '/market-intelligence' },
+      { label: t('fpo.members', 'Members'), to: '/fpo' },
+    ],
+    BUYER: [
+      { label: t('nav.dashboard', 'Dashboard'), to: '/buyer' },
+      { label: t('nav.priceDiscovery', 'AI Price Intelligence'), to: '/market-intelligence' },
+      { label: t('buyer.browse', 'Marketplace'), to: '/buyer' },
+    ],
+    LOGISTICS: [
+      { label: t('nav.dashboard', 'Operations Center'), to: '/logistics' },
+      { label: 'Shipments Dispatch', to: '/logistics/shipments' },
+      { label: 'Live Fleet Map', to: '/logistics/map' },
+      { label: 'Milestone Control', to: '/logistics/milestones' },
+    ],
+    ADMIN: [
+      { label: t('nav.dashboard', 'Admin Center'), to: '/admin' },
+      { label: t('nav.marketIntelligence', 'Market Intelligence'), to: '/market-intelligence' },
+      { label: t('nav.logistics', 'Fleet Operations'), to: '/logistics' },
+    ],
   };
 
   const navItems = isAuthenticated && user?.role ? ROLE_NAV[user.role] ?? [] : [];
@@ -41,13 +62,18 @@ export default function Navbar() {
                 </NavLink>
               </li>
               <li>
-                <NavLink to="/about" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
-                  {t('nav.about', 'About')}
+                <NavLink to="/login" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
+                  🌾 {t('nav.farmerPortal', 'Farmer Portal')}
                 </NavLink>
               </li>
               <li>
                 <NavLink to="/buyer/login" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
-                  {t('nav.buyerPortal', 'Buyer Portal')}
+                  🛒 {t('nav.buyerPortal', 'Buyer Portal')}
+                </NavLink>
+              </li>
+              <li>
+                <NavLink to="/logistics/login" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
+                  🚚 {t('nav.logisticsPortal', 'Logistics Portal')}
                 </NavLink>
               </li>
             </>
@@ -79,13 +105,18 @@ export default function Navbar() {
               </button>
             </>
           ) : (
-            <>
-              <NavLink to="/buyer/login" className="btn btn-ghost btn-sm" style={{ color: 'var(--color-primary)', fontWeight: 600 }}>
-                {t('nav.buyerLogin', 'Buyer Login')}
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <NavLink to="/login" className="btn btn-ghost btn-sm" style={{ fontWeight: 600 }}>
+                🌾 {t('nav.farmerLogin', 'Farmer')}
               </NavLink>
-              <NavLink to="/login" className="btn btn-ghost btn-sm">{t('nav.login', 'Sign In')}</NavLink>
+              <NavLink to="/buyer/login" className="btn btn-ghost btn-sm" style={{ color: 'var(--color-primary)', fontWeight: 600 }}>
+                🛒 {t('nav.buyerLogin', 'Buyer')}
+              </NavLink>
+              <NavLink to="/logistics/login" className="btn btn-ghost btn-sm" style={{ fontWeight: 600 }}>
+                🚚 {t('nav.logisticsLogin', 'Logistics')}
+              </NavLink>
               <NavLink to="/register" className="btn btn-primary btn-sm">{t('nav.register', 'Get Started')}</NavLink>
-            </>
+            </div>
           )}
 
           {/* Mobile hamburger */}

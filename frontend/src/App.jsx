@@ -24,6 +24,7 @@ import BuyerLoginPage     from './pages/buyer/auth/BuyerLoginPage';
 import BuyerRegisterPage  from './pages/buyer/auth/BuyerRegisterPage';
 import ForgotPasswordPage from './pages/buyer/auth/ForgotPasswordPage';
 import ResetPasswordPage  from './pages/buyer/auth/ResetPasswordPage';
+import LogisticsLoginPage from './pages/logistics/auth/LogisticsLoginPage';
 
 /**
  * Auto-redirect authenticated users from / to their role dashboard.
@@ -41,19 +42,38 @@ export default function App() {
     <>
       <Navbar />
       <Routes>
-        {/* Public */}
+        {/* Public Auth & Marketing */}
         <Route path="/"            element={<HomeRedirect />} />
         <Route path="/login"       element={<LoginPage />} />
         <Route path="/register"    element={<RegisterPage />} />
         <Route path="/unauthorized" element={<UnauthorizedPage />} />
-        <Route path="/market-intelligence" element={<MarketIntelligencePage />} />
-        <Route path="/prices" element={<MarketIntelligencePage />} />
+
+        {/* Protected AI Market Intelligence (Accessible across all authenticated roles) */}
+        <Route
+          path="/market-intelligence"
+          element={
+            <ProtectedRoute roles={['FARMER', 'BUYER', 'ADMIN', 'FPO', 'LOGISTICS']}>
+              <MarketIntelligencePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/prices"
+          element={
+            <ProtectedRoute roles={['FARMER', 'BUYER', 'ADMIN', 'FPO', 'LOGISTICS']}>
+              <MarketIntelligencePage />
+            </ProtectedRoute>
+          }
+        />
 
         {/* ── Buyer auth routes (Phase 1) ─────────────────────────── */}
         <Route path="/buyer/login"          element={<BuyerLoginPage />} />
         <Route path="/buyer/register"       element={<BuyerRegisterPage />} />
         <Route path="/buyer/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/buyer/reset-password" element={<ResetPasswordPage />} />
+
+        {/* ── Logistics auth routes ─────────────────────────────────── */}
+        <Route path="/logistics/login"      element={<LogisticsLoginPage />} />
 
         {/* Farmer — Member 2 will add child routes */}
         <Route
@@ -85,11 +105,11 @@ export default function App() {
           }
         />
 
-        {/* Logistics — Member 4 */}
+        {/* Logistics Operations Center — Dedicated Independent Portal */}
         <Route
           path="/logistics/*"
           element={
-            <ProtectedRoute roles={['LOGISTICS']}>
+            <ProtectedRoute roles={['LOGISTICS', 'ADMIN']}>
               <LogisticsDashboard />
             </ProtectedRoute>
           }

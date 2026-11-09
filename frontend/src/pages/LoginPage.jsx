@@ -9,7 +9,7 @@ import Alert from '../components/Alert';
 import LanguageSelector from '../components/LanguageSelector';
 
 export default function LoginPage() {
-  const { login, previewLogin } = useAuth();
+  const { login } = useAuth();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
@@ -60,12 +60,6 @@ export default function LoginPage() {
     }
   };
 
-  const handleLogisticsPreview = () => {
-    const user = previewLogin();
-    navigate('/logistics', { replace: true });
-    return user;
-  };
-
   return (
     <div className="auth-page">
       <div className="auth-card relative">
@@ -82,8 +76,8 @@ export default function LoginPage() {
           </span>
         </div>
 
-        <h1 className="auth-title">{t('auth.loginTitle', 'Welcome back')}</h1>
-        <p className="auth-subtitle">{t('auth.loginSubtitle', 'Sign in to your account')}</p>
+        <h1 className="auth-title">🌾 {t('auth.farmerLoginTitle', 'Farmer & Partner Portal')}</h1>
+        <p className="auth-subtitle">{t('auth.farmerLoginSubtitle', 'Sign in to access your farm dashboard, listings, and orders')}</p>
 
         {apiError && (
           <Alert variant="error" className="mb-6">{apiError}</Alert>
@@ -130,53 +124,20 @@ export default function LoginPage() {
           </Button>
         </form>
 
-        <div className="divider mt-6">{t('common.or', 'or')}</div>
-
-        {import.meta.env.DEV && (
-          <button
-            type="button"
-            className="btn btn-secondary w-full mb-4"
-            onClick={handleLogisticsPreview}
-          >
-            Open Logistics Preview (no database)
-          </button>
-        )}
-
-        {/* Demo credentials */}
-        <details style={{ marginBottom: 'var(--space-4)' }}>
-          <summary style={{ cursor: 'pointer', fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', userSelect: 'none' }}>
-            {t('auth.demoCredentials', 'Demo credentials (SIH prototype)')}
-          </summary>
-          <div style={{ marginTop: 'var(--space-3)', fontSize: 'var(--text-xs)', background: 'var(--color-bg)', borderRadius: 'var(--radius-md)', padding: 'var(--space-3)' }}>
-            <p style={{ marginBottom: 'var(--space-2)', color: 'var(--color-text-secondary)' }}>
-              {t('auth.demoPassword', 'Password for all: <code>DemoPass1</code>')}
-            </p>
-            {[
-              ['Farmer (Ramesh)',  'farmer@demo.sasyavahini.in'],
-              ['FPO (Sahyadri)',   'fpo@demo.sasyavahini.in'],
-              ['Buyer (FreshB2B)', 'buyer@demo.sasyavahini.in'],
-              ['Logistics (Speed)','logistics@demo.sasyavahini.in'],
-              ['Admin (Govt)',     'admin@demo.sasyavahini.in'],
-            ].map(([role, email]) => (
-              <button
-                key={role}
-                type="button"
-                className="btn btn-ghost btn-sm"
-                style={{ display: 'block', width: '100%', textAlign: 'left', marginBottom: 2 }}
-                onClick={() => setForm({ email, password: 'DemoPass1' })}
-              >
-                {role}: {email}
-              </button>
-            ))}
-          </div>
-        </details>
-
-        <p style={{ textAlign: 'center', fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)' }}>
+        <p style={{ textAlign: 'center', fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', marginTop: 'var(--space-6)' }}>
           {t('auth.dontHaveAccount', "Don't have an account?")}{' '}
           <Link to="/register" style={{ color: 'var(--color-primary)', fontWeight: 600 }}>
             {t('auth.createAccount', 'Create account')}
           </Link>
         </p>
+
+        {/* Portal switch link */}
+        <div className="mt-4 p-3 rounded-xl bg-slate-50 border border-slate-200 text-center text-xs text-slate-600">
+          Looking to purchase wholesale produce?{' '}
+          <Link to="/buyer/login" className="font-bold text-[#07875B] hover:underline">
+            Go to Buyer Portal →
+          </Link>
+        </div>
       </div>
     </div>
   );

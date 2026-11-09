@@ -62,7 +62,17 @@ export default function LandingPage() {
             <Link to="/login" className="btn btn-lg btn-secondary" style={{
               borderColor: 'rgba(255,255,255,0.5)', color: 'white',
             }}>
-              Sign In
+              🌾 Farmer Portal
+            </Link>
+            <Link to="/buyer/login" className="btn btn-lg btn-secondary" style={{
+              borderColor: 'rgba(255,255,255,0.5)', color: 'white',
+            }}>
+              🛒 Buyer Portal
+            </Link>
+            <Link to="/logistics/login" className="btn btn-lg btn-secondary" style={{
+              borderColor: 'rgba(255,255,255,0.5)', color: 'white',
+            }}>
+              🚚 Logistics Portal
             </Link>
           </div>
         </div>
