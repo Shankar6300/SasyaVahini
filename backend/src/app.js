@@ -54,17 +54,19 @@ app.use(
 // ─── Rate limiting ────────────────────────────────────────────────────────────
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 500,
+  max: process.env.NODE_ENV === 'production' ? 500 : 5000,
   standardHeaders: true,
   legacyHeaders: false,
+  skip: () => process.env.NODE_ENV !== 'production',
   message: { success: false, error: { code: 'RATE_LIMIT', message: 'Too many requests' } },
 });
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 20, // Stricter for auth
+  max: process.env.NODE_ENV === 'production' ? 20 : 1000,
   standardHeaders: true,
   legacyHeaders: false,
+  skip: () => process.env.NODE_ENV !== 'production',
   message: { success: false, error: { code: 'RATE_LIMIT', message: 'Too many auth requests' } },
 });
 
