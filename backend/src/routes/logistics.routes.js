@@ -71,7 +71,7 @@ router.get(
 router.post(
   '/plan',
   authenticate,
-  requireRole(['BUYER', 'FPO', 'ADMIN']),
+  requireRole(['BUYER', 'FPO', 'ADMIN', 'LOGISTICS']),
   validate(planOrderSchema),
   controller.planOrder,
 );
@@ -79,7 +79,7 @@ router.post(
 router.post(
   '/plans/:quoteId/confirm',
   authenticate,
-  requireRole(['BUYER', 'FPO', 'ADMIN']),
+  requireRole(['BUYER', 'FPO', 'ADMIN', 'LOGISTICS']),
   controller.confirmPlan,
 );
 
@@ -130,6 +130,53 @@ router.get(
 );
 
 // GET /api/logistics/vehicles (Fleet list)
+// POST /api/logistics/vehicles (Register new commercial vehicle & documents)
+router.post(
+  '/vehicles',
+  authenticate,
+  requireRole(['LOGISTICS', 'ADMIN']),
+  controller.createVehicle,
+);
+
+// GET /api/logistics/vehicles/:id (Vehicle specs & verification docs)
+router.get(
+  '/vehicles/:id',
+  authenticate,
+  controller.getVehicleDetail,
+);
+
+// GET /api/logistics/admin/verification-queue (DoCA Admin Verification Queue)
+router.get(
+  '/admin/verification-queue',
+  authenticate,
+  requireRole(['ADMIN', 'LOGISTICS']),
+  controller.getAdminVerificationQueue,
+);
+
+// PATCH /api/logistics/admin/vehicles/:id/verify (Verify / Reject vehicle)
+router.patch(
+  '/admin/vehicles/:id/verify',
+  authenticate,
+  requireRole(['ADMIN']),
+  controller.verifyVehicle,
+);
+
+// PATCH /api/logistics/admin/drivers/:id/verify (Verify / Reject driver profile)
+router.patch(
+  '/admin/drivers/:id/verify',
+  authenticate,
+  requireRole(['ADMIN']),
+  controller.verifyDriver,
+);
+
+// PATCH /api/logistics/admin/documents/:id/verify (Verify / Reject vehicle document)
+router.patch(
+  '/admin/documents/:id/verify',
+  authenticate,
+  requireRole(['ADMIN']),
+  controller.verifyDocument,
+);
+
 router.get(
   '/vehicles',
   authenticate,

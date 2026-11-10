@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { MapPin, Truck, Thermometer, Clock, Navigation, CheckCircle2, RotateCw } from 'lucide-react';
+import { MapPin, Truck, Thermometer, Clock, Navigation, CheckCircle2, RotateCw, Compass } from 'lucide-react';
 import logisticsApi from '../../services/logisticsApi';
 import LiveMap from '../../components/logistics/LiveMap';
 import SavingsCard from '../../components/logistics/SavingsCard';
@@ -17,6 +17,7 @@ export default function RouteMap() {
   const [loading, setLoading] = useState(true);
   const [trackingData, setTrackingData] = useState(null);
   const [shipmentId, setShipmentId] = useState(queryShipmentId || 'SV-DATASET-S2-001');
+  const [routeMode, setRouteMode] = useState('HIGHWAY');
 
   const fetchTracking = async () => {
     try {
@@ -115,6 +116,88 @@ export default function RouteMap() {
         </div>
       )}
 
+      {/* Truckable Route Strategy & Multi-Criteria Optimizer */}
+      <div className="card p-4 rounded-xl bg-white border space-y-3" style={{ borderColor: 'var(--color-border)' }}>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h3 className="font-bold text-sm text-gray-900 flex items-center gap-2">
+              <Compass size={18} style={{ color: 'var(--color-primary)' }} />
+              Truckable Route Strategy (India Multi-Criteria Optimizer)
+            </h3>
+            <p className="text-xs text-secondary mt-0.5">
+              Evaluating road classification (NH vs SH vs Rural lanes), truck load friction, and diesel consumption.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setRouteMode('HIGHWAY')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
+                routeMode === 'HIGHWAY'
+                  ? 'bg-emerald-600 text-white shadow-sm'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              <span>NH-60 Corridor (Recommended)</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setRouteMode('RURAL')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
+                routeMode === 'RURAL'
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              <span>SH-54 Rural Short Direct</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Route Details Card */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-1">
+          <div className="bg-gray-50 p-2.5 rounded border border-gray-200">
+            <span className="text-secondary text-xs">Route Distance:</span>
+            <div className="text-base font-bold text-gray-900 mt-0.5">
+              {routeMode === 'HIGHWAY' ? '96.0 km' : '82.5 km'}
+            </div>
+            <div className="text-xs text-gray-500">
+              {routeMode === 'HIGHWAY' ? '75% 4-Lane Highway' : '50% Narrow Rural Road'}
+            </div>
+          </div>
+
+          <div className="bg-gray-50 p-2.5 rounded border border-gray-200">
+            <span className="text-secondary text-xs">Transit & Handling ETA:</span>
+            <div className="text-base font-bold text-blue-700 mt-0.5">
+              {routeMode === 'HIGHWAY' ? '1h 50m (110 mins)' : '3h 05m (185 mins)'}
+            </div>
+            <div className="text-xs text-gray-500">
+              {routeMode === 'HIGHWAY' ? 'Avg 52 km/h free-flow' : 'Avg 26 km/h village turns'}
+            </div>
+          </div>
+
+          <div className="bg-gray-50 p-2.5 rounded border border-gray-200">
+            <span className="text-secondary text-xs">Diesel Consumption:</span>
+            <div className="text-base font-bold text-amber-700 mt-0.5">
+              {routeMode === 'HIGHWAY' ? '23.4 Litres (₹2,223)' : '29.8 Litres (₹2,831)'}
+            </div>
+            <div className="text-xs text-gray-500">
+              {routeMode === 'HIGHWAY' ? 'Eff: 4.2 km/L (Saves ₹608)' : 'Eff: 2.9 km/L (Heavy idling)'}
+            </div>
+          </div>
+
+          <div className="bg-gray-50 p-2.5 rounded border border-gray-200">
+            <span className="text-secondary text-xs">Cargo Spoilage Risk:</span>
+            <div className="text-base font-bold mt-0.5" style={{ color: routeMode === 'HIGHWAY' ? '#07875B' : '#DC2626' }}>
+              {routeMode === 'HIGHWAY' ? 'Minimal Risk (Cold Chain OK)' : 'Elevated (Bumpy & Delayed)'}
+            </div>
+            <div className="text-xs text-gray-500">
+              {routeMode === 'HIGHWAY' ? 'Smooth highway bypass' : 'Excessive vibration & delay'}
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Map and Stops Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Live Map (2 Cols) */}
@@ -124,6 +207,8 @@ export default function RouteMap() {
             buyer={trackingData?.stops?.find((s) => s.stopType === 'DELIVERY') || { lat: 18.5089, lng: 73.9260, name: 'Hadapsar Hub' }}
             vehicle={trackingData?.currentLocation ? { ...trackingData.currentLocation, vehicleNumber: trackingData.vehicle?.vehicleNumber } : null}
             routeGeometry={trackingData?.route?.geometry}
+            alternativeGeometry={trackingData?.route?.alternativeRoute?.geometry}
+            activeRouteMode={routeMode}
             height="460px"
           />
         </div>

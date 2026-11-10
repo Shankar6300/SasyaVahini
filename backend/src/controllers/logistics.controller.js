@@ -9,6 +9,7 @@
 
 const logisticsService = require('../services/logistics.service');
 const vehicleService = require('../services/vehicle.service');
+const prisma = require('../lib/prisma');
 const { sendSuccess, buildPaginationMeta } = require('../utils/apiResponse');
 
 // ─── Contract Endpoints ────────────────────────────────────────────────────────
@@ -198,6 +199,95 @@ const streamTracking = async (req, res, next) => {
   }
 };
 
+
+const createVehicle = async (req, res, next) => {
+  try {
+    let logisticsId = req.body.logisticsId;
+    if (!logisticsId) {
+      const profile = await prisma.logisticsProfile.findUnique({
+        where: { userId: req.user.id },
+      });
+      if (profile) {
+        logisticsId = profile.id;
+      } else if (req.user.role === 'ADMIN') {
+        const anyLogistics = await prisma.logisticsProfile.findFirst();
+        logisticsId = anyLogistics ? anyLogistics.id : req.user.id;
+      } else {
+        return res.status(400).json({
+          success: false,
+          error: 'No logistics profile associated with this account. Please register as a transport partner first.',
+        });
+      }
+    }
+    const vehicle = await vehicleService.createVehicle(logisticsId, req.body);
+    return sendSuccess(res, vehicle, 201);
+  } catch (err) {
+    next(err);
+  }
+};
+
+const getVehicleDetail = async (req, res, next) => {
+  try {
+    const vehicle = await vehicleService.findById(req.params.id);
+    if (!vehicle) {
+      return res.status(404).json({ success: false, error: 'Vehicle not found' });
+    }
+    return sendSuccess(res, vehicle);
+  } catch (err) {
+    next(err);
+  }
+};
+
+const getAdminVerificationQueue = async (req, res, next) => {
+  try {
+    const queue = await vehicleService.getAdminVerificationQueue();
+    return sendSuccess(res, queue);
+  } catch (err) {
+    next(err);
+  }
+};
+
+const verifyVehicle = async (req, res, next) => {
+  try {
+    const { status = 'VERIFIED', adminRemarks = '', rejectionReason = '' } = req.body;
+    const result = await vehicleService.verifyVehicle(req.params.id, {
+      status,
+      adminRemarks,
+      rejectionReason,
+    });
+    return sendSuccess(res, result);
+  } catch (err) {
+    next(err);
+  }
+};
+
+const verifyDriver = async (req, res, next) => {
+  try {
+    const { status = 'VERIFIED', adminRemarks = '', rejectionReason = '' } = req.body;
+    const result = await vehicleService.verifyDriver(req.params.id, {
+      status,
+      adminRemarks,
+      rejectionReason,
+    });
+    return sendSuccess(res, result);
+  } catch (err) {
+    next(err);
+  }
+};
+
+const verifyDocument = async (req, res, next) => {
+  try {
+    const { status = 'VERIFIED', adminRemarks = '', rejectionReason = '' } = req.body;
+    const result = await vehicleService.verifyDocument(req.params.id, {
+      status,
+      adminRemarks,
+      rejectionReason,
+    });
+    return sendSuccess(res, result);
+  } catch (err) {
+    next(err);
+  }
+};
 module.exports = {
   getAvailableShipments,
   acceptShipment,
@@ -212,6 +302,12 @@ module.exports = {
   listShipments,
   getShipmentById,
   listVehicles,
+  createVehicle,
+  getVehicleDetail,
+  getAdminVerificationQueue,
+  verifyVehicle,
+  verifyDriver,
+  verifyDocument,
   updateVehicleLocation,
   getOrderMap,
   getSavingsAnalytics,

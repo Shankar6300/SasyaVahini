@@ -36,11 +36,11 @@ const PREVIEW_SHIPMENT = {
   driverPhone: '+919822014012',
   status: 'TRANSIT',
   totalWeightKg: 2500,
-  totalDistanceKm: 78.5,
-  baselineDistanceKm: 142,
-  savedDistanceKm: 63.5,
-  estimatedFuelSavedRs: 1508.13,
-  utilizationPercent: 83.3,
+  totalDistanceKm: 96,
+  baselineDistanceKm: 165,
+  savedDistanceKm: 69,
+  estimatedFuelSavedRs: 1639,
+  utilizationPercent: 100,
   estimatedMinutes: 110,
   currentLocation: { latitude: 18.7230, longitude: 73.8910, speedKmh: 44, lastPingAt: new Date().toISOString() },
   routeGeometry: {
@@ -51,6 +51,35 @@ const PREVIEW_SHIPMENT = {
       [73.8636, 18.7606],
       [73.9260, 18.5089],
     ],
+  },
+  primaryRoute: {
+    label: 'Primary Highway Corridor (NH-60 Commercial Bypass)',
+    distanceKm: 96,
+    etaMinutes: 110,
+    fuelLitres: 23.4,
+    fuelCostRs: 2223,
+    roadBreakdown: { highwayKm: 72, stateHighwayKm: 18, ruralKm: 6 },
+    spoilageRisk: 'LOW',
+    isRecommended: true,
+  },
+  alternativeRoute: {
+    label: 'Alternative Rural Short Route (SH-54 Direct)',
+    distanceKm: 82.5,
+    etaMinutes: 185,
+    fuelLitres: 29.8,
+    fuelCostRs: 2831,
+    roadBreakdown: { highwayKm: 10, stateHighwayKm: 31, ruralKm: 41.5 },
+    spoilageRisk: 'ELEVATED',
+    isRecommended: false,
+    geometry: {
+      type: 'LineString',
+      coordinates: [
+        [73.9400, 18.9880],
+        [73.9250, 18.8950],
+        [73.8800, 18.7900],
+        [73.9260, 18.5089],
+      ],
+    },
   },
   coldChain: { currentTempC: 13.8, status: 'OPTIMAL', minTempC: 10, maxTempC: 16 },
   stops: [
@@ -85,12 +114,12 @@ const previewPlan = {
 
 const previewSavings = {
   totalShipments: 1,
-  baselineKm: 142,
-  optimizedKm: 78.5,
-  savedKm: 63.5,
-  fuelSavedRs: 1508.13,
-  utilizationPercent: 83.3,
-  avgVehicleUtilizationPercent: 83.3,
+  baselineKm: 165,
+  optimizedKm: 96,
+  savedKm: 69,
+  fuelSavedRs: 1639,
+  utilizationPercent: 100,
+  avgVehicleUtilizationPercent: 100,
   fleetSummary: { totalVehicles: 5, availableVehicles: 4, activeOnRoute: 1 },
 };
 
@@ -131,7 +160,36 @@ export const logisticsApi = {
         driverPhone: PREVIEW_SHIPMENT.driverPhone,
       },
       currentLocation: PREVIEW_SHIPMENT.currentLocation,
-      coldChain: PREVIEW_SHIPMENT.coldChain,
+      primaryRoute: {
+    label: 'Primary Highway Corridor (NH-60 Commercial Bypass)',
+    distanceKm: 96,
+    etaMinutes: 110,
+    fuelLitres: 23.4,
+    fuelCostRs: 2223,
+    roadBreakdown: { highwayKm: 72, stateHighwayKm: 18, ruralKm: 6 },
+    spoilageRisk: 'LOW',
+    isRecommended: true,
+  },
+  alternativeRoute: {
+    label: 'Alternative Rural Short Route (SH-54 Direct)',
+    distanceKm: 82.5,
+    etaMinutes: 185,
+    fuelLitres: 29.8,
+    fuelCostRs: 2831,
+    roadBreakdown: { highwayKm: 10, stateHighwayKm: 31, ruralKm: 41.5 },
+    spoilageRisk: 'ELEVATED',
+    isRecommended: false,
+    geometry: {
+      type: 'LineString',
+      coordinates: [
+        [73.9400, 18.9880],
+        [73.9250, 18.8950],
+        [73.8800, 18.7900],
+        [73.9260, 18.5089],
+      ],
+    },
+  },
+  coldChain: PREVIEW_SHIPMENT.coldChain,
       route: {
         totalDistanceKm: PREVIEW_SHIPMENT.totalDistanceKm,
         remainingDistanceKm: 41.2,
@@ -200,6 +258,42 @@ export const logisticsApi = {
     const preview = previewCall(PREVIEW_VEHICLES);
     if (preview) return preview;
     const res = await api.get('/logistics/vehicles', { params });
+    return res.data.data;
+  },
+
+  // Register new commercial vehicle with verified specifications & documents
+  createVehicle: async (vehiclePayload) => {
+    const res = await api.post('/logistics/vehicles', vehiclePayload);
+    return res.data.data;
+  },
+
+  // Detailed vehicle specifications & documents
+  getVehicleDetail: async (vehicleId) => {
+    const res = await api.get(`/logistics/vehicles/${vehicleId}`);
+    return res.data.data;
+  },
+
+  // DoCA Admin Verification Queue for pending partners, drivers, and vehicles
+  getAdminVerificationQueue: async () => {
+    const res = await api.get('/logistics/admin/verification-queue');
+    return res.data.data;
+  },
+
+  // Verify or reject vehicle
+  verifyVehicle: async (vehicleId, payload) => {
+    const res = await api.patch(`/logistics/admin/vehicles/${vehicleId}/verify`, payload);
+    return res.data.data;
+  },
+
+  // Verify or reject driver / partner profile
+  verifyDriver: async (profileId, payload) => {
+    const res = await api.patch(`/logistics/admin/drivers/${profileId}/verify`, payload);
+    return res.data.data;
+  },
+
+  // Verify or reject single vehicle document
+  verifyDocument: async (docId, payload) => {
+    const res = await api.patch(`/logistics/admin/documents/${docId}/verify`, payload);
     return res.data.data;
   },
 
