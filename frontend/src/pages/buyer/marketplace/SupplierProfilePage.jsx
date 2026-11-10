@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import marketplaceApi from '@/services/marketplaceApi';
 import ProductCard from '@/components/buyer/marketplace/ProductCard';
@@ -9,8 +9,15 @@ import {
 } from 'lucide-react';
 import '@/styles/marketplace.css';
 
-export default function SupplierProfilePage() {
-  const { supplierId } = useParams();
+export default function SupplierProfilePage({ supplierId: propSupplierId }) {
+  const params = useParams();
+  const location = useLocation();
+  const supplierId =
+    propSupplierId ||
+    params.supplierId ||
+    (location.pathname.includes('/suppliers/')
+      ? location.pathname.split('/suppliers/')[1]?.split('?')[0]?.split('/')[0]
+      : null);
   const { user } = useAuth();
 
   const [supplier, setSupplier] = useState(null);
@@ -48,6 +55,9 @@ export default function SupplierProfilePage() {
     if (supplierId) {
       loadSupplierData();
       window.scrollTo(0, 0);
+    } else {
+      setIsLoading(false);
+      setError('Supplier ID not found in URL.');
     }
 
     return () => { isMounted = false; };

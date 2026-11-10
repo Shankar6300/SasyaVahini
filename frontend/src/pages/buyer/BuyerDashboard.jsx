@@ -629,14 +629,14 @@ export default function BuyerDashboard() {
         {/* Phase 3 Dedicated Product Detail Page */}
         {activeTab === 'PRODUCT_DETAIL' && (
           <div className="buyer-animate-in">
-            <ProductDetailPage />
+            <ProductDetailPage productId={location.pathname.split('/products/')[1]?.split('?')[0]?.split('/')[0]} />
           </div>
         )}
 
         {/* Phase 3 Dedicated Supplier Profile Page */}
         {activeTab === 'SUPPLIER_PROFILE' && (
           <div className="buyer-animate-in">
-            <SupplierProfilePage />
+            <SupplierProfilePage supplierId={location.pathname.split('/suppliers/')[1]?.split('?')[0]?.split('/')[0]} />
           </div>
         )}
 
