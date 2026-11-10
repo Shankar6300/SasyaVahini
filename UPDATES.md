@@ -138,7 +138,7 @@ Phase 2 built the entire authenticated buyer management workspace to satisfy bot
   1. **Notification Preferences:**
      - **SMS Notifications:** Real-time dispatch alerts and delivery OTP notifications.
      - **Email Notifications:** Weekly APMC Mandi price summaries and invoices.
-     - **WhatsApp Telematics:** Live shipment location updates from Shankar's cold-chain logistics.
+     - **WhatsApp Telematics:** Live shipment location updates from Shanmukhananda's cold-chain logistics.
   2. **Platform & Invoice Preferences:**
      - **Currency:** Indian Rupee ($\text{₹ INR}$).
      - **Language:** English, Hindi (हिंदी), Marathi (मराठी).

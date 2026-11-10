@@ -566,12 +566,12 @@ export default function BuyerDashboard() {
                 </div>
               </div>
 
-              {/* Shankar's Logistics Overview */}
+              {/* Shanmukhananda's Logistics Overview */}
               <div className="buyer-content-card">
                 <div className="buyer-content-card-header">
                   <h3 className="buyer-content-card-title flex items-center gap-2">
                     <Truck size={18} className="text-blue-700" />
-                    <span>Two-Tier Logistics Status (Shankar's Routing)</span>
+                    <span>Two-Tier Logistics Status (Shanmukhananda's Routing)</span>
                   </h3>
                   <span className="buyer-feature-badge">Active Shipment</span>
                 </div>
@@ -650,7 +650,7 @@ export default function BuyerDashboard() {
                 <div>
                   <h3 className="text-lg font-bold text-[#202820] flex items-center gap-2">
                     <Truck size={22} className="text-[#245C43]" />
-                    <span>Shankar's Two-Tier Logistics Network & CVRP Routing</span>
+                    <span>Shanmukhananda's Two-Tier Logistics Network & CVRP Routing</span>
                   </h3>
                   <p className="text-xs text-slate-600 mt-1">
                     Multi-stop pickup from rural farmers → FPO cold storage consolidation → Direct terminal delivery
