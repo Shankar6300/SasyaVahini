@@ -278,7 +278,7 @@ model BuyerProfile {
   user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   organizationName String
-  buyerType        String    // "Wholesaler" | "Supermarket" | "Hotel" | "Retailer" | "Government"
+  buyerType        String    // "Individual" | "Wholesaler" | "Supermarket" | "Hotel" | "Restaurant" | "Retailer" | "Government"
   gstNumber        String?
   deliveryState    String?
   deliveryDistrict String?
@@ -286,14 +286,57 @@ model BuyerProfile {
   latitude         Float?
   longitude        Float?
 
+  // Phase 2: Business details & verification
+  verificationStatus String   @default("NOT_SUBMITTED") // "NOT_SUBMITTED" | "PENDING" | "VERIFIED" | "REJECTED" | "ADDITIONAL_INFORMATION_REQUIRED"
+  verificationNotes  String?
+  businessCategory   String?
+  contactPerson      String?
+
+  // Phase 2: Dedicated Billing Address
+  billingAddress     String?
+  billingState       String?
+  billingDistrict    String?
+  billingPincode     String?
+  billingGstin       String?
+
+  // Phase 2: Preferences
+  notificationPreferences Json?
+
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 
   requirements     BuyerRequirement[]
   orders           Order[]
   payments         Payment[]
+  addresses        BuyerAddress[]
 
   @@index([buyerType])
+  @@index([verificationStatus])
+}
+
+model BuyerAddress {
+  id                   String       @id @default(uuid())
+  buyerId              String
+  buyer                BuyerProfile @relation(fields: [buyerId], references: [id], onDelete: Cascade)
+
+  recipientName        String
+  contactNumber        String
+  addressType          String       @default("HOME") // "HOME" | "BUSINESS" | "BILLING" | "OTHER"
+  addressLine1         String
+  addressLine2         String?
+  locality             String?
+  city                 String
+  state                String
+  postalCode           String
+  country              String       @default("India")
+  deliveryInstructions String?
+  isDefault            Boolean      @default(false)
+
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+
+  @@index([buyerId])
+  @@index([isDefault])
 }
 
 model LogisticsProfile {

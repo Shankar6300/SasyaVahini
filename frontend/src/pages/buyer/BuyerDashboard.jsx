@@ -11,6 +11,9 @@ import { useAuth } from '@/context/AuthContext';
 import RoleBadge from '@/components/RoleBadge';
 import MarketIntelligenceWidget from '@/components/ml/MarketIntelligenceWidget';
 import marketplaceApi from '@/services/marketplaceApi';
+import BuyerProfilePage from './BuyerProfilePage';
+import BuyerAddressesPage from './BuyerAddressesPage';
+import BuyerSettingsPage from './BuyerSettingsPage';
 import '@/styles/buyer-auth.css';
 
 /* ── Fallback demo produce lots seeded in database ───────────────────────── */
@@ -114,6 +117,9 @@ export default function BuyerDashboard() {
     else if (p.includes('/tracking')) setActiveTab('TRACKING');
     else if (p.includes('/cart')) setActiveTab('CART');
     else if (p.includes('/orders')) setActiveTab('ORDERS');
+    else if (p.includes('/profile')) setActiveTab('PROFILE');
+    else if (p.includes('/addresses')) setActiveTab('ADDRESSES');
+    else if (p.includes('/settings')) setActiveTab('SETTINGS');
     else setActiveTab('OVERVIEW');
   }, [location.pathname]);
 
@@ -245,6 +251,31 @@ export default function BuyerDashboard() {
               <span className="buyer-sidebar-badge">CVRP</span>
             </button>
           </div>
+
+          <div className="buyer-sidebar-section">
+            <p className="buyer-sidebar-section-title">Account & Locations (Phase 2)</p>
+            <button
+              onClick={() => { setActiveTab('PROFILE'); navigate('/buyer/profile'); }}
+              className={`buyer-sidebar-link${activeTab === 'PROFILE' ? ' active' : ''}`}
+            >
+              <User size={18} className="buyer-sidebar-link-icon" />
+              <span>My Profile</span>
+            </button>
+            <button
+              onClick={() => { setActiveTab('ADDRESSES'); navigate('/buyer/addresses'); }}
+              className={`buyer-sidebar-link${activeTab === 'ADDRESSES' ? ' active' : ''}`}
+            >
+              <MapPin size={18} className="buyer-sidebar-link-icon" />
+              <span>Saved Addresses</span>
+            </button>
+            <button
+              onClick={() => { setActiveTab('SETTINGS'); navigate('/buyer/settings'); }}
+              className={`buyer-sidebar-link${activeTab === 'SETTINGS' ? ' active' : ''}`}
+            >
+              <Settings size={18} className="buyer-sidebar-link-icon" />
+              <span>Account Settings</span>
+            </button>
+          </div>
         </nav>
       </aside>
 
@@ -363,6 +394,33 @@ export default function BuyerDashboard() {
             >
               <ClipboardList size={15} />
               <span>Order Ledger</span>
+            </button>
+            <button
+              role="tab"
+              aria-selected={activeTab === 'PROFILE'}
+              onClick={() => { setActiveTab('PROFILE'); navigate('/buyer/profile'); }}
+              className={`buyer-nav-tab-btn${activeTab === 'PROFILE' ? ' active' : ''}`}
+            >
+              <User size={15} />
+              <span>My Profile</span>
+            </button>
+            <button
+              role="tab"
+              aria-selected={activeTab === 'ADDRESSES'}
+              onClick={() => { setActiveTab('ADDRESSES'); navigate('/buyer/addresses'); }}
+              className={`buyer-nav-tab-btn${activeTab === 'ADDRESSES' ? ' active' : ''}`}
+            >
+              <MapPin size={15} />
+              <span>Addresses</span>
+            </button>
+            <button
+              role="tab"
+              aria-selected={activeTab === 'SETTINGS'}
+              onClick={() => { setActiveTab('SETTINGS'); navigate('/buyer/settings'); }}
+              className={`buyer-nav-tab-btn${activeTab === 'SETTINGS' ? ' active' : ''}`}
+            >
+              <Settings size={15} />
+              <span>Settings</span>
             </button>
             <NavLink
               to="/market-intelligence"
@@ -910,6 +968,21 @@ export default function BuyerDashboard() {
             </div>
           </div>
         )}
+
+        {/* ══════════════════════════════════════════════════════════════
+            PHASE 2: BUYER PROFILE
+            ══════════════════════════════════════════════════════════════ */}
+        {activeTab === 'PROFILE' && <BuyerProfilePage />}
+
+        {/* ══════════════════════════════════════════════════════════════
+            PHASE 2: ADDRESS MANAGEMENT
+            ══════════════════════════════════════════════════════════════ */}
+        {activeTab === 'ADDRESSES' && <BuyerAddressesPage />}
+
+        {/* ══════════════════════════════════════════════════════════════
+            PHASE 2: ACCOUNT SETTINGS
+            ══════════════════════════════════════════════════════════════ */}
+        {activeTab === 'SETTINGS' && <BuyerSettingsPage />}
       </main>
     </div>
   );
