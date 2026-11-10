@@ -14,7 +14,11 @@ import marketplaceApi from '@/services/marketplaceApi';
 import BuyerProfilePage from './BuyerProfilePage';
 import BuyerAddressesPage from './BuyerAddressesPage';
 import BuyerSettingsPage from './BuyerSettingsPage';
+import MarketplacePage from './marketplace/MarketplacePage';
+import ProductDetailPage from './marketplace/ProductDetailPage';
+import SupplierProfilePage from './marketplace/SupplierProfilePage';
 import '@/styles/buyer-auth.css';
+import '@/styles/marketplace.css';
 
 /* ── Fallback demo produce lots seeded in database ───────────────────────── */
 const DEMO_PRODUCE_FALLBACK = [
@@ -113,7 +117,9 @@ export default function BuyerDashboard() {
   // Sync tab with URL
   useEffect(() => {
     const p = location.pathname;
-    if (p.includes('/marketplace')) setActiveTab('MARKETPLACE');
+    if (p.includes('/marketplace/products/')) setActiveTab('PRODUCT_DETAIL');
+    else if (p.includes('/marketplace/suppliers/')) setActiveTab('SUPPLIER_PROFILE');
+    else if (p.includes('/marketplace')) setActiveTab('MARKETPLACE');
     else if (p.includes('/tracking')) setActiveTab('TRACKING');
     else if (p.includes('/cart')) setActiveTab('CART');
     else if (p.includes('/orders')) setActiveTab('ORDERS');
@@ -508,7 +514,7 @@ export default function BuyerDashboard() {
                     <span>Live Farm Inventory (Shankar's Supply Engine)</span>
                   </h3>
                   <button
-                    onClick={() => setActiveTab('MARKETPLACE')}
+                    onClick={() => { setActiveTab('MARKETPLACE'); navigate('/buyer/marketplace'); }}
                     className="text-xs font-semibold text-[#245C43] hover:underline"
                   >
                     View All Lots →
@@ -534,17 +540,26 @@ export default function BuyerDashboard() {
                           <div className="mt-1 flex items-center gap-2">
                             <span className="text-sm font-black text-[#245C43]">₹{lot.askingPricePerKg}/kg</span>
                             <span className="text-[11px] font-bold text-amber-700 bg-amber-50 px-1.5 py-0.2 rounded border border-amber-200">
-                              ~14% below APMC Mandi Rate (Good Deal!)
+                              ~14% below APMC Mandi Rate
                             </span>
                           </div>
                         </div>
-                        <button
-                          onClick={() => handleAddToCart(lot)}
-                          className="buyer-btn buyer-btn-primary"
-                          style={{ padding: '6px 12px', fontSize: 12 }}
-                        >
-                          Add to Cart
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => { setActiveTab('PRODUCT_DETAIL'); navigate(`/buyer/marketplace/products/${lot.id}`); }}
+                            className="buyer-btn buyer-btn-outline"
+                            style={{ padding: '6px 12px', fontSize: 12 }}
+                          >
+                            View Lot
+                          </button>
+                          <button
+                            onClick={() => handleAddToCart(lot)}
+                            className="buyer-btn buyer-btn-primary"
+                            style={{ padding: '6px 12px', fontSize: 12 }}
+                          >
+                            Add Lot
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -603,107 +618,25 @@ export default function BuyerDashboard() {
         )}
 
         {/* ══════════════════════════════════════════════════════════════
-            TAB 2: LIVE PRODUCE MARKETPLACE CATALOG
+            TAB 2: AGRICULTURAL MARKETPLACE (PHASE 3)
             ══════════════════════════════════════════════════════════════ */}
         {activeTab === 'MARKETPLACE' && (
           <div className="buyer-animate-in">
-            {/* Filters Bar */}
-            <div className="p-4 bg-white rounded-xl border border-[#DDE5DC] mb-5 flex flex-wrap items-center justify-between gap-4">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-xs font-bold text-slate-600 uppercase flex items-center gap-1">
-                  <Filter size={14} /> Category:
-                </span>
-                {['ALL', 'VEGETABLES', 'FRUITS', 'GRAINS'].map((cat) => (
-                  <button
-                    key={cat}
-                    onClick={() => setSelectedCategory(cat)}
-                    className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
-                      selectedCategory === cat
-                        ? 'bg-[#245C43] text-white shadow-sm'
-                        : 'bg-[#E8F0E8] text-[#245C43] hover:bg-[#DDE5DC]'
-                    }`}
-                  >
-                    {cat}
-                  </button>
-                ))}
-              </div>
+            <MarketplacePage />
+          </div>
+        )}
 
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={loadProduce}
-                  className="px-3 py-1.5 rounded-lg border border-[#DDE5DC] text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-1.5"
-                >
-                  <RefreshCw size={13} className={loadingProduce ? 'animate-spin' : ''} />
-                  <span>Refresh Lots</span>
-                </button>
-                <span className="text-xs text-slate-500 font-medium">
-                  Showing {filteredProduce.length} verified produce batches
-                </span>
-              </div>
-            </div>
+        {/* Phase 3 Dedicated Product Detail Page */}
+        {activeTab === 'PRODUCT_DETAIL' && (
+          <div className="buyer-animate-in">
+            <ProductDetailPage />
+          </div>
+        )}
 
-            {/* Produce Grid */}
-            <div className="buyer-produce-grid">
-              {filteredProduce.map((lot) => (
-                <div key={lot.id} className="buyer-produce-card">
-                  <div>
-                    <div className="flex justify-between items-start mb-2">
-                      <span className="text-xs font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-300">
-                        {lot.qualityGrade || 'GRADE_A'}
-                      </span>
-                      <span className="text-xs font-semibold text-slate-500">
-                        📍 {lot.district}, {lot.state}
-                      </span>
-                    </div>
-
-                    <h4 className="text-lg font-bold text-[#202820] mb-1">{lot.cropName}</h4>
-                    <p className="text-xs text-[#68736B] line-clamp-2 mb-3">
-                      {lot.description || 'Verified agricultural batch with direct farm provenance.'}
-                    </p>
-
-                    <div className="p-2.5 bg-[#F8F8F3] rounded-lg border border-[#DDE5DC] space-y-1 mb-3 text-xs">
-                      <div className="flex justify-between">
-                        <span className="text-slate-500">Available Lot:</span>
-                        <span className="font-bold text-slate-800">{lot.availableQtyKg || lot.totalQuantityKg} kg</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-slate-500">Farmer:</span>
-                        <span className="font-medium text-slate-800">{lot.farmer?.name || 'Verified Member'}</span>
-                      </div>
-                      {lot.fpo && (
-                        <div className="flex justify-between">
-                          <span className="text-slate-500">FPO Pool:</span>
-                          <span className="font-medium text-emerald-800">{lot.fpo.name}</span>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Gowtham's AI Pricing Badge */}
-                    <div className="mb-4">
-                      <div className="p-2 bg-amber-50 rounded-lg border border-amber-200 text-[11px] text-amber-900 flex items-center gap-1.5">
-                        <Sparkles size={14} className="text-amber-600 flex-shrink-0" />
-                        <span><strong>₹{lot.askingPricePerKg}/kg</strong> — ~14% below APMC Mandi Rate (Good Deal!)</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="pt-3 border-t border-[#DDE5DC] flex items-center justify-between">
-                    <div>
-                      <p className="text-[11px] text-slate-500">Direct Farm Price</p>
-                      <p className="text-xl font-black text-[#245C43]">₹{lot.askingPricePerKg}<span className="text-xs font-normal">/kg</span></p>
-                    </div>
-                    <button
-                      onClick={() => handleAddToCart(lot)}
-                      className="buyer-btn buyer-btn-primary"
-                      style={{ padding: '8px 16px', fontSize: 13 }}
-                    >
-                      <ShoppingCart size={15} />
-                      <span>Add Lot</span>
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
+        {/* Phase 3 Dedicated Supplier Profile Page */}
+        {activeTab === 'SUPPLIER_PROFILE' && (
+          <div className="buyer-animate-in">
+            <SupplierProfilePage />
           </div>
         )}
 

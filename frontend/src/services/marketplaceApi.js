@@ -1,8 +1,9 @@
 /**
- * SasyaVahini — Marketplace Frontend API Service
+ * SasyaVahini — Marketplace Frontend API Service (Phase 3)
  *
  * Handles API calls to fetch verified farmer produce listings,
- * batch details, and market benchmarks.
+ * dynamic categories, product details with APMC mandi benchmarks,
+ * search suggestions, and FPO/Farmer supplier profiles.
  *
  * Owner: Member 3 (Buyer & Marketplace Module)
  */
@@ -11,27 +12,91 @@ import api from './api';
 
 export const marketplaceApi = {
   /**
-   * Fetch produce listings with optional filtering and sorting
+   * Fetch dynamic categories with product counts and minimum price
    */
-  async getProduceListings(params = {}) {
-    const res = await api.get('/marketplace/produce', { params });
+  async getCategories() {
+    const res = await api.get('/marketplace/categories');
     return res.data?.data || [];
   },
 
   /**
-   * Fetch single produce listing by ID
+   * Fetch agricultural produce catalog with multi-parameter filtering,
+   * search, and sorting.
+   *
+   * @param {Object} params
+   * @param {string} [params.search]
+   * @param {string} [params.category]
+   * @param {string} [params.qualityGrade]
+   * @param {number} [params.minPrice]
+   * @param {number} [params.maxPrice]
+   * @param {boolean} [params.isOrganic]
+   * @param {string} [params.state]
+   * @param {string} [params.district]
+   * @param {string} [params.availability] - 'IN_STOCK' | 'LOW_STOCK' | 'ALL'
+   * @param {string} [params.sortBy] - 'price_asc' | 'price_desc' | 'qty_desc' | 'harvest_recent' | 'recent'
+   * @param {number} [params.page]
+   * @param {number} [params.limit]
    */
-  async getProduceListingById(id) {
-    const res = await api.get(`/marketplace/produce/${id}`);
+  async getProducts(params = {}) {
+    const res = await api.get('/marketplace/products', { params });
+    return res.data?.data || { products: [], pagination: {} };
+  },
+
+  /**
+   * Fetch single product detail by ID with supplier metadata,
+   * freshness index, and related produce lots.
+   */
+  async getProductById(id) {
+    const res = await api.get(`/marketplace/products/${id}`);
     return res.data?.data;
   },
 
   /**
-   * Fetch marketplace summary stats
+   * Fetch typeahead autocomplete suggestions across crops, categories, and districts.
+   * @param {string} query
+   */
+  async getSearchSuggestions(query) {
+    if (!query || query.trim().length < 2) return [];
+    const res = await api.get('/marketplace/search/suggestions', { params: { q: query } });
+    return res.data?.data || [];
+  },
+
+  /**
+   * Fetch public supplier profile (FPO or Farmer) with verified badges
+   * and trust metrics. Excludes private personally identifiable information.
+   * @param {string} supplierId
+   */
+  async getSupplierProfile(supplierId) {
+    const res = await api.get(`/marketplace/suppliers/${supplierId}`);
+    return res.data?.data;
+  },
+
+  /**
+   * Fetch active produce listings for a specific supplier
+   * @param {string} supplierId
+   * @param {Object} [params]
+   */
+  async getSupplierProducts(supplierId, params = {}) {
+    const res = await api.get(`/marketplace/suppliers/${supplierId}/products`, { params });
+    return res.data?.data || { products: [], pagination: {} };
+  },
+
+  /**
+   * Fetch marketplace summary stats (active listings, total volume, direct farm savings)
    */
   async getMarketplaceStats() {
     const res = await api.get('/marketplace/stats');
     return res.data?.data || {};
+  },
+
+  /* ── Backward Compatibility Aliases for Phase 2 components ──────────── */
+  async getProduceListings(params = {}) {
+    const data = await this.getProducts(params);
+    return data.products || [];
+  },
+
+  async getProduceListingById(id) {
+    return this.getProductById(id);
   },
 };
 

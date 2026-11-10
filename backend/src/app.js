@@ -113,6 +113,7 @@ app.use('/api/notifications', require('./routes/notification.routes'));
 
 // Member 3 Routes: Buyer & Marketplace
 app.use('/api/marketplace', require('./routes/marketplace.routes'));
+app.use('/api/buyer/marketplace', require('./routes/marketplace.routes'));
 app.use('/api/buyer', require('./routes/buyer.routes'));
 
 // Member 4 Routes: Logistics
