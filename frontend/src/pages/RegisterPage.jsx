@@ -70,14 +70,14 @@ export default function RegisterPage() {
 
     // Role-specific validation
     if (form.role === 'FARMER') {
-      if (!form.district.trim()) errs.district = 'District is required for farmers';
+      if (!form.district.trim()) errs.district = t('auth.districtRequired', 'District is required for farmers');
     } else if (form.role === 'BUYER') {
-      if (!form.organizationName.trim()) errs.organizationName = 'Company/Firm name is required for buyers';
+      if (!form.organizationName.trim()) errs.organizationName = t('auth.orgNameRequired', 'Company/Firm name is required for buyers');
     } else if (form.role === 'LOGISTICS') {
-      if (!form.companyName.trim()) errs.companyName = 'Transport or fleet agency name is required';
-      if (!form.licenseNo.trim()) errs.licenseNo = 'Carrier operator license number is required';
+      if (!form.companyName.trim()) errs.companyName = t('auth.companyNameRequired', 'Transport or fleet agency name is required');
+      if (!form.licenseNo.trim()) errs.licenseNo = t('auth.licenseNoRequired', 'Carrier operator license number is required');
     } else if (form.role === 'FPO') {
-      if (!form.fpoName.trim()) errs.fpoName = 'FPO organization name is required';
+      if (!form.fpoName.trim()) errs.fpoName = t('auth.fpoNameRequired', 'FPO organization name is required');
     }
 
     return errs;
@@ -241,7 +241,7 @@ export default function RegisterPage() {
                     const cleaned = transcript.replace(/[^0-9+]/g, '');
                     setForm(f => ({ ...f, phone: cleaned || transcript }));
                   }}
-                  title="Speak your phone number"
+                  title={t('auth.speakPhoneNumber', 'Speak your phone number')}
                 />
               </div>
             </div>
@@ -262,44 +262,44 @@ export default function RegisterPage() {
             {/* ── Role-Specific Custom Profile Fields ───────────────────────── */}
             {form.role === 'FARMER' && (
               <div className="p-4 rounded-xl bg-emerald-50/70 border border-emerald-200 space-y-3">
-                <p className="text-xs font-bold uppercase tracking-wider text-emerald-800">🌾 Farm & Location Details</p>
+                <p className="text-xs font-bold uppercase tracking-wider text-emerald-800">🌾 {t('auth.farmDetailsTitle', 'Farm & Location Details')}</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <FormField
                     id="reg-village"
-                    label="Village / Taluka"
+                    label={t('auth.villageLabel', 'Village / Taluka')}
                     name="village"
                     value={form.village}
                     onChange={handleChange}
-                    placeholder="e.g. Manchar"
+                    placeholder={t('auth.villagePlaceholder', 'e.g. Manchar')}
                   />
                   <FormField
                     id="reg-district"
-                    label="District *"
+                    label={`${t('auth.districtLabel', 'District')} *`}
                     name="district"
                     value={form.district}
                     onChange={handleChange}
                     error={errors.district}
-                    placeholder="e.g. Pune"
+                    placeholder={t('auth.districtPlaceholder', 'e.g. Pune')}
                   />
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <FormField
                     id="reg-land"
-                    label="Land Holding (Acres)"
+                    label={t('auth.landSizeLabel', 'Land Holding (Acres)')}
                     name="landSizeAcres"
                     type="number"
                     step="0.5"
                     value={form.landSizeAcres}
                     onChange={handleChange}
-                    placeholder="e.g. 2.5"
+                    placeholder={t('auth.landSizePlaceholder', 'e.g. 2.5')}
                   />
                   <FormField
                     id="reg-crops"
-                    label="Primary Crops"
+                    label={t('auth.primaryCropsLabel', 'Primary Crops')}
                     name="produceTypes"
                     value={form.produceTypes}
                     onChange={handleChange}
-                    placeholder="e.g. Tomato, Onion, Wheat"
+                    placeholder={t('auth.primaryCropsPlaceholder', 'e.g. Tomato, Onion, Wheat')}
                   />
                 </div>
               </div>
@@ -307,33 +307,33 @@ export default function RegisterPage() {
 
             {form.role === 'LOGISTICS' && (
               <div className="p-4 rounded-xl bg-teal-50/70 border border-teal-200 space-y-3">
-                <p className="text-xs font-bold uppercase tracking-wider text-teal-800">🚚 Transport Fleet & Agency Details</p>
+                <p className="text-xs font-bold uppercase tracking-wider text-teal-800">🚚 {t('auth.logisticsDetailsTitle', 'Transport Fleet & Agency Details')}</p>
                 <FormField
                   id="reg-companyName"
-                  label="Fleet / Agency Name *"
+                  label={`${t('auth.companyNameLabel', 'Fleet / Agency Name')} *`}
                   name="companyName"
                   value={form.companyName}
                   onChange={handleChange}
                   error={errors.companyName}
-                  placeholder="e.g. Sahyadri Agro Freight Services"
+                  placeholder={t('auth.companyNamePlaceholder', 'e.g. Sahyadri Agro Freight Services')}
                 />
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <FormField
                     id="reg-licenseNo"
-                    label="Carrier Permit / License No. *"
+                    label={`${t('auth.licenseNoLabel', 'Carrier Permit / License No.')} *`}
                     name="licenseNo"
                     value={form.licenseNo}
                     onChange={handleChange}
                     error={errors.licenseNo}
-                    placeholder="e.g. MH-RTO-2026-LOG491"
+                    placeholder={t('auth.licenseNoPlaceholder', 'e.g. MH-RTO-2026-LOG491')}
                   />
                   <FormField
                     id="reg-serviceDistricts"
-                    label="Operating Districts / Corridors"
+                    label={t('auth.serviceDistrictsLabel', 'Operating Districts / Corridors')}
                     name="serviceDistricts"
                     value={form.serviceDistricts}
                     onChange={handleChange}
-                    placeholder="e.g. Pune, Nashik, Mumbai"
+                    placeholder={t('auth.serviceDistrictsPlaceholder', 'e.g. Pune, Nashik, Mumbai')}
                   />
                 </div>
               </div>
@@ -341,36 +341,36 @@ export default function RegisterPage() {
 
             {form.role === 'BUYER' && (
               <div className="p-4 rounded-xl bg-blue-50/70 border border-blue-200 space-y-3">
-                <p className="text-xs font-bold uppercase tracking-wider text-blue-800">🏪 Business & Procurement Details</p>
+                <p className="text-xs font-bold uppercase tracking-wider text-blue-800">🏪 {t('auth.buyerDetailsTitle', 'Business & Procurement Details')}</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <FormField
                     id="reg-orgName"
-                    label="Firm / Company Name *"
+                    label={`${t('auth.orgNameLabel', 'Firm / Company Name')} *`}
                     name="organizationName"
                     value={form.organizationName}
                     onChange={handleChange}
                     error={errors.organizationName}
-                    placeholder="e.g. FreshB2B Wholesale Traders"
+                    placeholder={t('auth.orgNamePlaceholder', 'e.g. FreshB2B Wholesale Traders')}
                   />
                   <div className="form-group">
-                    <label className="form-label">Buyer Category</label>
+                    <label className="form-label">{t('auth.buyerCategoryLabel', 'Buyer Category')}</label>
                     <select
                       name="buyerType"
                       className="form-select"
                       value={form.buyerType}
                       onChange={handleChange}
                     >
-                      <option value="Wholesaler">Wholesaler / Distributor</option>
-                      <option value="Supermarket">Supermarket / Retail Chain</option>
-                      <option value="Processor">Food Processor / Exporter</option>
-                      <option value="Hotel">Hotel / Restaurant Bulk Buyer</option>
+                      <option value="Wholesaler">{t('auth.buyerWholesaler', 'Wholesaler / Distributor')}</option>
+                      <option value="Supermarket">{t('auth.buyerSupermarket', 'Supermarket / Retail Chain')}</option>
+                      <option value="Processor">{t('auth.buyerProcessor', 'Food Processor / Exporter')}</option>
+                      <option value="Hotel">{t('auth.buyerHotel', 'Hotel / Restaurant Bulk Buyer')}</option>
                     </select>
                   </div>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <FormField
                     id="reg-gst"
-                    label="GSTIN (Optional)"
+                    label={t('auth.gstLabel', 'GSTIN (Optional)')}
                     name="gstNumber"
                     value={form.gstNumber}
                     onChange={handleChange}
@@ -378,11 +378,11 @@ export default function RegisterPage() {
                   />
                   <FormField
                     id="reg-address"
-                    label="Delivery Warehouse Address"
+                    label={t('auth.deliveryAddressLabel', 'Delivery Warehouse Address')}
                     name="deliveryAddress"
                     value={form.deliveryAddress}
                     onChange={handleChange}
-                    placeholder="e.g. APMC Market Yard, Hadapsar"
+                    placeholder={t('auth.deliveryAddressPlaceholder', 'e.g. APMC Market Yard, Hadapsar')}
                   />
                 </div>
               </div>
@@ -390,35 +390,35 @@ export default function RegisterPage() {
 
             {form.role === 'FPO' && (
               <div className="p-4 rounded-xl bg-amber-50/70 border border-amber-200 space-y-3">
-                <p className="text-xs font-bold uppercase tracking-wider text-amber-800">🤝 FPO Producer Organization Details</p>
+                <p className="text-xs font-bold uppercase tracking-wider text-amber-800">🤝 {t('auth.fpoDetailsTitle', 'FPO Producer Organization Details')}</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <FormField
                     id="reg-fpoName"
-                    label="FPO Organization Name *"
+                    label={`${t('auth.fpoNameLabel', 'FPO Organization Name')} *`}
                     name="fpoName"
                     value={form.fpoName}
                     onChange={handleChange}
                     error={errors.fpoName}
-                    placeholder="e.g. Junnar Farmers Producer Co."
+                    placeholder={t('auth.fpoNamePlaceholder', 'e.g. Junnar Farmers Producer Co.')}
                   />
                   <FormField
                     id="reg-regNo"
-                    label="Registration Number *"
+                    label={`${t('auth.fpoRegNoLabel', 'Registration Number')} *`}
                     name="registrationNo"
                     value={form.registrationNo}
                     onChange={handleChange}
                     error={errors.registrationNo}
-                    placeholder="e.g. FPO-MH-2024-8842"
+                    placeholder={t('auth.fpoRegNoPlaceholder', 'e.g. FPO-MH-2024-8842')}
                   />
                 </div>
                 <FormField
                   id="reg-members"
-                  label="Registered Member Farmers Count"
+                  label={t('auth.memberCountLabel', 'Registered Member Farmers Count')}
                   name="memberCount"
                   type="number"
                   value={form.memberCount}
                   onChange={handleChange}
-                  placeholder="e.g. 50"
+                  placeholder={t('auth.memberCountPlaceholder', '25')}
                 />
               </div>
             )}

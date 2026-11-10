@@ -362,8 +362,11 @@ model ProduceListing {
   state            String
   district         String
   village          String?
+  pickupAddress    String?
+  pincode          String?
   latitude         Float?
   longitude        Float?
+  locationAccuracy String?       @default("GPS_PIN")
 
   imageUrl         String?
   description      String?

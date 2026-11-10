@@ -108,6 +108,7 @@ app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/farmers', require('./routes/farmer.routes'));
 app.use('/api/fpo', require('./routes/fpo.routes'));
 app.use('/api/notifications', require('./routes/notification.routes'));
+app.use('/api/tts', require('./routes/tts.routes'));
 
 // Member 4 Routes: Logistics
 app.use('/api/logistics', require('./routes/logistics.routes'));
