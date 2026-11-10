@@ -40,6 +40,10 @@ INDIAN_FESTIVALS = [
     {"name": "Winter Wedding Season", "date": "2026-11-20", "duration_days": 25, "surge_crops": ["Tomato", "Onion", "Potato", "Cauliflower", "Chilli"], "default_surge": 1.30},
 ]
 
+# Pre-parse festival datetime objects once for high-throughput vectorized/loop evaluation
+for _f in INDIAN_FESTIVALS:
+    _f["_dt"] = datetime.strptime(_f["date"], "%Y-%m-%d")
+
 
 def calculate_fourier_harmonics(dt: datetime) -> dict:
     """
@@ -72,7 +76,7 @@ def calculate_festival_multiplier(dt: datetime, crop: str) -> Tuple[float, Optio
     active_festival = None
 
     for fest in INDIAN_FESTIVALS:
-        fest_dt = datetime.strptime(fest["date"], "%Y-%m-%d")
+        fest_dt = fest.get("_dt") or datetime.strptime(fest["date"], "%Y-%m-%d")
         delta_days = (dt - fest_dt).days
 
         # Festival surge active window: 5 days pre-festival through duration
@@ -168,6 +172,150 @@ AGRONOMIC_PERISHABILITY_MATRIX: Dict[str, dict] = {
         "respiration_rate_mg_co2": 0.5,
         "optimal_storage_temp_c": 20.0,
         "category": "Dry Staple Cereal",
+    },
+    "Soybean": {
+        "shelf_life_ambient_days": 180.0,
+        "shelf_life_cold_days": 365.0,
+        "decay_velocity_lambda": 0.003,
+        "c_perish": 0.08,
+        "respiration_rate_mg_co2": 1.2,
+        "optimal_storage_temp_c": 18.0,
+        "category": "Oilseed",
+    },
+    "Maize": {
+        "shelf_life_ambient_days": 150.0,
+        "shelf_life_cold_days": 365.0,
+        "decay_velocity_lambda": 0.004,
+        "c_perish": 0.09,
+        "respiration_rate_mg_co2": 1.5,
+        "optimal_storage_temp_c": 16.0,
+        "category": "Dry Feed Cereal",
+    },
+    "Sugarcane": {
+        "shelf_life_ambient_days": 3.0,
+        "shelf_life_cold_days": 6.0,
+        "decay_velocity_lambda": 0.35,
+        "c_perish": 0.95,
+        "respiration_rate_mg_co2": 40.0,
+        "optimal_storage_temp_c": 15.0,
+        "category": "Critical Perishable Commercial",
+    },
+    "Cotton": {
+        "shelf_life_ambient_days": 365.0,
+        "shelf_life_cold_days": 730.0,
+        "decay_velocity_lambda": 0.0005,
+        "c_perish": 0.01,
+        "respiration_rate_mg_co2": 0.2,
+        "optimal_storage_temp_c": 22.0,
+        "category": "Non-Perishable Fiber",
+    },
+    "Brinjal": {
+        "shelf_life_ambient_days": 6.0,
+        "shelf_life_cold_days": 14.0,
+        "decay_velocity_lambda": 0.18,
+        "c_perish": 0.75,
+        "respiration_rate_mg_co2": 25.0,
+        "optimal_storage_temp_c": 10.0,
+        "category": "High Perishable Vegetable",
+    },
+    "Cauliflower": {
+        "shelf_life_ambient_days": 5.0,
+        "shelf_life_cold_days": 18.0,
+        "decay_velocity_lambda": 0.20,
+        "c_perish": 0.80,
+        "respiration_rate_mg_co2": 30.0,
+        "optimal_storage_temp_c": 0.0,
+        "category": "High Perishable Vegetable",
+    },
+    "Cabbage": {
+        "shelf_life_ambient_days": 10.0,
+        "shelf_life_cold_days": 30.0,
+        "decay_velocity_lambda": 0.10,
+        "c_perish": 0.55,
+        "respiration_rate_mg_co2": 18.0,
+        "optimal_storage_temp_c": 0.0,
+        "category": "Medium Perishable Vegetable",
+    },
+    "Pomegranate": {
+        "shelf_life_ambient_days": 20.0,
+        "shelf_life_cold_days": 60.0,
+        "decay_velocity_lambda": 0.045,
+        "c_perish": 0.40,
+        "respiration_rate_mg_co2": 8.0,
+        "optimal_storage_temp_c": 5.0,
+        "category": "Medium Perishable Fruit",
+    },
+    "Garlic": {
+        "shelf_life_ambient_days": 120.0,
+        "shelf_life_cold_days": 240.0,
+        "decay_velocity_lambda": 0.008,
+        "c_perish": 0.12,
+        "respiration_rate_mg_co2": 3.0,
+        "optimal_storage_temp_c": 0.0,
+        "category": "Storage Spice Bulb",
+    },
+    "Ginger": {
+        "shelf_life_ambient_days": 35.0,
+        "shelf_life_cold_days": 90.0,
+        "decay_velocity_lambda": 0.025,
+        "c_perish": 0.30,
+        "respiration_rate_mg_co2": 6.5,
+        "optimal_storage_temp_c": 12.0,
+        "category": "Semi-Perishable Rhizome",
+    },
+    "Turmeric": {
+        "shelf_life_ambient_days": 300.0,
+        "shelf_life_cold_days": 600.0,
+        "decay_velocity_lambda": 0.001,
+        "c_perish": 0.03,
+        "respiration_rate_mg_co2": 1.0,
+        "optimal_storage_temp_c": 15.0,
+        "category": "Non-Perishable Commercial Spice",
+    },
+    "Capsicum": {
+        "shelf_life_ambient_days": 7.0,
+        "shelf_life_cold_days": 21.0,
+        "decay_velocity_lambda": 0.16,
+        "c_perish": 0.72,
+        "respiration_rate_mg_co2": 22.0,
+        "optimal_storage_temp_c": 8.0,
+        "category": "High Perishable Vegetable",
+    },
+    "Mango": {
+        "shelf_life_ambient_days": 7.0,
+        "shelf_life_cold_days": 20.0,
+        "decay_velocity_lambda": 0.19,
+        "c_perish": 0.78,
+        "respiration_rate_mg_co2": 28.0,
+        "optimal_storage_temp_c": 13.0,
+        "category": "Climacteric Perishable Fruit",
+    },
+    "Papaya": {
+        "shelf_life_ambient_days": 6.0,
+        "shelf_life_cold_days": 16.0,
+        "decay_velocity_lambda": 0.22,
+        "c_perish": 0.82,
+        "respiration_rate_mg_co2": 32.0,
+        "optimal_storage_temp_c": 12.0,
+        "category": "Climacteric Perishable Fruit",
+    },
+    "Cucumber": {
+        "shelf_life_ambient_days": 5.0,
+        "shelf_life_cold_days": 12.0,
+        "decay_velocity_lambda": 0.22,
+        "c_perish": 0.80,
+        "respiration_rate_mg_co2": 20.0,
+        "optimal_storage_temp_c": 11.0,
+        "category": "High Perishable Vegetable",
+    },
+    "Lemon": {
+        "shelf_life_ambient_days": 18.0,
+        "shelf_life_cold_days": 45.0,
+        "decay_velocity_lambda": 0.05,
+        "c_perish": 0.38,
+        "respiration_rate_mg_co2": 8.0,
+        "optimal_storage_temp_c": 10.0,
+        "category": "Citrus Perishable Fruit",
     },
 }
 

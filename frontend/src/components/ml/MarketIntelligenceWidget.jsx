@@ -20,12 +20,36 @@ const CROPS = [
   { id: 'Tomato', label: 'Tomato (टमाटर / टोमॅटो)', defaultSupply: 25000, temp: 30 },
   { id: 'Onion', label: 'Onion (प्याज़ / कांदा)', defaultSupply: 40000, temp: 28 },
   { id: 'Potato', label: 'Potato (आलू / बटाटा)', defaultSupply: 35000, temp: 26 },
+  { id: 'Rice', label: 'Rice / Paddy (चावल / धान)', defaultSupply: 45000, temp: 28 },
   { id: 'Wheat', label: 'Wheat (गेहूं / गहू)', defaultSupply: 50000, temp: 24 },
-  { id: 'Rice', label: 'Rice (चावल / तांदूळ)', defaultSupply: 45000, temp: 28 },
-  { id: 'Chili', label: 'Green Chili (हरी मिर्च / मिरची)', defaultSupply: 12000, temp: 31 },
+  { id: 'Maize', label: 'Maize (मक्का / मका)', defaultSupply: 20000, temp: 27 },
+  { id: 'Chilli', label: 'Chilli (हरी / लाल मिर्च)', defaultSupply: 12000, temp: 31 },
+  { id: 'Garlic', label: 'Garlic (लहसुन / लसूण)', defaultSupply: 10000, temp: 26 },
+  { id: 'Ginger', label: 'Ginger (अदरक / आले)', defaultSupply: 11000, temp: 27 },
+  { id: 'Turmeric', label: 'Turmeric (हल्दी / हळद)', defaultSupply: 15000, temp: 28 },
+  { id: 'Soybean', label: 'Soybean (सोयाबीन)', defaultSupply: 25000, temp: 28 },
+  { id: 'Cotton', label: 'Cotton (कपास / कापूस)', defaultSupply: 22000, temp: 30 },
+  { id: 'Sugarcane', label: 'Sugarcane (गन्ना / ऊस)', defaultSupply: 60000, temp: 30 },
+  { id: 'Banana', label: 'Banana (केला / केळी)', defaultSupply: 30000, temp: 29 },
+  { id: 'Grapes', label: 'Grapes (अंगूर / द्राक्षे)', defaultSupply: 18000, temp: 26 },
+  { id: 'Pomegranate', label: 'Pomegranate (अनार / डाळिंब)', defaultSupply: 14000, temp: 29 },
+  { id: 'Mango', label: 'Mango (आम / आंबा)', defaultSupply: 20000, temp: 32 },
+  { id: 'Papaya', label: 'Papaya (पपीता / पपई)', defaultSupply: 18000, temp: 29 },
+  { id: 'Lemon', label: 'Lemon (नींबू / लिंबू)', defaultSupply: 12000, temp: 30 },
+  { id: 'Capsicum', label: 'Capsicum (शिमला मिर्च / ढोबळी मिरची)', defaultSupply: 14000, temp: 26 },
+  { id: 'Brinjal', label: 'Brinjal (बैंगन / वांगी)', defaultSupply: 16000, temp: 28 },
+  { id: 'Cauliflower', label: 'Cauliflower (फूलगोभी / फ्लॉवर)', defaultSupply: 18000, temp: 25 },
+  { id: 'Cabbage', label: 'Cabbage (पत्तागोभी / कोबी)', defaultSupply: 18000, temp: 25 },
+  { id: 'Cucumber', label: 'Cucumber (खीरा / काकडी)', defaultSupply: 16000, temp: 27 },
 ];
 
-const DISTRICTS = ['Pune', 'Nashik', 'Ahmednagar', 'Nagpur', 'Kolhapur', 'Solapur', 'Aurangabad'];
+const DISTRICTS = [
+  'Pune', 'Nashik', 'Ahmednagar', 'Solapur', 'Nagpur',
+  'Satara', 'Kolhapur', 'Sangli', 'Jalgaon', 'Aurangabad',
+  'Mumbai', 'Kadapa', 'Kurnool', 'Guntur', 'Hyderabad',
+  'Bengaluru', 'Indore', 'Bhopal', 'Jaipur', 'Lucknow',
+  'Delhi', 'Ahmedabad', 'Surat', 'Chandigarh', 'Kolkata',
+];
 
 export default function MarketIntelligenceWidget({ initialCrop = 'Tomato', initialDistrict = 'Pune', onPriceSelect }) {
   const [selectedCrop, setSelectedCrop] = useState(initialCrop);
@@ -94,7 +118,7 @@ export default function MarketIntelligenceWidget({ initialCrop = 'Tomato', initi
               <div className="flex items-center gap-2">
                 <h3 className="text-lg font-black tracking-tight">AI Demand & Pricing Intelligence</h3>
                 <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/30 text-emerald-100 border border-emerald-400/30">
-                  SIH 2026 • DoCA
+                  Agmarknet Verified • Live APMC
                 </span>
               </div>
               <p className="text-xs text-emerald-100/90 mt-0.5">

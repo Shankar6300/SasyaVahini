@@ -9,7 +9,7 @@ export default function MarketIntelligencePage() {
           SasyaVahini Market Intelligence & Price Discovery
         </h1>
         <p className="text-sm text-slate-500 mt-1">
-          Government of India • Ministry of Consumer Affairs, Food & Public Distribution (DoCA)
+          National Agmarknet Mandi Integration & AI-Powered Price Discovery
         </p>
       </div>
 

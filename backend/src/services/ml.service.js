@@ -13,20 +13,34 @@ const logger = require('../utils/logger');
 
 const ML_SERVICE_URL = process.env.ML_SERVICE_URL || 'http://localhost:8000';
 
-// Fallback baseline modal prices (₹/kg) across common Indian staple crops
+// Fallback baseline modal prices (₹/kg) across 24 Indian agricultural commodities
 const BASELINE_PRICES = {
-  tomato: 26.50,
-  onion: 32.00,
-  potato: 22.00,
-  wheat: 24.50,
-  rice: 36.00,
-  soybean: 48.00,
-  cotton: 62.00,
-  chili: 95.00,
-  garlic: 120.00,
-  ginger: 80.00,
-  cabbage: 18.00,
-  cauliflower: 24.00,
+  tomato: 30.00,
+  onion: 54.00,
+  potato: 21.00,
+  wheat: 28.50,
+  rice: 45.00,
+  paddy: 45.00,
+  soybean: 45.00,
+  cotton: 88.00,
+  chili: 48.00,
+  chilli: 48.00,
+  garlic: 165.00,
+  ginger: 92.00,
+  turmeric: 155.00,
+  maize: 26.00,
+  sugarcane: 3.80,
+  banana: 48.00,
+  grapes: 105.00,
+  pomegranate: 140.00,
+  mango: 120.00,
+  papaya: 26.00,
+  lemon: 56.00,
+  capsicum: 46.00,
+  brinjal: 22.00,
+  cauliflower: 20.00,
+  cabbage: 16.50,
+  cucumber: 22.00,
 };
 
 /**
