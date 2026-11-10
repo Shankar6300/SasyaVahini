@@ -15,34 +15,34 @@ const registerSchema = z.object({
     .regex(/[A-Z]/, 'Must contain an uppercase letter')
     .regex(/[0-9]/, 'Must contain a number'),
   role: z.enum(['FARMER', 'FPO', 'BUYER', 'LOGISTICS']), // ADMIN created separately
-  preferredLocale: z.enum(['en', 'hi', 'mr']).optional().default('en'),
+  preferredLocale: z.enum(['en', 'hi', 'mr', 'te']).optional().default('en'),
 
   // Role-specific profile attributes (optional on base schema)
   // Farmer attributes
-  landSizeAcres: z.number().positive().optional(),
-  state: z.string().optional(),
-  district: z.string().optional(),
-  village: z.string().optional(),
-  produceTypes: z.union([z.array(z.string()), z.string()]).optional(),
+  landSizeAcres: z.number().positive().nullable().optional(),
+  state: z.string().nullable().optional(),
+  district: z.string().nullable().optional(),
+  village: z.string().nullable().optional(),
+  produceTypes: z.union([z.array(z.string()), z.string()]).nullable().optional(),
 
   // Buyer attributes
-  organizationName: z.string().optional(),
-  buyerType: z.string().optional(),
-  gstNumber: z.string().optional(),
-  deliveryState: z.string().optional(),
-  deliveryDistrict: z.string().optional(),
-  deliveryAddress: z.string().optional(),
+  organizationName: z.string().nullable().optional(),
+  buyerType: z.string().nullable().optional(),
+  gstNumber: z.string().nullable().optional(),
+  deliveryState: z.string().nullable().optional(),
+  deliveryDistrict: z.string().nullable().optional(),
+  deliveryAddress: z.string().nullable().optional(),
 
   // Logistics attributes
-  companyName: z.string().optional(),
-  licenseNo: z.string().optional(),
-  serviceStates: z.union([z.array(z.string()), z.string()]).optional(),
-  serviceDistricts: z.union([z.array(z.string()), z.string()]).optional(),
+  companyName: z.string().nullable().optional(),
+  licenseNo: z.string().nullable().optional(),
+  serviceStates: z.union([z.array(z.string()), z.string()]).nullable().optional(),
+  serviceDistricts: z.union([z.array(z.string()), z.string()]).nullable().optional(),
 
   // FPO attributes
-  fpoName: z.string().optional(),
-  registrationNo: z.string().optional(),
-  memberCount: z.number().int().nonnegative().optional(),
+  fpoName: z.string().nullable().optional(),
+  registrationNo: z.string().nullable().optional(),
+  memberCount: z.number().int().nonnegative().nullable().optional(),
 });
 
 const loginSchema = z.object({
