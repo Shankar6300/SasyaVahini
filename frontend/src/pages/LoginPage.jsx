@@ -30,8 +30,9 @@ export default function LoginPage() {
 
   const validate = () => {
     const errs = {};
-    if (!form.email) errs.email = t('auth.emailRequired', 'Email is required');
-    else if (!/\S+@\S+\.\S+/.test(form.email)) errs.email = t('auth.invalidEmail', 'Invalid email address');
+    const trimmedEmail = (form.email || '').trim();
+    if (!trimmedEmail) errs.email = t('auth.emailRequired', 'Email is required');
+    else if (!/\S+@\S+\.\S+/.test(trimmedEmail)) errs.email = t('auth.invalidEmail', 'Invalid email address');
     if (!form.password) errs.password = t('auth.passwordRequired', 'Password is required');
     return errs;
   };
@@ -50,7 +51,7 @@ export default function LoginPage() {
     setLoading(true);
     setApiError('');
     try {
-      const user = await login(form.email, form.password);
+      const user = await login(form.email.trim(), form.password);
       const dest = from || ROLE_REDIRECTS[user.role] || '/';
       navigate(dest, { replace: true });
     } catch (err) {

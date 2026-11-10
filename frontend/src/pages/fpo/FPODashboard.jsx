@@ -5,11 +5,12 @@ import { useAuth } from '../../context/AuthContext';
 import {
   Building, Users, Layers, ShoppingBag, CheckCircle2,
   ShieldCheck, Package, Search, Eye,
-  MapPin, UserCheck
+  MapPin, UserCheck, Mic, Calculator
 } from 'lucide-react';
 
 import FpoMemberDetailsModal from '../../components/fpo/FpoMemberDetailsModal';
 import FpoProfileModal from '../../components/fpo/FpoProfileModal';
+import FpoVoiceAggregationModal from '../../components/fpo/FpoVoiceAggregationModal';
 import LanguageSelector from '../../components/LanguageSelector';
 import VoiceAssistant from '../../components/VoiceAssistant';
 import VoiceInput from '../../components/VoiceInput';
@@ -24,13 +25,14 @@ const FpoDashboard = () => {
   // Core Data
   const [fpoData, setFpoData] = useState(null);
   const [proposals, setProposals] = useState([]);
-  const [, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
 
   // Search & Filter in Member Directory
   const [memberSearch, setMemberSearch] = useState('');
   const [selectedMember, setSelectedMember] = useState(null);
   const [memberModalOpen, setMemberModalOpen] = useState(false);
   const [profileModalOpen, setProfileModalOpen] = useState(false);
+  const [voiceModalOpen, setVoiceModalOpen] = useState(false);
 
   // Produce Aggregation State
   const [selectedListings, setSelectedListings] = useState([]);
@@ -70,7 +72,7 @@ const FpoDashboard = () => {
 
   const handleRunAggregation = async () => {
     if (selectedListings.length === 0) {
-      alert('Please select at least 2 farmer produce listings to aggregate.');
+      alert(t('fpo.selectAtLeastTwo', 'Please select at least 1 farmer produce listing to aggregate.'));
       return;
     }
 
@@ -81,8 +83,23 @@ const FpoDashboard = () => {
       });
       setAggregationResult(res.data?.data || res.data);
     } catch (err) {
-      alert('Aggregation failed: ' + (err.response?.data?.error?.message || err.response?.data?.error || err.message));
+      alert(t('fpo.aggFailed', 'Aggregation failed: ') + (err.response?.data?.error?.message || err.response?.data?.error || err.message));
     }
+  };
+
+  const handleApplyVoiceLots = (parsedLots, calculatedWeightedRate) => {
+    setAggregationResult({
+      message: `Successfully aggregated ${parsedLots.length} member contributions via Voice Assistant!`,
+      totalAggregatedQty: parsedLots.reduce((s, l) => s + (parseFloat(l.quantityKg) || 0), 0),
+      participatingFarmersCount: parsedLots.length,
+      weightedAvgPricePerKg: calculatedWeightedRate,
+      farmersBreakdown: parsedLots.map(l => ({
+        farmerName: l.farmerName || 'Farmer Member',
+        village: 'Khed Cluster',
+        quantityKg: parseFloat(l.quantityKg) || 0,
+        askingPricePerKg: parseFloat(l.askingPricePerKg) || 0
+      }))
+    });
   };
 
   const handleViewMemberDetails = (member) => {
@@ -109,7 +126,7 @@ const FpoDashboard = () => {
         <div className="space-y-2">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/20 text-sky-300 border border-sky-400/30 text-xs font-bold">
             <Building className="w-3.5 h-3.5 text-sky-400" />
-            ðŸ¢ FPO Collective Marketing Hub • Smallholder Aggregation
+            🏢 {t('fpo.portalTitle', 'FPO Collective Marketing Hub • Smallholder Aggregation')}
           </div>
           <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
             {fpoData?.fpoProfile?.fpoName || user?.name || 'Pune Sahakari Krishi Producer Co.'}
@@ -120,7 +137,7 @@ const FpoDashboard = () => {
               {user?.location || 'Khed Hub, Pune District, Maharashtra'}
             </span>
             <span className="bg-white/10 px-2.5 py-0.5 rounded-full border border-white/20 font-bold">
-              Reg: {fpoData?.fpoProfile?.registrationNo || 'FPO-MH-PUN-2023-089'}
+              {t('fpo.regNoLabel', 'Reg')}: {fpoData?.fpoProfile?.registrationNo || 'FPO-MH-PUN-2023-089'}
             </span>
             <span className="inline-flex items-center gap-1 text-emerald-300 font-bold">
               <ShieldCheck className="w-3.5 h-3.5" /> {t('fpo.verifiedEntityBadge', 'NABARD / SFAC Verified Entity')}
@@ -129,19 +146,20 @@ const FpoDashboard = () => {
         </div>
 
         {/* Banner Quick Actions */}
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <VoiceAssistant guideType="fpo" />
           <LanguageSelector />
           <button
+            type="button"
             onClick={() => setProfileModalOpen(true)}
-            className="bg-white/10 hover:bg-white/20 text-white border border-white/20 text-xs font-bold px-4 py-3 rounded-2xl flex items-center gap-1.5 transition-all"
+            className="bg-white/10 hover:bg-white/20 text-white border border-white/20 text-xs font-bold px-4 py-3 rounded-2xl flex items-center gap-1.5 transition-all cursor-pointer"
           >
             <UserCheck className="w-4 h-4 text-sky-300" />
             {t('fpo.orgProfile', 'Organization Profile')}
           </button>
           <div className="bg-white/10 backdrop-blur-md px-5 py-3 rounded-2xl border border-white/20 text-right">
             <p className="text-[10px] text-sky-200 uppercase font-extrabold tracking-wider">{t('fpo.registeredMembers', 'Registered Members')}</p>
-            <p className="text-2xl font-black text-white">{fpoData?.memberCount || 45} Farmers</p>
+            <p className="text-2xl font-black text-white">{fpoData?.memberCount || activeMembersList.length || 45} {t('fpo.farmers', 'Farmers')}</p>
           </div>
         </div>
       </div>
@@ -155,8 +173,8 @@ const FpoDashboard = () => {
           </div>
           <div>
             <p className="text-xs font-bold text-slate-500">{t('fpo.cooperativeMembers', 'Cooperative Members')}</p>
-            <p className="text-2xl font-black text-slate-900">{fpoData?.memberCount || 45} Farmers</p>
-            <span className="text-[10px] text-slate-400">100% KYC verified</span>
+            <p className="text-2xl font-black text-slate-900">{fpoData?.memberCount || activeMembersList.length || 45} {t('fpo.farmers', 'Farmers')}</p>
+            <span className="text-[10px] text-slate-400">{t('fpo.kycVerified', '100% KYC verified')}</span>
           </div>
         </div>
 
@@ -167,7 +185,7 @@ const FpoDashboard = () => {
           <div>
             <p className="text-xs font-bold text-slate-500">{t('fpo.totalAggregatedStock', 'Collective Available Stock')}</p>
             <p className="text-2xl font-black text-[#07875B]">{totalCollectiveQty.toLocaleString()} kg</p>
-            <span className="text-[10px] text-slate-400">Across {fpoData?.collectiveInventory?.length || 0} crop categories</span>
+            <span className="text-[10px] text-slate-400">{t('fpo.acrossCrops', { count: fpoData?.collectiveInventory?.length || 0, defaultValue: `Across ${fpoData?.collectiveInventory?.length || 0} crop categories` })}</span>
           </div>
         </div>
 
@@ -177,8 +195,8 @@ const FpoDashboard = () => {
           </div>
           <div>
             <p className="text-xs font-bold text-slate-500">{t('fpo.produceLots', 'Member Produce Lots')}</p>
-            <p className="text-2xl font-black text-slate-900">{fpoData?.fpoListings?.length || 0} Lots</p>
-            <span className="text-[10px] text-slate-400">Indexed for batch aggregation</span>
+            <p className="text-2xl font-black text-slate-900">{fpoData?.fpoListings?.length || 0} {fpoData?.fpoListings?.length === 1 ? t('farmer.activeLot', 'Lot') : t('farmer.activeLots', 'Lots')}</p>
+            <span className="text-[10px] text-slate-400">{t('fpo.indexedForBatch', 'Indexed for batch aggregation')}</span>
           </div>
         </div>
 
@@ -192,7 +210,7 @@ const FpoDashboard = () => {
           <div>
             <p className="text-xs font-bold text-slate-500">{t('fpo.institutionalProposals', 'Institutional Proposals')}</p>
             <p className="text-2xl font-black text-amber-700">{proposals.length}</p>
-            <span className="text-[10px] text-amber-600 font-bold">Review allocations →</span>
+            <span className="text-[10px] text-amber-600 font-bold">{t('fpo.reviewAllocations', 'Review allocations →')}</span>
           </div>
         </div>
 
@@ -201,15 +219,16 @@ const FpoDashboard = () => {
       {/* 3. TAB NAVIGATION */}
       <div className="flex border-b border-slate-200 gap-2 sm:gap-4 overflow-x-auto text-xs font-bold">
         {[
-          { key: 'OVERVIEW', label: 'ðŸ¢ Collective Stock & Overview' },
-          { key: 'MEMBERS', label: `ðŸ‘¨â€🌾 Member Farmers Directory (${activeMembersList.length})` },
+          { key: 'OVERVIEW', label: '🏢 ' + t('fpo.tabCollectiveStock', 'Collective Stock & Overview') },
+          { key: 'MEMBERS', label: `👨‍🌾 ` + t('fpo.tabMemberDirectory', 'Member Farmers Directory') + ` (${activeMembersList.length})` },
           { key: 'AGGREGATION', label: '⚡ ' + t('fpo.aggregationEngineTab', 'Produce Aggregation Engine') },
           { key: 'PROPOSALS', label: '📋 ' + t('fpo.institutionalProposalsTab', 'Institutional Proposals') + ` (${proposals.length})` }
         ].map((tab) => (
           <button
             key={tab.key}
+            type="button"
             onClick={() => setActiveTab(tab.key)}
-            className={`pb-3 px-2 sm:px-4 border-b-2 transition-all whitespace-nowrap flex items-center gap-1.5 ${
+            className={`pb-3 px-2 sm:px-4 border-b-2 transition-all whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
               activeTab === tab.key
                 ? 'border-sky-700 text-sky-700 font-extrabold'
                 : 'border-transparent text-slate-500 hover:text-slate-800'
@@ -232,7 +251,7 @@ const FpoDashboard = () => {
             <div>
               <p className="font-extrabold text-slate-900">{t('fpo.antiDoubleCountingTitle', 'Anti-Double Counting Protocol Enforced')}</p>
               <p className="text-[11px] text-slate-600 leading-relaxed mt-0.5">
-                The collective stock displayed below is a dynamic aggregation composed strictly of verified member-farmer lots. It is <strong>never added as duplicate independent stock</strong>. When lots are procured, reservation locks synchronously on the member's listing.
+                {t('fpo.antiDoubleCountingDesc', "The collective stock displayed below is a dynamic aggregation composed strictly of verified member-farmer lots. It is never added as duplicate independent stock. When lots are procured, reservation locks synchronously on the member's listing.")}
               </p>
             </div>
           </div>
@@ -242,11 +261,12 @@ const FpoDashboard = () => {
             <div className="flex justify-between items-center border-b border-slate-100 pb-4">
               <div>
                 <h3 className="font-extrabold text-slate-900 text-lg">{t('fpo.collectiveInventoryByCrop', 'Collective Inventory by Crop')}</h3>
-                <p className="text-xs text-slate-500">Live aggregated supply available across all registered member farmers.</p>
+                <p className="text-xs text-slate-500">{t('fpo.liveAggregatedSupplyDesc', 'Live aggregated supply available across all registered member farmers.')}</p>
               </div>
               <button
+                type="button"
                 onClick={() => setActiveTab('AGGREGATION')}
-                className="px-4 py-2 bg-sky-700 hover:bg-sky-800 text-white font-bold text-xs rounded-xl shadow-sm flex items-center gap-1.5 transition-all"
+                className="px-4 py-2 bg-sky-700 hover:bg-sky-800 text-white font-bold text-xs rounded-xl shadow-sm flex items-center gap-1.5 transition-all cursor-pointer"
               >
                 <Layers className="w-4 h-4" /> {t('fpo.openAggregationEngine', 'Open Aggregation Engine')}
               </button>
@@ -256,14 +276,14 @@ const FpoDashboard = () => {
               {fpoData?.collectiveInventory?.map((inv, idx) => (
                 <div key={idx} className="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-2 hover:border-sky-300 transition-all">
                   <div className="flex justify-between items-center">
-                    <span className="font-black text-slate-900 text-base">{inv.cropName}</span>
+                    <span className="font-black text-slate-900 text-base">{t('crops.' + inv.cropName, inv.cropName)}</span>
                     <span className="bg-sky-100 text-sky-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full">
-                      {inv.farmerCount} Farmers
+                      {inv.farmerCount} {t('fpo.farmers', 'Farmers')}
                     </span>
                   </div>
                   <p className="text-2xl font-black text-[#07875B]">{inv.totalQuantityKg.toLocaleString()} kg</p>
                   <div className="flex justify-between text-xs text-slate-500 pt-1 border-t border-slate-200">
-                    <span>Avg Asking Rate:</span>
+                    <span>{t('fpo.avgAskingRate', 'Avg Asking Rate')}:</span>
                     <span className="font-bold text-slate-800">₹{inv.avgAskingPrice}/kg</span>
                   </div>
                 </div>
@@ -271,26 +291,27 @@ const FpoDashboard = () => {
             </div>
           </div>
 
-          {/* Recent Open Buyer Requirements to target */}
+          {/* Recent Open Buyer Requirements */}
           <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-200 space-y-4">
-            <h3 className="font-extrabold text-slate-900 text-base">Active Bulk Buyer Requirements in Pune Region</h3>
+            <h3 className="font-extrabold text-slate-900 text-base">{t('fpo.activeBuyerReqs', 'Active Bulk Buyer Requirements in Region')}</h3>
             <div className="divide-y divide-slate-100 text-xs">
               {fpoData?.activeRequirements?.slice(0, 5).map((req) => (
                 <div key={req.id} className="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div>
-                    <span className="font-bold text-slate-900 text-sm">{req.cropName}</span>
+                    <span className="font-bold text-slate-900 text-sm">{t('crops.' + req.cropName, req.cropName)}</span>
                     <span className="text-slate-500 block">
                       Target: {req.quantityKg.toLocaleString()} kg • Max Rate: ₹{req.maxPricePerKg}/kg • Buyer: {req.buyer?.organizationName || 'Supermarket Chain'}
                     </span>
                   </div>
                   <button
+                    type="button"
                     onClick={() => {
                       setSelectedRequirementId(req.id);
                       setActiveTab('AGGREGATION');
                     }}
-                    className="self-start sm:self-auto px-3.5 py-1.5 bg-sky-50 text-sky-700 hover:bg-sky-100 font-bold rounded-xl border border-sky-200 transition-colors"
+                    className="self-start sm:self-auto px-3.5 py-1.5 bg-sky-50 text-sky-700 hover:bg-sky-100 font-bold rounded-xl border border-sky-200 transition-colors cursor-pointer"
                   >
-                    Match & Aggregate Supply →
+                    {t('fpo.matchAndAggregate', 'Match & Aggregate Supply →')}
                   </button>
                 </div>
               ))}
@@ -313,59 +334,65 @@ const FpoDashboard = () => {
                   type="text"
                   value={memberSearch}
                   onChange={(e) => setMemberSearch(e.target.value)}
-                  placeholder="Search member farmers by name or village..."
+                  placeholder={t('fpo.searchMembersPlaceholder', 'Search member farmers by name or village...')}
                   className="w-full pl-9 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:bg-white focus:border-sky-600 transition-all font-medium"
                 />
               </div>
-              <VoiceInput onResult={(t) => setMemberSearch(t)} title="Speak search term" />
+              <VoiceInput
+                onResult={(t) => setMemberSearch(t)}
+                title={t('voice.speakSearchTerm', 'Speak search term')}
+              />
             </div>
             <div className="text-xs text-slate-500 font-bold whitespace-nowrap">
-              Showing {filteredMembers.length} of {activeMembersList.length} members
+              {t('fpo.showingMembersCount', { filtered: filteredMembers.length, total: activeMembersList.length, defaultValue: `Showing ${filteredMembers.length} of ${activeMembersList.length} members` })}
             </div>
           </div>
 
           {/* Members Table */}
           <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
             {filteredMembers.length === 0 ? (
-              <div className="p-12 text-center text-slate-400 text-xs">No member farmers found matching "{memberSearch}".</div>
+              <div className="p-12 text-center text-slate-400 text-xs">
+                {t('fpo.noMembersFound', `No member farmers found matching "${memberSearch}".`)}
+              </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
-                  <thead className="bg-slate-50 text-slate-600 uppercase font-extrabold tracking-wider border-b border-slate-200">
+                  <thead className="bg-slate-50 text-slate-600 uppercase font-extrabold tracking-wider border-b border-slate-200 text-[10px]">
                     <tr>
-                      <th className="p-4">Farmer Member</th>
-                      <th className="p-4">Village / Location</th>
-                      <th className="p-4">Land Holding</th>
-                      <th className="p-4">Contributed Lots</th>
-                      <th className="p-4">Total Supply (kg)</th>
-                      <th className="p-4">Verification</th>
-                      <th className="p-4 text-right">Traceability</th>
+                      <th className="p-4">{t('fpo.farmerMember', 'Farmer Member')}</th>
+                      <th className="p-4">{t('location.village', 'Village / Location')}</th>
+                      <th className="p-4">{t('farmer.landSizeAcres', 'Land Holding')}</th>
+                      <th className="p-4">{t('fpo.contributedLots', 'Contributed Lots')}</th>
+                      <th className="p-4">{t('fpo.totalSupply', 'Total Supply (kg)')}</th>
+                      <th className="p-4">{t('common.status', 'Status')}</th>
+                      <th className="p-4 text-right">{t('common.actions', 'Actions')}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 font-medium">
                     {filteredMembers.map((m) => {
-                      const totalMemberQty = (m.listings || []).reduce((sum, l) => sum + l.quantityKg, 0);
+                      const totalMemberQty = (m.listings || []).reduce((s, l) => s + l.quantityKg, 0);
                       return (
-                        <tr key={m.id} className="hover:bg-slate-50/80 transition-colors">
+                        <tr key={m.id} className="hover:bg-slate-50">
                           <td className="p-4 font-bold text-slate-900 flex items-center gap-2">
                             <span className="w-2.5 h-2.5 rounded-full bg-sky-500"></span>
                             {m.user?.name || 'Member Farmer'}
                           </td>
                           <td className="p-4 text-slate-600">{m.user?.village || 'Manchar'}, {m.user?.district || 'Pune'}</td>
-                          <td className="p-4 font-bold text-slate-800">{m.landSizeAcres || 2.5} Acres</td>
-                          <td className="p-4 text-slate-700">{m.listings?.length || 0} Lots</td>
+                          <td className="p-4 font-bold text-slate-800">{m.landSizeAcres || 2.5} {t('farmer.acres', 'Acres')}</td>
+                          <td className="p-4 text-slate-700">{m.listings?.length || 0} {m.listings?.length === 1 ? t('farmer.activeLot', 'Lot') : t('farmer.activeLots', 'Lots')}</td>
                           <td className="p-4 font-black text-[#07875B]">{totalMemberQty.toLocaleString()} kg</td>
                           <td className="p-4">
                             <span className="inline-flex items-center gap-1 bg-emerald-100 text-[#07875B] font-extrabold px-2 py-0.5 rounded-full text-[10px]">
-                              <ShieldCheck className="w-3 h-3" /> VERIFIED
+                              <ShieldCheck className="w-3 h-3" /> {t('status.VERIFIED', 'VERIFIED')}
                             </span>
                           </td>
                           <td className="p-4 text-right">
                             <button
+                              type="button"
                               onClick={() => handleViewMemberDetails(m)}
-                              className="px-3 py-1.5 bg-slate-100 hover:bg-sky-50 hover:text-sky-700 text-slate-700 font-bold rounded-lg transition-colors inline-flex items-center gap-1"
+                              className="px-3 py-1.5 bg-slate-100 hover:bg-sky-50 hover:text-sky-700 text-slate-700 font-bold rounded-lg transition-colors inline-flex items-center gap-1 cursor-pointer"
                             >
-                              <Eye className="w-3.5 h-3.5" /> View Produce Lots
+                              <Eye className="w-3.5 h-3.5" /> {t('fpo.viewProduceLots', 'View Produce Lots')}
                             </button>
                           </td>
                         </tr>
@@ -389,21 +416,61 @@ const FpoDashboard = () => {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-100 pb-4">
               <div>
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-sky-100 text-sky-800 text-xs font-bold mb-1">
-                  <Layers className="w-3.5 h-3.5" /> Smallholder Aggregation Engine
+                  <Layers className="w-3.5 h-3.5" /> {t('fpo.smallholderAggregationEngine', 'Smallholder Aggregation Engine')}
                 </div>
-                <h2 className="text-xl sm:text-2xl font-black text-slate-900">Multi-Farmer Produce Aggregation</h2>
+                <h2 className="text-xl sm:text-2xl font-black text-slate-900">{t('fpo.multiFarmerProduceAggregation', 'Multi-Farmer Produce Aggregation')}</h2>
                 <p className="text-xs text-slate-500">
-                  Select member farmer lots below to assemble a consolidated batch satisfying bulk commercial requirements while guaranteeing farm gate traceability.
+                  {t('fpo.aggregationSubtitle', 'Select member farmer lots below or use voice dictation to assemble a consolidated batch satisfying bulk requirements.')}
                 </p>
               </div>
 
-              <button
-                onClick={handleRunAggregation}
-                disabled={selectedListings.length === 0}
-                className="px-6 py-3 bg-sky-700 hover:bg-sky-800 disabled:opacity-50 text-white font-extrabold text-xs rounded-xl shadow-md flex items-center gap-2 transition-all hover:scale-105"
-              >
-                <Layers className="w-4 h-4" /> Aggregate {selectedListings.length} Selected Lots
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setVoiceModalOpen(true)}
+                  className="px-4 py-2.5 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-700 hover:to-indigo-700 text-white font-bold text-xs rounded-xl shadow-md flex items-center gap-1.5 transition-all cursor-pointer"
+                >
+                  <Mic className="w-4 h-4" />
+                  <span>{t('fpo.smartVoiceAggregation', 'Smart Voice Aggregation')}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleRunAggregation}
+                  disabled={selectedListings.length === 0}
+                  className="px-5 py-2.5 bg-sky-700 hover:bg-sky-800 disabled:opacity-50 text-white font-extrabold text-xs rounded-xl shadow-md flex items-center gap-2 transition-all cursor-pointer"
+                >
+                  <Layers className="w-4 h-4" /> {t('fpo.aggregateSelectedLotsBtn', { count: selectedListings.length, defaultValue: `Aggregate ${selectedListings.length} Selected Lots` })}
+                </button>
+              </div>
+            </div>
+
+            {/* Explicit Weighted Asking Rate Explainer Card */}
+            <div className="bg-gradient-to-r from-slate-900 via-sky-950 to-slate-900 text-white p-5 rounded-2xl border border-sky-800/40 space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-sky-800/50 pb-2">
+                <span className="text-xs font-black uppercase tracking-wider text-sky-300 flex items-center gap-1.5">
+                  <Calculator className="w-4 h-4 text-sky-400" />
+                  {t('fpo.weightedRateTitle', 'Weighted Average Asking Rate Calculation Principle')}
+                </span>
+                <span className="bg-sky-500/20 text-sky-200 text-[10px] font-bold px-2 py-0.5 rounded-full border border-sky-400/30">
+                  {t('fpo.fairPricingFormula', 'Fair Smallholder Pricing Formula')}
+                </span>
+              </div>
+              <div className="text-xs space-y-2 text-slate-200">
+                <p className="leading-relaxed">
+                  {t('fpo.weightedRateDesc', 'When multiple smallholders contribute different lot sizes at varying asking prices, simple averaging is mathematically unfair. SasyaVahini computes the exact volume-weighted asking rate:')}
+                </p>
+                <div className="bg-white/10 p-3 rounded-xl border border-white/10 font-mono text-xs text-sky-200">
+                  Weighted Rate = Σ(Quantity_i × Asking_Price_i) ÷ Σ(Quantity_i)
+                </div>
+                <div className="bg-sky-900/40 p-3 rounded-xl border border-sky-700/40 text-[11px] text-sky-100">
+                  <strong>{t('fpo.exampleWalkthrough', 'Example Walkthrough:')}</strong>
+                  <br />
+                  Farmer A: 100 kg @ ₹20/kg (₹2,000) + Farmer B: 200 kg @ ₹25/kg (₹5,000)
+                  <br />
+                  Consolidated Pool = (₹2,000 + ₹5,000) ÷ (100 kg + 200 kg) = ₹7,000 ÷ 300 kg = <strong>₹23.33/kg</strong>.
+                </div>
+              </div>
             </div>
 
             {/* Aggregation Result Alert Box */}
@@ -416,22 +483,22 @@ const FpoDashboard = () => {
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs bg-white p-3.5 rounded-xl border border-emerald-200">
                   <div>
-                    <span className="text-slate-400 block font-medium">Total Aggregated Consignment</span>
+                    <span className="text-slate-400 block font-medium">{t('fpo.totalAggregatedConsignment', 'Total Aggregated Consignment')}</span>
                     <span className="font-black text-[#07875B] text-base">{aggregationResult.totalAggregatedQty.toLocaleString()} kg</span>
                   </div>
                   <div>
-                    <span className="text-slate-400 block font-medium">Participating Smallholders</span>
-                    <span className="font-extrabold text-slate-900">{aggregationResult.participatingFarmersCount} Member Farmers</span>
+                    <span className="text-slate-400 block font-medium">{t('fpo.participatingFarmers', 'Participating Smallholders')}</span>
+                    <span className="font-extrabold text-slate-900">{aggregationResult.participatingFarmersCount} {t('fpo.farmers', 'Member Farmers')}</span>
                   </div>
                   <div>
-                    <span className="text-slate-400 block font-medium">Consolidated Weighted Rate</span>
+                    <span className="text-slate-400 block font-medium">{t('fpo.consolidatedWeightedRate', 'Consolidated Weighted Rate')}</span>
                     <span className="font-black text-[#07875B] text-base">₹{aggregationResult.weightedAvgPricePerKg}/kg</span>
                   </div>
                 </div>
 
                 {/* Farmers Breakdown Traceability */}
                 <div className="pt-2">
-                  <p className="text-xs font-bold text-slate-700 mb-2">Itemized Member Traceability Breakdown:</p>
+                  <p className="text-xs font-bold text-slate-700 mb-2">{t('fpo.itemizedTraceability', 'Itemized Member Traceability Breakdown:')}</p>
                   <div className="flex flex-wrap gap-2 text-xs">
                     {aggregationResult.farmersBreakdown.map((f, idx) => (
                       <span key={idx} className="bg-white border border-emerald-300 text-emerald-900 px-3 py-1.5 rounded-xl font-semibold shadow-xs">
@@ -446,21 +513,21 @@ const FpoDashboard = () => {
             {/* Selectable Member Listings Table */}
             <div className="space-y-3">
               <div className="flex justify-between items-center text-xs">
-                <p className="font-extrabold text-slate-800">Available Member Farmer Lots:</p>
-                <span className="text-slate-500">{selectedListings.length} lots selected for consignment</span>
+                <p className="font-extrabold text-slate-800">{t('fpo.availableMemberLots', 'Available Member Farmer Lots:')}</p>
+                <span className="text-slate-500">{t('fpo.selectedLotsCount', { count: selectedListings.length, defaultValue: `${selectedListings.length} lots selected for consignment` })}</span>
               </div>
 
               <div className="border border-slate-200 rounded-2xl overflow-hidden">
                 <table className="w-full text-left text-xs">
-                  <thead className="bg-slate-50 text-slate-600 uppercase font-extrabold tracking-wider border-b border-slate-200">
+                  <thead className="bg-slate-50 text-slate-600 uppercase font-extrabold tracking-wider border-b border-slate-200 text-[10px]">
                     <tr>
-                      <th className="p-3 w-12 text-center">Select</th>
-                      <th className="p-3">Farmer Name</th>
-                      <th className="p-3">Crop Produce</th>
-                      <th className="p-3">Available Quantity</th>
-                      <th className="p-3">Asking Rate</th>
-                      <th className="p-3">Grade</th>
-                      <th className="p-3">Farm Location</th>
+                      <th className="p-3 w-12 text-center">{t('common.select', 'Select')}</th>
+                      <th className="p-3">{t('fpo.farmerMember', 'Farmer Name')}</th>
+                      <th className="p-3">{t('farmer.produce', 'Crop Produce')}</th>
+                      <th className="p-3">{t('farmer.availableStock', 'Available Quantity')}</th>
+                      <th className="p-3">{t('farmer.ratePerKg', 'Asking Rate')}</th>
+                      <th className="p-3">{t('farmer.qualityGradeLabel', 'Grade')}</th>
+                      <th className="p-3">{t('location.farmPickupPin', 'Farm Location')}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 font-medium">
@@ -478,7 +545,7 @@ const FpoDashboard = () => {
                           </td>
                           <td className="p-3 font-bold text-slate-900">{item.farmer?.user?.name || 'Member Farmer'}</td>
                           <td className="p-3 text-[#07875B] font-bold flex items-center gap-1.5">
-                            {item.cropName} {item.isOrganic && <span className="text-[10px] bg-emerald-100 px-1 py-0.2 rounded">Org</span>}
+                            {t('crops.' + item.cropName, item.cropName)} {item.isOrganic && <span className="text-[10px] bg-emerald-100 px-1 py-0.2 rounded font-extrabold">Org</span>}
                           </td>
                           <td className="p-3 font-bold text-slate-800">{item.quantityKg.toLocaleString()} kg</td>
                           <td className="p-3 text-slate-900 font-bold">₹{item.askingPricePerKg}/kg</td>
@@ -503,46 +570,47 @@ const FpoDashboard = () => {
 
           <div className="bg-white rounded-3xl p-6 sm:p-7 shadow-sm border border-slate-200 space-y-4">
             <div>
-              <h3 className="font-extrabold text-slate-900 text-base">FPO-Level Institutional Allocation Proposals</h3>
+              <h3 className="font-extrabold text-slate-900 text-base">{t('fpo.institutionalProposalsTab', 'FPO-Level Institutional Allocation Proposals')}</h3>
               <p className="text-xs text-slate-500">
-                Large institutional purchase requirements mapped to this FPO's collective capacity.
+                {t('fpo.institutionalProposalsDesc', "Large institutional purchase requirements mapped to this FPO's collective capacity.")}
               </p>
             </div>
 
             {proposals.length === 0 ? (
-              <div className="p-12 text-center text-slate-400 text-xs">No active institutional proposals pending.</div>
+              <div className="p-12 text-center text-slate-400 text-xs">{t('fpo.noActiveProposals', 'No active institutional proposals pending.')}</div>
             ) : (
               <div className="grid grid-cols-1 gap-4 text-xs">
                 {proposals.map((prop) => (
                   <div key={prop.id} className="bg-slate-50 p-5 rounded-2xl border border-slate-200 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div className="space-y-1.5">
                       <div className="flex items-center gap-2">
-                        <span className="font-extrabold text-slate-900 text-base">{prop.cropName}</span>
+                        <span className="font-extrabold text-slate-900 text-base">{t('crops.' + prop.cropName, prop.cropName)}</span>
                         <span className="bg-sky-100 text-sky-800 font-bold px-2 py-0.5 rounded-full text-[10px]">
-                          {prop.proposedQuantityKg.toLocaleString()} kg Required
+                          {prop.proposedQuantityKg.toLocaleString()} kg {t('proposals.required', 'Required')}
                         </span>
                         <span className="bg-emerald-100 text-[#07875B] font-bold px-2 py-0.5 rounded-full text-[10px]">
-                          {prop.matchScore}% Collective Match
+                          {prop.matchScore}% {t('fpo.collectiveMatch', 'Collective Match')}
                         </span>
                       </div>
                       <p className="text-slate-600">
-                        Buyer: <strong>{prop.buyerName}</strong> ({prop.buyerType}) • Destination: {prop.deliveryLocation}
+                        {t('proposals.buyer', 'Buyer')}: <strong>{prop.buyerName}</strong> ({prop.buyerType}) • {t('proposals.destination', 'Destination')}: {prop.deliveryLocation}
                       </p>
-                      <p className="text-slate-400 text-[11px]">Required By: {prop.requiredByDate}</p>
+                      <p className="text-slate-400 text-[11px]">{t('proposals.requiredBy', 'Required By')}: {prop.requiredByDate}</p>
                     </div>
 
                     <div className="flex items-center gap-4 self-end md:self-auto">
                       <div className="text-right">
-                        <span className="text-slate-400 block text-[11px]">Max Offered Rate</span>
+                        <span className="text-slate-400 block text-[11px]">{t('proposals.maxOfferedRate', 'Max Offered Rate')}</span>
                         <span className="font-black text-[#07875B] text-lg">₹{prop.offeredPricePerKg}/kg</span>
                       </div>
                       <button
+                        type="button"
                         onClick={() => {
                           setActiveTab('AGGREGATION');
                         }}
-                        className="px-4 py-2 bg-sky-700 hover:bg-sky-800 text-white font-bold rounded-xl shadow-sm transition-all"
+                        className="px-4 py-2 bg-sky-700 hover:bg-sky-800 text-white font-bold rounded-xl shadow-sm transition-all cursor-pointer"
                       >
-                        Aggregate Member Supply →
+                        {t('fpo.aggregateMemberSupply', 'Aggregate Member Supply →')}
                       </button>
                     </div>
                   </div>
@@ -570,6 +638,12 @@ const FpoDashboard = () => {
           refreshUser();
           fetchFpoDashboard();
         }}
+      />
+
+      <FpoVoiceAggregationModal
+        isOpen={voiceModalOpen}
+        onClose={() => setVoiceModalOpen(false)}
+        onApplyLots={handleApplyVoiceLots}
       />
 
     </div>

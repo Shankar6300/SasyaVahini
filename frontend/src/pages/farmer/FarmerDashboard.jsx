@@ -6,8 +6,7 @@ import {
   Package, Plus, TrendingUp, DollarSign, AlertCircle, Trash2, Edit3,
   CheckCircle, ChevronRight, ShieldCheck, MapPin, Eye, Search,
   Layers, Bell, UserCheck, Sparkles, Sliders, LayoutDashboard,
-  HandCoins, User, Wheat, Menu, X as XIcon, RefreshCw, ArrowUpRight, Info, Mic,
-  Truck
+  HandCoins, User, Wheat, Menu, X as XIcon, RefreshCw, ArrowUpRight, Info, Mic
 } from 'lucide-react';
 import MarketIntelligenceWidget from '../../components/ml/MarketIntelligenceWidget';
 
@@ -214,7 +213,7 @@ const FarmerDashboard = () => {
     <div className="min-h-[60vh] flex items-center justify-center">
       <div className="text-center space-y-3">
         <RefreshCw className="w-7 h-7 text-[#07875B] animate-spin mx-auto" />
-        <p className="text-sm text-[#64748B]">Loading your farm workspace…</p>
+        <p className="text-sm text-[#64748B]">{t('farmer.loadingWorkspace', 'Loading your farm workspace…')}</p>
       </div>
     </div>
   );
@@ -228,7 +227,7 @@ const FarmerDashboard = () => {
         </div>
         <div className="min-w-0">
           <p className="text-[11px] font-black text-[#07875B] leading-none">{t('farmer.portalTitle', 'FARMER PORTAL')}</p>
-          <p className="text-[10px] text-[#64748B] leading-none mt-0.5 truncate">{user?.name || 'Farmer'}</p>
+          <p className="text-[10px] text-[#64748B] leading-none mt-0.5 truncate">{user?.name && user.name !== 'Farmer' ? user.name : t('auth.roleFarmer', 'Farmer')}</p>
         </div>
       </div>
       {navItems.map(item => (
@@ -252,11 +251,11 @@ const FarmerDashboard = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-xl font-black text-[#1F2937]">
-            {new Date().getHours() < 12 ? t('farmer.goodMorning', 'Good morning') : t('farmer.goodAfternoon', 'Good afternoon')}, {user?.name?.split(' ')[0] || t('auth.roleFarmer', 'Farmer')} 👋
+            {new Date().getHours() < 12 ? t('farmer.goodMorning', 'Good morning') : t('farmer.goodAfternoon', 'Good afternoon')}, {user?.name && user.name !== 'Farmer' ? user.name.split(' ')[0] : t('auth.roleFarmer', 'Farmer')} 👋
           </h1>
           <div className="flex flex-wrap items-center gap-3 mt-1 text-xs text-[#64748B]">
-            <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> {user?.village || 'Manchar'}, {user?.district || 'Pune'}</span>
-            <span className="flex items-center gap-1 text-[#07875B] font-semibold"><ShieldCheck className="w-3 h-3" /> SasyaVahini Verified</span>
+            <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> {user?.village || t('farmer.defaultVillage', 'Manchar')}, {user?.district || t('farmer.defaultDistrict', 'Pune')}</span>
+            <span className="flex items-center gap-1 text-[#07875B] font-semibold"><ShieldCheck className="w-3 h-3" /> {t('farmer.verifiedBadge', 'SasyaVahini Verified')}</span>
             {user?.farmerProfile?.landSizeAcres && (
               <span className="flex items-center gap-1"><Layers className="w-3 h-3" /> {user.farmerProfile.landSizeAcres} {t('farmer.acres', 'Acres')}</span>
             )}
@@ -266,14 +265,14 @@ const FarmerDashboard = () => {
           <VoiceAssistant guideType="farmer" />
           <LanguageSelector />
           <button onClick={() => setNotificationsModalOpen(true)}
-            className="relative p-2.5 bg-white border border-[#E2E8F0] rounded-xl text-[#64748B] hover:text-[#07875B] hover:border-[#07875B]/30 transition-all">
+            className="relative p-2.5 bg-white border border-[#E2E8F0] rounded-xl text-[#64748B] hover:text-[#07875B] hover:border-[#07875B]/30 transition-all cursor-pointer">
             <Bell className="w-4 h-4" />
             {unreadCount > 0 && (
               <span className="absolute -top-1 -right-1 w-4 h-4 bg-amber-500 text-white text-[9px] font-black rounded-full flex items-center justify-center">{unreadCount}</span>
             )}
           </button>
           <button onClick={() => setProfileModalOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-2.5 bg-white border border-[#E2E8F0] rounded-xl text-xs font-semibold text-[#64748B] hover:border-[#07875B]/30 transition-all">
+            className="flex items-center gap-1.5 px-3 py-2.5 bg-white border border-[#E2E8F0] rounded-xl text-xs font-semibold text-[#64748B] hover:border-[#07875B]/30 transition-all cursor-pointer">
             <UserCheck className="w-3.5 h-3.5" /> {t('farmer.profile', 'Profile')}
           </button>
         </div>
@@ -296,7 +295,7 @@ const FarmerDashboard = () => {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <StatCard icon={Package}     iconBg="bg-[#E8F5E9]" iconColor="text-[#07875B]"
           label={t('farmer.availableStock', 'Available Stock')} value={`${totalAvailKg.toLocaleString()} kg`}
-          sub={`${available.length} ${t('farmer.activeLots', 'active lots')}`} />
+          sub={`${available.length} ${available.length === 1 ? t('farmer.activeLot', 'active lot') : t('farmer.activeLots', 'active lots')}`} />
         <StatCard icon={ShieldCheck} iconBg="bg-blue-50"   iconColor="text-blue-600"
           label={t('farmer.reservedStock', 'Reserved')} value={`${totalResvKg.toLocaleString()} kg`}
           sub={`${reserved.length} ${t('farmer.committed', 'committed')}`} />
@@ -316,13 +315,13 @@ const FarmerDashboard = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-[#07875B]" />
-                  <span className="text-xs font-extrabold text-[#1F2937] uppercase tracking-wider">AI Demand Forecast</span>
+                  <span className="text-xs font-extrabold text-[#1F2937] uppercase tracking-wider">{t('farmer.aiDemandForecast', 'AI Demand Forecast')}</span>
                 </div>
-                <span className="text-[10px] font-bold text-[#07875B] bg-[#E8F5E9] px-2 py-0.5 rounded-full border border-emerald-200">ML Model</span>
+                <span className="text-[10px] font-bold text-[#07875B] bg-[#E8F5E9] px-2 py-0.5 rounded-full border border-emerald-200">{t('ml.modelBadge', 'ML Model')}</span>
               </div>
               <div>
-                <p className="text-lg font-black text-[#1F2937]">{forecast.crop}: <span className="text-[#07875B]">{forecast.demand_level}</span> Demand</p>
-                <p className="text-xs text-[#64748B]">Regional estimate: {forecast.predicted_demand?.toLocaleString()} kg</p>
+                <p className="text-lg font-black text-[#1F2937]">{t('crops.' + forecast.crop, forecast.crop)}: <span className="text-[#07875B]">{forecast.demand_level}</span> {t('ml.demand', 'Demand')}</p>
+                <p className="text-xs text-[#64748B]">{t('ml.regionalEstimate', 'Regional estimate')}: {forecast.predicted_demand?.toLocaleString()} kg</p>
               </div>
               <ul className="space-y-1">
                 {(forecast.explanations || []).slice(0, 3).map((exp, i) => (
@@ -338,14 +337,14 @@ const FarmerDashboard = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <DollarSign className="w-4 h-4 text-[#07875B]" />
-                  <span className="text-xs font-extrabold text-[#1F2937] uppercase tracking-wider">Price Guidance</span>
+                  <span className="text-xs font-extrabold text-[#1F2937] uppercase tracking-wider">{t('ml.priceGuidance', 'Price Guidance')}</span>
                 </div>
-                <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">AI Estimate</span>
+                <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">{t('ml.aiEstimate', 'AI Estimate')}</span>
               </div>
               <div className="flex items-end justify-between">
                 <div>
-                  <p className="text-xs text-[#64748B]">Mandi range: {priceRec.market_range}</p>
-                  <p className="text-xs text-[#64748B]">Recommended asking rate</p>
+                  <p className="text-xs text-[#64748B]">{t('ml.mandiRange', 'Mandi range')}: {priceRec.market_range}</p>
+                  <p className="text-xs text-[#64748B]">{t('ml.recommendedAskingRate', 'Recommended asking rate')}</p>
                 </div>
                 <p className="text-2xl font-black text-[#07875B]">₹{priceRec.recommended_price}<span className="text-sm font-bold text-[#64748B]">/kg</span></p>
               </div>
@@ -368,17 +367,17 @@ const FarmerDashboard = () => {
             <h3 className="font-extrabold text-[#1F2937] text-sm">{t('farmer.recentProduce', 'Recent Produce')}</h3>
             <p className="text-xs text-[#64748B] mt-0.5">{t('farmer.latestListings', 'Your latest listings')}</p>
           </div>
-          <button onClick={() => goTo('LISTINGS')} className="text-xs font-semibold text-[#07875B] hover:underline flex items-center gap-1">
+          <button onClick={() => goTo('LISTINGS')} className="text-xs font-semibold text-[#07875B] hover:underline flex items-center gap-1 cursor-pointer">
             {t('farmer.viewAll', 'View all')} <ArrowUpRight className="w-3 h-3" />
           </button>
         </div>
         {produceListings.length === 0 ? (
           <div className="px-5 py-10 text-center space-y-3">
             <Package className="w-8 h-8 text-slate-300 mx-auto" />
-            <p className="text-sm text-[#64748B]">No produce listed yet.</p>
+            <p className="text-sm text-[#64748B]">{t('farmer.noProduceYet', 'No produce listed yet.')}</p>
             <button onClick={() => handleOpenAddModal()}
-              className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#07875B] text-white font-bold rounded-xl text-xs">
-              <Plus className="w-3.5 h-3.5" /> Add Available Produce
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#07875B] text-white font-bold rounded-xl text-xs cursor-pointer">
+              <Plus className="w-3.5 h-3.5" /> {t('farmer.addAvailableProduce', 'Add Available Produce')}
             </button>
           </div>
         ) : (
@@ -431,7 +430,7 @@ const FarmerDashboard = () => {
 
       <div className="flex items-start gap-2 px-4 py-3 bg-[#E8F5E9]/50 border border-emerald-200 rounded-xl text-xs text-[#64748B]">
         <Info className="w-3.5 h-3.5 text-[#07875B] flex-shrink-0 mt-0.5" />
-        <span><strong className="text-[#07875B]">Quick Listing</strong> — visual card workflow, mobile-friendly. <strong className="text-[#07875B]">Detailed Listing</strong> — full form with quality grade, certification and GPS location.</span>
+        <span><strong className="text-[#07875B]">{t('farmer.quickListing', 'Quick Listing')}</strong> — {t('farmer.quickListingDesc', 'visual card workflow, mobile-friendly')}. <strong className="text-[#07875B]">{t('farmer.detailedListing', 'Detailed Listing')}</strong> — {t('farmer.detailedListingDesc', 'full form with quality grade, certification and GPS location')}.</span>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3">
@@ -454,8 +453,8 @@ const FarmerDashboard = () => {
         {filteredListings.length === 0 ? (
           <div className="py-14 text-center space-y-3">
             <Package className="w-8 h-8 text-slate-300 mx-auto" />
-            <p className="text-sm font-bold text-[#1F2937]">No listings match your filters.</p>
-            <p className="text-xs text-[#64748B]">Clear search or add a new produce lot.</p>
+            <p className="text-sm font-bold text-[#1F2937]">{t('farmer.noMatchingListings', 'No listings match your filters.')}</p>
+            <p className="text-xs text-[#64748B]">{t('farmer.clearSearchOrAdd', 'Clear search or add a new produce lot.')}</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -547,7 +546,7 @@ const FarmerDashboard = () => {
         {crops.length === 0 ? (
           <div className="bg-white rounded-2xl border border-[#E2E8F0] py-12 text-center">
             <Package className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-            <p className="text-sm text-[#64748B]">No produce in inventory yet.</p>
+            <p className="text-sm text-[#64748B]">{t('farmer.noProduceInInventory', 'No produce in inventory yet.')}</p>
           </div>
         ) : (
           <div className="bg-white rounded-2xl border border-[#E2E8F0] overflow-hidden">
@@ -563,12 +562,12 @@ const FarmerDashboard = () => {
                   <div key={crop} className="px-5 py-4">
                     <div className="flex items-center justify-between mb-2">
                       <span className="font-bold text-[#1F2937] text-sm">{t('crops.' + crop, crop)}</span>
-                      <span className="text-[11px] text-[#64748B]">{data.lots} lot{data.lots !== 1 ? 's' : ''}</span>
+                      <span className="text-[11px] text-[#64748B]">{data.lots} {data.lots === 1 ? t('farmer.activeLot', 'lot') : t('farmer.activeLots', 'lots')}</span>
                     </div>
                     <div className="flex flex-wrap items-center gap-4 text-xs mb-2">
-                      {data.available > 0 && <span className="text-[#07875B] font-bold">{data.available.toLocaleString()} kg available</span>}
-                      {data.reserved > 0 && <span className="text-blue-600 font-bold">{data.reserved.toLocaleString()} kg reserved</span>}
-                      {data.sold > 0 && <span className="text-purple-600 font-bold">{data.sold.toLocaleString()} kg sold</span>}
+                      {data.available > 0 && <span className="text-[#07875B] font-bold">{data.available.toLocaleString()} kg {t('status.AVAILABLE', 'Available').toLowerCase()}</span>}
+                      {data.reserved > 0 && <span className="text-blue-600 font-bold">{data.reserved.toLocaleString()} kg {t('status.RESERVED', 'Reserved').toLowerCase()}</span>}
+                      {data.sold > 0 && <span className="text-purple-600 font-bold">{data.sold.toLocaleString()} kg {t('status.SOLD', 'Sold').toLowerCase()}</span>}
                     </div>
                     <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden flex">
                       <div className="h-full bg-[#07875B]" style={{ width: `${availPct}%` }} />
@@ -587,17 +586,17 @@ const FarmerDashboard = () => {
   // ── PROFILE ───────────────────────────────────────────────────────────────
   const ProfileSection = () => (
     <div className="space-y-5">
-      <SectionHeader title={t('farmer.profileOverview', 'Your Profile')} subtitle="Farm registration details and contact information stored on SasyaVahini." />
+      <SectionHeader title={t('farmer.profileOverview', 'Your Profile')} subtitle={t('farmer.profileSubtitle', 'Farm registration details and contact information stored on SasyaVahini.')} />
       <div className="bg-white rounded-2xl border border-[#E2E8F0] p-6 space-y-5">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           {[
-            ['Full Name', user?.name],
-            ['Email', user?.email],
-            ['Village', user?.village],
-            ['District', user?.district],
-            ['State', user?.state],
-            ['Land Holding', user?.farmerProfile?.landSizeAcres ? `${user.farmerProfile.landSizeAcres} Acres` : null],
-            ['Primary Crops', user?.farmerProfile?.primaryCrops],
+            [t('auth.fullName', 'Full Name'), user?.name],
+            [t('auth.emailLabel', 'Email'), user?.email],
+            [t('farmer.village', 'Village'), user?.village],
+            [t('farmer.district', 'District'), user?.district],
+            [t('farmer.state', 'State'), user?.state],
+            [t('farmer.landHolding', 'Land Holding'), user?.farmerProfile?.landSizeAcres ? `${user.farmerProfile.landSizeAcres} ${t('farmer.acres', 'Acres')}` : null],
+            [t('farmer.primaryCrops', 'Primary Crops'), user?.farmerProfile?.primaryCrops],
           ].filter(([, v]) => v).map(([label, value]) => (
             <div key={label}>
               <p className="text-[11px] text-[#64748B] font-semibold uppercase tracking-wider">{label}</p>
@@ -623,7 +622,7 @@ const FarmerDashboard = () => {
           <div className="w-7 h-7 rounded-lg bg-[#07875B] flex items-center justify-center">
             <Wheat className="w-3.5 h-3.5 text-white" />
           </div>
-          <span className="text-sm font-black text-[#07875B]">Farmer Portal</span>
+          <span className="text-sm font-black text-[#07875B]">{t('farmer.portalTitle', 'Farmer Portal')}</span>
         </div>
         <div className="flex items-center gap-2">
           <span className="text-xs font-semibold text-[#64748B]">{navItems.find(n => n.key === activeSection)?.label}</span>

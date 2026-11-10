@@ -6,9 +6,9 @@
 const { z } = require('zod');
 
 const registerSchema = z.object({
-  name: z.string().min(2).max(100),
-  email: z.string().email(),
-  phone: z.string().regex(/^\+?[0-9]{10,15}$/, 'Invalid phone number'),
+  name: z.string().trim().min(2).max(100),
+  email: z.string().trim().toLowerCase().email(),
+  phone: z.string().trim().regex(/^\+?[0-9]{10,15}$/, 'Invalid phone number'),
   password: z
     .string()
     .min(8, 'Password must be at least 8 characters')
@@ -46,7 +46,7 @@ const registerSchema = z.object({
 });
 
 const loginSchema = z.object({
-  email: z.string().email(),
+  email: z.string().trim().toLowerCase().email(),
   password: z.string().min(1),
 });
 

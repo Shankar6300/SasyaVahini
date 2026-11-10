@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import api from '../../services/api';
 import { Building, X, Save, AlertCircle, ShieldCheck } from 'lucide-react';
 import VoiceInput from '../VoiceInput';
 
 const FpoProfileModal = ({ isOpen, onClose, fpoProfile, user, onProfileUpdated }) => {
+  const { t } = useTranslation();
 
   const [formData, setFormData] = useState({
     fpoName: fpoProfile?.fpoName || 'Pune Sahakari Krishi Producer Co.',
@@ -36,7 +38,7 @@ const FpoProfileModal = ({ isOpen, onClose, fpoProfile, user, onProfileUpdated }
         onClose();
       }, 1000);
     } catch (err) {
-      setError(err.response?.data?.error?.message || err.response?.data?.error || 'Failed to update FPO organization profile.');
+      setError(err.response?.data?.error?.message || err.response?.data?.error || t('fpo.saveFailed', 'Failed to update FPO organization profile.'));
     } finally {
       setLoading(false);
     }
@@ -55,13 +57,18 @@ const FpoProfileModal = ({ isOpen, onClose, fpoProfile, user, onProfileUpdated }
               <Building className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-extrabold text-slate-900 text-lg">FPO Organization Profile</h3>
-              <p className="text-xs text-slate-500">Maintain corporate registration, location, and member capacity</p>
+              <h3 className="font-extrabold text-slate-900 text-lg">
+                {t('fpo.profileTitle', 'FPO Organization Profile & Settings')}
+              </h3>
+              <p className="text-xs text-slate-500">
+                {t('fpo.profileSubtitle', 'Maintain corporate registration, location, and member capacity')}
+              </p>
             </div>
           </div>
           <button
+            type="button"
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition-colors"
+            className="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -72,12 +79,12 @@ const FpoProfileModal = ({ isOpen, onClose, fpoProfile, user, onProfileUpdated }
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-5 h-5 text-sky-700 flex-shrink-0" />
             <div>
-              <p className="font-bold text-slate-900">Registered Producer Organization</p>
-              <p className="text-[11px] text-sky-700">SFAC / NABARD recognized cooperative</p>
+              <p className="font-bold text-slate-900">{t('fpo.registeredEntity', 'Registered Producer Organization')}</p>
+              <p className="text-[11px] text-sky-700">{t('fpo.verifiedEntityBadge', 'SFAC / NABARD recognized cooperative')}</p>
             </div>
           </div>
           <span className="bg-white text-sky-800 font-extrabold text-[10px] px-2.5 py-1 rounded-full border border-sky-300">
-            VERIFIED
+            {t('status.VERIFIED', 'VERIFIED')}
           </span>
         </div>
 
@@ -89,46 +96,56 @@ const FpoProfileModal = ({ isOpen, onClose, fpoProfile, user, onProfileUpdated }
         )}
 
         {success && (
-          <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-[#07875B] text-xs font-bold">
-            FPO Profile updated successfully!
+          <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 text-xs font-bold">
+            {t('fpo.saveSuccess', 'FPO profile updated successfully! Refreshing...')}
           </div>
         )}
 
-        {/* Form */}
+        {/* Edit Form */}
         <form onSubmit={handleSubmit} className="space-y-4 text-xs font-medium">
           <div>
             <div className="flex items-center justify-between mb-1">
-              <label className="block text-slate-700 font-bold">FPO Legal Entity Name</label>
-              <VoiceInput onResult={(t) => setFormData(f => ({ ...f, fpoName: t }))} title="Speak FPO name" />
+              <label className="block text-slate-700 font-bold">{t('fpo.fpoNameLabel', 'FPO Legal / Trading Name *')}</label>
+              <VoiceInput
+                onResult={(val) => setFormData(prev => ({ ...prev, fpoName: val }))}
+                title={t('voice.speakFpoName', 'Speak FPO name')}
+              />
             </div>
             <input
               type="text"
               required
               value={formData.fpoName}
-              onChange={(e) => setFormData({ ...formData, fpoName: e.target.value })}
+              onChange={(e) => setFormData(prev => ({ ...prev, fpoName: e.target.value }))}
               className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white focus:border-sky-600 outline-none transition-all"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-slate-700 font-bold mb-1">Registration Number</label>
+              <label className="block text-slate-700 font-bold mb-1">{t('fpo.regNoLabel', 'Registration / CIN No. *')}</label>
               <input
                 type="text"
                 required
                 value={formData.registrationNo}
-                onChange={(e) => setFormData({ ...formData, registrationNo: e.target.value })}
+                onChange={(e) => setFormData(prev => ({ ...prev, registrationNo: e.target.value }))}
                 className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white focus:border-sky-600 outline-none transition-all"
               />
             </div>
             <div>
-              <label className="block text-slate-700 font-bold mb-1">Registered Member Count</label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-slate-700 font-bold">{t('fpo.totalMembersLabel', 'Total Member Farmers *')}</label>
+                <VoiceInput
+                  type="number"
+                  onResult={(val) => setFormData(prev => ({ ...prev, memberCount: parseInt(val, 10) || prev.memberCount }))}
+                  title={t('voice.speakMemberCount', 'Speak member count')}
+                />
+              </div>
               <input
                 type="number"
                 min="1"
                 required
                 value={formData.memberCount}
-                onChange={(e) => setFormData({ ...formData, memberCount: e.target.value })}
+                onChange={(e) => setFormData(prev => ({ ...prev, memberCount: parseInt(e.target.value, 10) || 0 }))}
                 className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white focus:border-sky-600 outline-none transition-all"
               />
             </div>
@@ -136,57 +153,107 @@ const FpoProfileModal = ({ isOpen, onClose, fpoProfile, user, onProfileUpdated }
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-slate-700 font-bold mb-1">Manager Contact Person</label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-slate-700 font-bold">{t('fpo.managerNameLabel', 'Lead Contact / Manager Name *')}</label>
+                <VoiceInput
+                  onResult={(val) => setFormData(prev => ({ ...prev, name: val }))}
+                  title={t('voice.speakManagerName', 'Speak manager name')}
+                />
+              </div>
               <input
                 type="text"
                 required
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                 className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white focus:border-sky-600 outline-none transition-all"
               />
             </div>
             <div>
-              <label className="block text-slate-700 font-bold mb-1">Official Contact Phone</label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-slate-700 font-bold">{t('auth.phone', 'Contact Phone *')}</label>
+                <VoiceInput
+                  type="number"
+                  onResult={(val) => setFormData(prev => ({ ...prev, phone: val }))}
+                  title={t('voice.speakPhone', 'Speak phone number')}
+                />
+              </div>
               <input
                 type="text"
                 required
                 value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
                 className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white focus:border-sky-600 outline-none transition-all"
               />
             </div>
           </div>
 
-          <div>
-            <label className="block text-slate-700 font-bold mb-1">Central Aggregation Hub Location</label>
-            <input
-              type="text"
-              required
-              value={formData.location}
-              onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white focus:border-sky-600 outline-none transition-all"
-            />
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-slate-700 font-bold">{t('location.village', 'Hub Location')}</label>
+                <VoiceInput
+                  onResult={(val) => setFormData(prev => ({ ...prev, location: val }))}
+                  title={t('voice.speakHubLocation', 'Speak hub location')}
+                />
+              </div>
+              <input
+                type="text"
+                value={formData.location}
+                onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white focus:border-sky-600 outline-none transition-all"
+              />
+            </div>
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-slate-700 font-bold">{t('location.district', 'District')}</label>
+                <VoiceInput
+                  onResult={(val) => setFormData(prev => ({ ...prev, district: val }))}
+                  title={t('voice.speakDistrict', 'Speak district')}
+                />
+              </div>
+              <input
+                type="text"
+                value={formData.district}
+                onChange={(e) => setFormData(prev => ({ ...prev, district: e.target.value }))}
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white focus:border-sky-600 outline-none transition-all"
+              />
+            </div>
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-slate-700 font-bold">{t('location.state', 'State')}</label>
+                <VoiceInput
+                  onResult={(val) => setFormData(prev => ({ ...prev, state: val }))}
+                  title={t('voice.speakState', 'Speak state')}
+                />
+              </div>
+              <input
+                type="text"
+                value={formData.state}
+                onChange={(e) => setFormData(prev => ({ ...prev, state: e.target.value }))}
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white focus:border-sky-600 outline-none transition-all"
+              />
+            </div>
           </div>
 
+          {/* Action buttons */}
           <div className="pt-3 flex justify-end gap-3 border-t border-slate-100">
             <button
               type="button"
               onClick={onClose}
               disabled={loading}
-              className="px-4 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors"
+              className="px-4 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
             >
-              Cancel
+              {t('common.cancel', 'Cancel')}
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-5 py-2.5 bg-sky-700 hover:bg-sky-800 text-white font-bold text-xs rounded-xl shadow-md flex items-center gap-1.5 transition-all"
+              className="px-5 py-2.5 bg-sky-700 hover:bg-sky-800 text-white font-bold text-xs rounded-xl shadow-md flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
             >
               <Save className="w-4 h-4" />
-              {loading ? 'Saving...' : 'Save Organization Details'}
+              {loading ? t('common.saving', 'Saving Changes...') : t('common.save', 'Save FPO Profile')}
             </button>
           </div>
-
         </form>
 
       </div>

@@ -3,11 +3,12 @@ import { useTranslation } from 'react-i18next';
 import api from '../../services/api';
 import SasyaLogo from '../SasyaLogo';
 import VoiceInput from '../VoiceInput';
-import { extractNumberFromSpeech } from '../../services/voiceFormParser';
+import FarmLocationPicker from './FarmLocationPicker';
+import { extractNumberFromSpeech, extractCropFromSpeech } from '../../services/voiceFormParser';
 import {
   Package, X, Check, AlertCircle, Sparkles, 
   DollarSign, Sprout, Scale, Clock, Sliders, CheckCircle2,
-  ShieldCheck
+  ShieldCheck, MapPin
 } from 'lucide-react';
 import {
   INITIAL_CROPS,
@@ -18,7 +19,6 @@ import {
 } from '../../utils/listingHelpers';
 
 const ProduceListingModal = ({
-
   isOpen,
   onClose,
   onListingSaved,
@@ -26,26 +26,38 @@ const ProduceListingModal = ({
   defaultLocation = '',
   initialMode = 'QUICK'
 }) => {
-
   const { t } = useTranslation();
   const isEditing = Boolean(initialData?.id);
 
   // Listing mode: 'QUICK' | 'DETAILED'
   const [listingMode, setListingMode] = useState(initialMode);
+  const [showLocationPicker, setShowLocationPicker] = useState(false);
+
+  useEffect(() => {
+    if (initialMode) setListingMode(initialMode);
+  }, [initialMode]);
 
   // Form State shared seamlessly across both modes
   const [formData, setFormData] = useState({
     cropName: initialData?.cropName || 'Tomato',
     customCropName: '',
     category: initialData?.category || 'Vegetables',
-    quantityKg: initialData?.quantityKg?.toString() || '1000',
-    askingPricePerKg: initialData?.askingPricePerKg?.toString() || '24',
-    minPricePerKg: initialData?.minPricePerKg?.toString() || '21',
+    quantityKg: initialData?.quantityKg?.toString() || '500',
+    askingPricePerKg: initialData?.askingPricePerKg?.toString() || '25',
+    minPricePerKg: initialData?.minPricePerKg?.toString() || '22.5',
     harvestOption: 'TODAY', // 'TODAY' | 'IN_3_DAYS' | 'NEXT_WEEK' | 'CUSTOM'
     harvestDate: initialData?.harvestDate || translateHarvestDate('TODAY'),
     qualityGrade: initialData?.qualityGrade || 'GRADE_A',
     isOrganic: initialData?.isOrganic || false,
     location: initialData?.location || defaultLocation || 'Pune Farm Hub',
+    pickupAddress: initialData?.pickupAddress || defaultLocation || '',
+    village: initialData?.village || '',
+    district: initialData?.district || '',
+    state: initialData?.state || 'Maharashtra',
+    pincode: initialData?.pincode || '',
+    latitude: initialData?.latitude || null,
+    longitude: initialData?.longitude || null,
+    locationAccuracy: initialData?.locationAccuracy || 'GPS_PIN',
     imageUrl: initialData?.imageUrl || ''
   });
 
@@ -63,20 +75,28 @@ const ProduceListingModal = ({
   useEffect(() => {
     if (initialData) {
       const knownCrop = INITIAL_CROPS.find(c => c.id === initialData.cropName);
-      setFormData({
+      setFormData(prev => ({
+        ...prev,
         cropName: knownCrop ? knownCrop.id : 'Other',
         customCropName: knownCrop ? '' : initialData.cropName || '',
         category: initialData.category || 'Vegetables',
-        quantityKg: initialData.quantityKg?.toString() || '1000',
-        askingPricePerKg: initialData.askingPricePerKg?.toString() || '24',
+        quantityKg: initialData.quantityKg?.toString() || '500',
+        askingPricePerKg: initialData.askingPricePerKg?.toString() || '25',
         minPricePerKg: initialData.minPricePerKg?.toString() || (initialData.askingPricePerKg * 0.9).toFixed(1),
         harvestOption: 'CUSTOM',
         harvestDate: initialData.harvestDate || translateHarvestDate('TODAY'),
         qualityGrade: initialData.qualityGrade || 'GRADE_A',
         isOrganic: initialData.isOrganic || false,
         location: initialData.location || defaultLocation || 'Pune Farm Hub',
+        pickupAddress: initialData.pickupAddress || initialData.location || defaultLocation || '',
+        village: initialData.village || '',
+        district: initialData.district || '',
+        state: initialData.state || 'Maharashtra',
+        pincode: initialData.pincode || '',
+        latitude: initialData.latitude || null,
+        longitude: initialData.longitude || null,
         imageUrl: initialData.imageUrl || ''
-      });
+      }));
     }
   }, [initialData, defaultLocation]);
 
@@ -191,6 +211,14 @@ const ProduceListingModal = ({
         qualityGrade: formData.qualityGrade,
         isOrganic: formData.isOrganic,
         location: formData.location || defaultLocation || 'Pune Region',
+        pickupAddress: formData.pickupAddress || formData.location || defaultLocation || 'Farm Hub',
+        village: formData.village || '',
+        district: formData.district || '',
+        state: formData.state || 'Maharashtra',
+        pincode: formData.pincode || '',
+        latitude: formData.latitude !== null && formData.latitude !== undefined ? parseFloat(formData.latitude) : null,
+        longitude: formData.longitude !== null && formData.longitude !== undefined ? parseFloat(formData.longitude) : null,
+        locationAccuracy: formData.locationAccuracy || 'GPS_PIN',
         imageUrl: formData.imageUrl || undefined
       };
 
@@ -238,13 +266,13 @@ const ProduceListingModal = ({
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-xs font-black tracking-wider text-[#07875B] uppercase">SasyaVahini</span>
-                <span className="text-[10px] text-slate-400 font-semibold">• Farmer Portal</span>
+                <span className="text-[10px] text-slate-400 font-semibold">• {t('farmer.portalTitle', 'Farmer Portal')}</span>
               </div>
               <h2 id="produce-modal-title" className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
                 {isEditing ? t('farmer.updateProduceTitle', 'Update Produce Lot') : t('farmer.listProduceTitle', 'List Your Produce')}
               </h2>
               <p className="text-xs text-slate-500 font-medium">
-                Farm to Market. Fair for Everyone.
+                {t('common.tagline', 'Farm to Market. Fair for Everyone.')}
               </p>
             </div>
           </div>
@@ -338,10 +366,23 @@ const ProduceListingModal = ({
             {/* Step 1: Crop Selection Cards */}
             <div className="space-y-2">
               <div className="flex justify-between items-center">
-                <label className="text-xs font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
-                  <Sprout className="w-4 h-4 text-[#07875B]" /> {t('farmer.step1SelectCrop', '1. Select Crop Produce')}
-                </label>
-                <span className="text-[11px] text-slate-400">{t('farmer.clickOrEnterCrop', 'Click a card or enter custom crop')}</span>
+                <div className="flex items-center gap-2">
+                  <label className="text-xs font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                    <Sprout className="w-4 h-4 text-[#07875B]" /> {t('farmer.step1SelectCrop', '1. Select Crop Produce')}
+                  </label>
+                  <VoiceInput
+                    onResult={(text) => {
+                      const c = extractCropFromSpeech(text);
+                      if (c) {
+                        handleSelectCrop(c);
+                      } else {
+                        setFormData(f => ({ ...f, cropName: 'Other', customCropName: text }));
+                      }
+                    }}
+                    title={t('voice.speakCropName', 'Speak crop name to select')}
+                  />
+                </div>
+                <span className="text-[11px] text-slate-400">{t('farmer.clickOrEnterCrop', 'Click a card, enter custom crop, or speak')}</span>
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
@@ -367,7 +408,7 @@ const ProduceListingModal = ({
                         )}
                       </div>
                       <div className="mt-2">
-                        <div className="font-extrabold text-xs text-slate-900">{crop.name}</div>
+                        <div className="font-extrabold text-xs text-slate-900">{t('crops.' + crop.id, crop.name)}</div>
                         <div className="text-[10px] text-slate-500 font-medium">{crop.vernacular}</div>
                       </div>
                     </button>
@@ -383,7 +424,7 @@ const ProduceListingModal = ({
                     </label>
                     <VoiceInput
                       onResult={(t) => setFormData({ ...formData, customCropName: t })}
-                      title="Speak crop name"
+                      title={t('voice.speakCropName', 'Speak crop name')}
                     />
                   </div>
                   <input
@@ -391,7 +432,7 @@ const ProduceListingModal = ({
                     required
                     value={formData.customCropName}
                     onChange={(e) => setFormData({ ...formData, customCropName: e.target.value })}
-                    placeholder="e.g. Garlic, Capsicum, Ginger, Turmeric"
+                    placeholder={t('farmer.cropPlaceholder', 'e.g. Garlic, Capsicum, Ginger, Turmeric')}
                     className="w-full px-3.5 py-2 bg-white border border-slate-300 rounded-xl text-xs text-slate-800 font-semibold focus:border-[#07875B] outline-none"
                   />
                   {validationErrors.cropName && (
@@ -455,9 +496,9 @@ const ProduceListingModal = ({
                       const num = extractNumberFromSpeech(t);
                       if (num) setFormData(f => ({ ...f, quantityKg: num }));
                     }}
-                    title="Speak quantity in kg"
+                    title={t('voice.speakQuantity', 'Speak quantity in kg')}
                   />
-                  <span className="text-[11px] text-slate-500 font-medium">(1 Quintal = 100 kg)</span>
+                  <span className="text-[11px] text-slate-500 font-medium">({t('farmer.quintalFormula', '1 Quintal = 100 kg')})</span>
                 </div>
 
                 <div className="flex items-center gap-1.5">
@@ -488,7 +529,7 @@ const ProduceListingModal = ({
                 </label>
                 <div className="text-right">
                   <span className="text-base font-black text-[#07875B]">₹{formData.askingPricePerKg}</span>
-                  <span className="text-xs text-slate-500 font-semibold"> / kg</span>
+                  <span className="text-xs text-slate-500 font-semibold"> {t('common.perKg', '/kg')}</span>
                 </div>
               </div>
 
@@ -544,9 +585,9 @@ const ProduceListingModal = ({
                       }
                     }
                   }}
-                  title="Speak price per kg"
+                  title={t('voice.speakPrice', 'Speak price per kg')}
                 />
-                <span className="text-xs text-slate-500 font-medium">per kg</span>
+                <span className="text-xs text-slate-500 font-medium">{t('common.perKg', '/kg')}</span>
               </div>
 
               {validationErrors.askingPricePerKg && (
@@ -564,15 +605,15 @@ const ProduceListingModal = ({
                 </div>
 
                 {benchmarkLoading ? (
-                  <p className="text-slate-400 text-[11px]">Fetching regional fair benchmark...</p>
+                  <p className="text-slate-400 text-[11px]">{t('farmer.fetchingBenchmark', 'Fetching regional fair benchmark...')}</p>
                 ) : marketBenchmark ? (
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 bg-[#E8F5E9]/40 p-2.5 rounded-xl border border-emerald-200/60">
                     <div>
                       <span className="text-slate-600 text-[11px] block">
-                        Estimated Mandi Range: <strong>{marketBenchmark.market_range}</strong>
+                        {t('farmer.estimatedMandiRange', 'Estimated Mandi Range:')} <strong>{marketBenchmark.market_range}</strong>
                       </span>
                       <span className="text-[10px] text-[#07875B] font-bold">
-                        Recommended Direct Benchmark: ₹{marketBenchmark.recommended_price}/kg
+                        {t('farmer.recommendedBenchmark', 'Recommended Direct Benchmark:')} ₹{marketBenchmark.recommended_price}/kg
                       </span>
                     </div>
                     <button
@@ -588,12 +629,12 @@ const ProduceListingModal = ({
                       }}
                       className="px-3 py-1.5 bg-[#07875B] text-white font-extrabold text-[11px] rounded-lg shadow-sm hover:bg-[#056b48] transition-all whitespace-nowrap"
                     >
-                      Use Benchmark (₹{marketBenchmark.recommended_price})
+                      {t('farmer.useBenchmark', 'Use Benchmark')} (₹{marketBenchmark.recommended_price})
                     </button>
                   </div>
                 ) : (
                   <p className="text-slate-500 text-[11px]">
-                    Market benchmark unavailable for this item. You have complete freedom to specify your asking price.
+                    {t('farmer.benchmarkUnavailable', 'Market benchmark unavailable for this item. You have complete freedom to specify your asking price.')}
                   </p>
                 )}
               </div>
@@ -607,10 +648,10 @@ const ProduceListingModal = ({
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {[
-                  { key: 'TODAY', label: '🌱 Ready Today', sub: 'Immediate dispatch' },
-                  { key: 'IN_3_DAYS', label: '⏳ In 3 Days', sub: 'Harvest in progress' },
-                  { key: 'NEXT_WEEK', label: '📅 Next Week', sub: 'Scheduled harvest' },
-                  { key: 'CUSTOM', label: '🗓️ Choose Date', sub: 'Specific date' }
+                  { key: 'TODAY', label: '🌱 ' + t('farmer.readyToday', 'Ready Today'), sub: t('farmer.readyTodaySub', 'Immediate dispatch') },
+                  { key: 'IN_3_DAYS', label: '⏳ ' + t('farmer.in3Days', 'In 3 Days'), sub: t('farmer.in3DaysSub', 'Harvest in progress') },
+                  { key: 'NEXT_WEEK', label: '📅 ' + t('farmer.nextWeek', 'Next Week'), sub: t('farmer.nextWeekSub', 'Scheduled harvest') },
+                  { key: 'CUSTOM', label: '🗓️ ' + t('farmer.chooseDate', 'Choose Date'), sub: t('farmer.chooseDateSub', 'Specific date') }
                 ].map((item) => (
                   <button
                     key={item.key}
@@ -641,6 +682,74 @@ const ProduceListingModal = ({
               )}
             </div>
 
+            {/* Step 4b: Farm Pickup Location & Map Pin */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                  <MapPin className="w-4 h-4 text-[#07875B]" /> {t('location.farmPickupPin', 'Farm Pickup Location & Map Pin')}
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setShowLocationPicker(!showLocationPicker)}
+                  className="text-xs font-bold text-[#07875B] hover:underline flex items-center gap-1 cursor-pointer"
+                >
+                  {showLocationPicker ? t('common.close', 'Hide Map') : t('location.openMapBtn', 'Pin on Interactive Map 🗺️')}
+                </button>
+              </div>
+
+              {formData.pickupAddress ? (
+                <div className="p-3 bg-emerald-50/60 border border-emerald-200 rounded-xl text-xs flex items-center justify-between">
+                  <div className="min-w-0 flex-1">
+                    <span className="text-[10px] text-emerald-800 font-bold block uppercase">{t('location.pinnedPickupLocation', 'Pinned Pickup Location')}</span>
+                    <p className="text-slate-800 font-semibold truncate text-xs mt-0.5">{formData.pickupAddress}</p>
+                    {formData.latitude && (
+                      <span className="text-[10px] text-slate-500 font-mono">
+                        GPS: {formData.latitude.toFixed(4)}° N, {formData.longitude.toFixed(4)}° E
+                      </span>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowLocationPicker(true)}
+                    className="ml-2 px-2.5 py-1 text-[11px] font-bold bg-white text-emerald-800 border border-emerald-300 rounded-lg hover:bg-emerald-50 cursor-pointer"
+                  >
+                    {t('common.edit', 'Change Pin')}
+                  </button>
+                </div>
+              ) : (
+                <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs flex items-center justify-between">
+                  <span className="text-slate-500">{t('location.noPinYet', 'No farm coordinates pinned yet. Tap button to set exact farm gate.')}</span>
+                  <button
+                    type="button"
+                    onClick={() => setShowLocationPicker(true)}
+                    className="px-3 py-1 text-xs font-bold bg-[#07875B] text-white rounded-lg hover:bg-[#056b48] cursor-pointer"
+                  >
+                    {t('location.setPinBtn', 'Set Farm Pin')}
+                  </button>
+                </div>
+              )}
+
+              {showLocationPicker && (
+                <FarmLocationPicker
+                  initialLat={formData.latitude}
+                  initialLng={formData.longitude}
+                  initialAddress={formData.pickupAddress || formData.location}
+                  initialVillage={formData.village}
+                  initialDistrict={formData.district}
+                  initialState={formData.state}
+                  initialPincode={formData.pincode}
+                  onLocationSelect={(loc) => {
+                    setFormData(prev => ({
+                      ...prev,
+                      ...loc,
+                      location: loc.pickupAddress
+                    }));
+                    setShowLocationPicker(false);
+                  }}
+                />
+              )}
+            </div>
+
             {/* Step 5: Transparent Summary Card */}
             <div className="bg-gradient-to-br from-slate-900 via-emerald-950 to-slate-900 text-white p-5 rounded-3xl shadow-xl border border-emerald-800/40 space-y-4">
               <div className="flex justify-between items-center border-b border-emerald-800/50 pb-3">
@@ -655,25 +764,25 @@ const ProduceListingModal = ({
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
                 <div>
-                  <span className="text-slate-400 text-[10px] uppercase font-bold block">Crop</span>
+                  <span className="text-slate-400 text-[10px] uppercase font-bold block">{t('farmer.cropNameLabel', 'Crop')}</span>
                   <span className="font-black text-white text-sm">
-                    {formData.cropName === 'Other' ? (formData.customCropName || 'Other') : formData.cropName}
+                    {formData.cropName === 'Other' ? (formData.customCropName || t('crops.Other', 'Other')) : t('crops.' + formData.cropName, formData.cropName)}
                   </span>
                 </div>
                 <div>
-                  <span className="text-slate-400 text-[10px] uppercase font-bold block">Quantity</span>
+                  <span className="text-slate-400 text-[10px] uppercase font-bold block">{t('farmer.quantityLabel', 'Quantity')}</span>
                   <span className="font-black text-white text-sm">
                     {parseFloat(formData.quantityKg || 0).toLocaleString()} kg ({quintals} Q)
                   </span>
                 </div>
                 <div>
-                  <span className="text-slate-400 text-[10px] uppercase font-bold block">Asking Rate</span>
+                  <span className="text-slate-400 text-[10px] uppercase font-bold block">{t('farmer.askingPriceLabel', 'Asking Rate')}</span>
                   <span className="font-black text-emerald-300 text-sm">
                     ₹{formData.askingPricePerKg} / kg
                   </span>
                 </div>
                 <div>
-                  <span className="text-slate-400 text-[10px] uppercase font-bold block">Harvest Date</span>
+                  <span className="text-slate-400 text-[10px] uppercase font-bold block">{t('farmer.harvestDate', 'Harvest Date')}</span>
                   <span className="font-semibold text-white text-xs">
                     {formData.harvestDate}
                   </span>
@@ -690,7 +799,7 @@ const ProduceListingModal = ({
                   </span>
                 </div>
                 <div className="text-[10px] text-slate-300 max-w-sm">
-                  ⚠️ <strong>Indicative estimate only.</strong> This is not confirmed earnings or guaranteed sale. Lot is listed as <span className="text-emerald-300 font-bold">AVAILABLE</span> until explicit allocation consent.
+                  ⚠️ <strong>{t('farmer.indicativeEstimate', 'Indicative estimate only.')}</strong> {t('farmer.indicativeEstimateDesc', 'This is not confirmed earnings or guaranteed sale. Lot is listed as AVAILABLE until explicit allocation consent.')}
                 </div>
               </div>
             </div>
@@ -701,17 +810,17 @@ const ProduceListingModal = ({
                 type="button"
                 onClick={onClose}
                 disabled={loading}
-                className="px-4 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors"
+                className="px-4 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
               >
-                Cancel
+                {t('common.cancel', 'Cancel')}
               </button>
               <button
                 type="submit"
                 disabled={loading}
-                className="px-6 py-2.5 bg-[#07875B] hover:bg-[#056b48] text-white font-extrabold text-xs rounded-xl shadow-lg flex items-center gap-2 transition-all hover:scale-105 disabled:opacity-50"
+                className="px-6 py-2.5 bg-[#07875B] hover:bg-[#056b48] text-white font-extrabold text-xs rounded-xl shadow-lg flex items-center gap-2 transition-all hover:scale-105 disabled:opacity-50 cursor-pointer"
               >
                 {loading ? (
-                  <span>Publishing Produce Lot...</span>
+                  <span>{t('farmer.publishingProduce', 'Publishing Produce Lot...')}</span>
                 ) : (
                   <>
                     <Check className="w-4 h-4" />
@@ -730,30 +839,47 @@ const ProduceListingModal = ({
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-slate-700 font-bold mb-1">{t('farmer.cropNameLabel', 'Crop Produce Name *')}</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-slate-700 font-bold">{t('farmer.cropNameLabel', 'Crop Produce Name *')}</label>
+                  <VoiceInput
+                    onResult={(text) => {
+                      const matched = extractCropFromSpeech(text);
+                      if (matched) {
+                        setFormData(prev => ({
+                          ...prev,
+                          cropName: matched.standard,
+                          category: matched.category || prev.category
+                        }));
+                      } else {
+                        setFormData(prev => ({ ...prev, cropName: 'Other', customCropName: text }));
+                      }
+                    }}
+                    title={t('voice.speakCropName', 'Speak crop name')}
+                  />
+                </div>
                 <select
                   value={formData.cropName}
                   onChange={(e) => setFormData({ ...formData, cropName: e.target.value })}
                   className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 font-medium focus:bg-white focus:border-[#07875B] outline-none transition-all"
                 >
-                  <option value="Tomato">Tomato (टमाटर)</option>
-                  <option value="Onion">Onion (प्याज)</option>
-                  <option value="Potato">Potato (आलू)</option>
-                  <option value="Paddy">Paddy / Rice (चावल)</option>
-                  <option value="Wheat">Wheat (गेहूं)</option>
-                  <option value="Maize">Maize (मक्का)</option>
-                  <option value="Leafy vegetables">Leafy Vegetables (हरी सब्जियां)</option>
-                  <option value="Grapes">Grapes (अंगूर)</option>
-                  <option value="Pomegranate">Pomegranate (अनार)</option>
-                  <option value="Soybean">Soybean (सोयाबीन)</option>
-                  <option value="Cotton">Cotton (कपास)</option>
-                  <option value="Other">Other Produce</option>
+                  <option value="Tomato">{t('crops.Tomato', 'Tomato')}</option>
+                  <option value="Onion">{t('crops.Onion', 'Onion')}</option>
+                  <option value="Potato">{t('crops.Potato', 'Potato')}</option>
+                  <option value="Paddy">{t('crops.Paddy', 'Paddy / Rice')}</option>
+                  <option value="Wheat">{t('crops.Wheat', 'Wheat')}</option>
+                  <option value="Maize">{t('crops.Maize', 'Maize')}</option>
+                  <option value="Leafy vegetables">{t('crops.Leafy vegetables', 'Leafy Vegetables')}</option>
+                  <option value="Grapes">{t('crops.Grapes', 'Grapes')}</option>
+                  <option value="Pomegranate">{t('crops.Pomegranate', 'Pomegranate')}</option>
+                  <option value="Soybean">{t('crops.Soybean', 'Soybean')}</option>
+                  <option value="Cotton">{t('crops.Cotton', 'Cotton')}</option>
+                  <option value="Other">{t('crops.Other', 'Other Produce')}</option>
                 </select>
                 {formData.cropName === 'Other' && (
                   <input
                     type="text"
                     required
-                    placeholder="Enter custom crop name"
+                    placeholder={t('farmer.cropPlaceholder', 'Enter custom crop name')}
                     value={formData.customCropName}
                     onChange={(e) => setFormData({ ...formData, customCropName: e.target.value })}
                     className="mt-2 w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs text-slate-800"
@@ -771,11 +897,11 @@ const ProduceListingModal = ({
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                   className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 font-medium focus:bg-white focus:border-[#07875B] outline-none transition-all"
                 >
-                  <option value="Vegetables">Vegetables</option>
-                  <option value="Fruits">Fruits</option>
-                  <option value="Grains">Grains & Cereals</option>
-                  <option value="Pulses">Pulses & Legumes</option>
-                  <option value="Cash Crops">Cash Crops</option>
+                  <option value="Vegetables">{t('categories.vegetables', 'Vegetables')}</option>
+                  <option value="Fruits">{t('categories.fruits', 'Fruits')}</option>
+                  <option value="Grains">{t('categories.grains', 'Grains & Cereals')}</option>
+                  <option value="Pulses">{t('categories.pulses', 'Pulses & Legumes')}</option>
+                  <option value="Cash Crops">{t('categories.cashCrops', 'Cash Crops')}</option>
                 </select>
               </div>
             </div>
@@ -841,7 +967,19 @@ const ProduceListingModal = ({
               </div>
 
               <div>
-                <label className="block text-slate-700 font-bold mb-1">{t('farmer.minPriceThreshold', 'Min Price Threshold (₹/kg) *')}</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-slate-700 font-bold">{t('farmer.minPriceThreshold', 'Min Price Threshold (₹/kg) *')}</label>
+                  <VoiceInput
+                    type="number"
+                    onResult={(num) => {
+                      if (num) {
+                        const p = parseFloat(num);
+                        if (!isNaN(p)) setFormData(f => ({ ...f, minPricePerKg: String(p) }));
+                      }
+                    }}
+                    title="Speak minimum price per kg"
+                  />
+                </div>
                 <input
                   type="number"
                   step="0.5"
@@ -866,10 +1004,10 @@ const ProduceListingModal = ({
                   onChange={(e) => setFormData({ ...formData, qualityGrade: e.target.value })}
                   className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 font-medium focus:bg-white focus:border-[#07875B] outline-none transition-all"
                 >
-                  <option value="GRADE_A">Grade A (Premium Export/Retail)</option>
-                  <option value="GRADE_B">Grade B (Standard Market Quality)</option>
-                  <option value="GRADE_C">Grade C (Processing / Bulk Commercial)</option>
-                  <option value="ORGANIC_PREMIUM">Certified Organic Premium</option>
+                  <option value="GRADE_A">{t('grade.GRADE_A', 'Grade A (Premium Export/Retail)')}</option>
+                  <option value="GRADE_B">{t('grade.GRADE_B', 'Grade B (Standard Market Quality)')}</option>
+                  <option value="GRADE_C">{t('grade.GRADE_C', 'Grade C (Processing / Bulk Commercial)')}</option>
+                  <option value="ORGANIC_PREMIUM">{t('grade.ORGANIC_PREMIUM', 'Certified Organic Premium')}</option>
                 </select>
               </div>
 
@@ -888,20 +1026,23 @@ const ProduceListingModal = ({
               </div>
             </div>
 
+            {/* Farm Pickup Location & Map Pin Picker */}
             <div>
-              <div className="flex items-center justify-between mb-1">
-                <label className="block text-slate-700 font-bold">{t('farmer.farmPickupLocation', 'Farm Pickup Location')}</label>
-                <VoiceInput
-                  onResult={(t) => setFormData({ ...formData, location: t })}
-                  title="Speak farm pickup location"
-                />
-              </div>
-              <input
-                type="text"
-                value={formData.location}
-                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                placeholder="e.g. Manchar Farm Gate, Pune District"
-                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 font-medium focus:bg-white focus:border-[#07875B] outline-none transition-all"
+              <FarmLocationPicker
+                initialLat={formData.latitude}
+                initialLng={formData.longitude}
+                initialAddress={formData.pickupAddress || formData.location}
+                initialVillage={formData.village}
+                initialDistrict={formData.district}
+                initialState={formData.state}
+                initialPincode={formData.pincode}
+                onLocationSelect={(loc) => {
+                  setFormData(prev => ({
+                    ...prev,
+                    ...loc,
+                    location: loc.pickupAddress
+                  }));
+                }}
               />
             </div>
 
@@ -922,7 +1063,7 @@ const ProduceListingModal = ({
 
             {/* Indicative gross value summary */}
             <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex justify-between items-center text-xs">
-              <span className="text-slate-600 font-medium">Indicative Gross Valuation:</span>
+              <span className="text-slate-600 font-medium">{t('farmer.grossValuationTitle', 'Indicative Gross Valuation')}:</span>
               <span className="font-black text-[#07875B] text-sm">₹{grossValue.toLocaleString()}</span>
             </div>
 
@@ -932,17 +1073,17 @@ const ProduceListingModal = ({
                 type="button"
                 onClick={onClose}
                 disabled={loading}
-                className="px-4 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors"
+                className="px-4 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
               >
-                Cancel
+                {t('common.cancel', 'Cancel')}
               </button>
               <button
                 type="submit"
                 disabled={loading}
-                className="px-6 py-2.5 bg-[#07875B] hover:bg-[#056b48] text-white font-extrabold text-xs rounded-xl shadow-md flex items-center gap-2 transition-all hover:scale-105 disabled:opacity-50"
+                className="px-6 py-2.5 bg-[#07875B] hover:bg-[#056b48] text-white font-extrabold text-xs rounded-xl shadow-md flex items-center gap-2 transition-all hover:scale-105 disabled:opacity-50 cursor-pointer"
               >
                 {loading ? (
-                  <span>Saving Produce...</span>
+                  <span>{t('farmer.savingProduce', 'Saving Produce...')}</span>
                 ) : (
                   <>
                     <Check className="w-4 h-4" />

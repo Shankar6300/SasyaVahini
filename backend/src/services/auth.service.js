@@ -77,13 +77,21 @@ async function register(data) {
   } = data;
 
   // Unique checks
+  const normalizedEmail = (email || '').trim().toLowerCase();
+  const normalizedPhone = (phone || '').trim();
+
   const existing = await prisma.user.findFirst({
-    where: { OR: [{ email }, { phone }] },
+    where: {
+      OR: [
+        { email: { equals: normalizedEmail, mode: 'insensitive' } },
+        { phone: normalizedPhone },
+      ],
+    },
     select: { email: true, phone: true },
   });
 
   if (existing) {
-    if (existing.email === email) throw new ConflictError('Email is already registered');
+    if (existing.email.toLowerCase() === normalizedEmail) throw new ConflictError('Email is already registered');
     throw new ConflictError('Phone number is already registered');
   }
 
@@ -110,9 +118,9 @@ async function register(data) {
 
   const user = await prisma.user.create({
     data: {
-      name,
-      email,
-      phone,
+      name: (name || '').trim(),
+      email: normalizedEmail,
+      phone: normalizedPhone,
       passwordHash,
       role,
       preferredLocale: preferredLocale || 'en',
@@ -178,8 +186,12 @@ async function register(data) {
 // ─── Login ────────────────────────────────────────────────────────────────────
 
 async function login(email, password, meta = {}) {
-  const user = await prisma.user.findUnique({
-    where: { email },
+  const normalizedEmail = (email || '').trim().toLowerCase();
+
+  const user = await prisma.user.findFirst({
+    where: {
+      email: { equals: normalizedEmail, mode: 'insensitive' },
+    },
     select: { id: true, name: true, email: true, phone: true, role: true, status: true, passwordHash: true },
   });
 

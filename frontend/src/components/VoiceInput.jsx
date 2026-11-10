@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Mic, Square, AlertCircle } from 'lucide-react';
+import { Mic, Square, AlertCircle, Check } from 'lucide-react';
 import useSpeechRecognition from '../hooks/useSpeechRecognition';
+import { extractNumberFromSpeech } from '../services/voiceFormParser';
 
 export default function VoiceInput({
   onResult,
@@ -9,10 +10,12 @@ export default function VoiceInput({
   className = '',
   size = 'md',
   mode = 'replace',
+  type = 'text', // 'text' | 'number'
   disabled = false,
   title = ''
 }) {
   const { t, i18n } = useTranslation();
+  const [justEntered, setJustEntered] = useState(false);
   const {
     isSupported,
     isListening,
@@ -23,7 +26,7 @@ export default function VoiceInput({
     langLocale
   } = useSpeechRecognition();
 
-  const handleResult = onResult || onTranscript;
+  const handleResultCallback = onResult || onTranscript;
 
   if (!isSupported) {
     return null; // Graceful degradation when browser lacks Web Speech API
@@ -31,13 +34,29 @@ export default function VoiceInput({
 
   const currentLangLabel = i18n.language === 'te' ? 'తెలుగు' : (i18n.language === 'hi' ? 'हिन्दी' : 'English');
 
+  const emitValue = (rawText) => {
+    if (!rawText || !handleResultCallback) return;
+    let finalValue = rawText.trim();
+    if (type === 'number') {
+      const parsedNum = extractNumberFromSpeech(finalValue);
+      if (parsedNum) {
+        finalValue = parsedNum;
+      }
+    }
+    if (finalValue) {
+      handleResultCallback(finalValue, { mode });
+      setJustEntered(true);
+      setTimeout(() => setJustEntered(false), 2000);
+    }
+  };
+
   const handleClick = (e) => {
     e.preventDefault();
     e.stopPropagation();
 
     if (isListening) {
-      if (interimTranscript && handleResult) {
-        handleResult(interimTranscript.trim(), { mode });
+      if (interimTranscript) {
+        emitValue(interimTranscript);
       }
       stopListening();
     } else {
@@ -45,9 +64,7 @@ export default function VoiceInput({
         continuous: false,
         onResult: (fullText, finalChunk) => {
           const text = (finalChunk || fullText || '').trim();
-          if (text && handleResult) {
-            handleResult(text, { mode });
-          }
+          emitValue(text);
         }
       });
     }
@@ -70,6 +87,8 @@ export default function VoiceInput({
         className={`rounded-xl transition-all flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-emerald-500/30 ${
           isListening
             ? 'bg-rose-500 text-white animate-pulse shadow-md shadow-rose-500/20 px-2.5 py-1.5 gap-1.5'
+            : justEntered
+            ? 'bg-emerald-100 text-emerald-800 border border-emerald-300 p-2'
             : 'bg-slate-100 hover:bg-emerald-50 text-slate-500 hover:text-emerald-700 p-2 border border-slate-200 hover:border-emerald-300'
         }`}
         aria-label={buttonTitle}
@@ -80,6 +99,8 @@ export default function VoiceInput({
             <Square size={iconSizes[size] - 2} className="fill-current" />
             <span className="text-[11px] font-black">{t('voice.stop', 'Stop')}</span>
           </>
+        ) : justEntered ? (
+          <Check size={iconSizes[size]} className="text-emerald-700 animate-scale-in" />
         ) : (
           <Mic size={iconSizes[size]} />
         )}
