@@ -124,10 +124,40 @@ async function main() {
           gstNumber: '27AABCF1234G1Z5',
           deliveryState: 'Maharashtra',
           deliveryDistrict: 'Pune',
+          verificationStatus: 'VERIFIED',
+          contactPerson: 'Karan Mehra (Procurement Lead)',
+          businessCategory: 'Supermarket',
         },
       },
     },
   });
+
+  // Seed sample verified address for demo buyer
+  const buyerProfileRecord = await prisma.buyerProfile.findUnique({ where: { userId: buyer.id } });
+  if (buyerProfileRecord) {
+    const existingAddr = await prisma.buyerAddress.findFirst({
+      where: { buyerId: buyerProfileRecord.id },
+    });
+    if (!existingAddr) {
+      await prisma.buyerAddress.create({
+        data: {
+          buyerId: buyerProfileRecord.id,
+          recipientName: 'FreshBasket Supermarkets Hub #4',
+          contactNumber: '+919800000004',
+          addressType: 'BUSINESS',
+          addressLine1: 'Warehouse 4, Agro Logistics Park',
+          addressLine2: 'Sector 19, APMC Market Yard',
+          locality: 'Hadapsar',
+          city: 'Pune',
+          state: 'Maharashtra',
+          postalCode: '411028',
+          country: 'India',
+          deliveryInstructions: 'Enter Gate 3, ramp unloading dock #2',
+          isDefault: true,
+        },
+      });
+    }
+  }
 
   // ─── Logistics ────────────────────────────────────────────────────────────
   const logisticsPw = await hashPw(DEMO_PASSWORD);
