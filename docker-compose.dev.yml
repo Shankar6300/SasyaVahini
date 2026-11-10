@@ -108,6 +108,12 @@ services:
         condition: service_healthy
       routing-service:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:5000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
     # Run migrations, generate client, seed, then start dev server with nodemon
     command: >
       sh -c "
@@ -140,8 +146,7 @@ services:
       - ./frontend/index.html:/app/frontend/index.html
       - ./frontend/vite.config.js:/app/frontend/vite.config.js
     depends_on:
-      backend:
-        condition: service_healthy
+      - backend
 
 volumes:
   pgdata:

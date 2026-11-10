@@ -8,6 +8,8 @@ import Button from '../components/Button';
 import Alert from '../components/Alert';
 import LanguageSelector from '../components/LanguageSelector';
 import VoiceInput from '../components/VoiceInput';
+import BuyerTypeSelector from '../components/buyer/BuyerTypeSelector';
+import '../styles/buyer-auth.css';
 
 export default function RegisterPage() {
   const { register } = useAuth();
@@ -51,6 +53,7 @@ export default function RegisterPage() {
     memberCount: '25',
   });
   const [errors, setErrors] = useState({});
+  const [buyerSubtype, setBuyerSubtype] = useState('consumer');
   const [apiError, setApiError] = useState('');
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -72,7 +75,9 @@ export default function RegisterPage() {
     if (form.role === 'FARMER') {
       if (!form.district.trim()) errs.district = t('auth.districtRequired', 'District is required for farmers');
     } else if (form.role === 'BUYER') {
-      if (!form.organizationName.trim()) errs.organizationName = t('auth.orgNameRequired', 'Company/Firm name is required for buyers');
+      if (buyerSubtype === 'business' && !form.organizationName.trim()) {
+        errs.organizationName = t('auth.orgNameRequired', 'Company / Business name is required for business buyers');
+      }
     } else if (form.role === 'LOGISTICS') {
       if (!form.companyName.trim()) errs.companyName = t('auth.companyNameRequired', 'Transport or fleet agency name is required');
       if (!form.licenseNo.trim()) errs.licenseNo = t('auth.licenseNoRequired', 'Carrier operator license number is required');
@@ -103,14 +108,28 @@ export default function RegisterPage() {
     setLoading(true);
     setApiError('');
     try {
-      await register({
+      const payload = {
         ...form,
         name: form.name.trim(),
         email: form.email.trim().toLowerCase(),
         phone: form.phone.replace(/[\s\-+]/g, ''),
         landSizeAcres: form.landSizeAcres ? parseFloat(form.landSizeAcres) : undefined,
         memberCount: form.memberCount ? parseInt(form.memberCount, 10) : undefined,
-      });
+      };
+
+      if (form.role === 'BUYER') {
+        if (buyerSubtype === 'consumer') {
+          payload.organizationName = form.organizationName?.trim() || `${form.name.trim()} (Individual)`;
+          payload.buyerType = 'Consumer';
+          payload.gstNumber = undefined;
+        } else {
+          payload.organizationName = form.organizationName?.trim() || `${form.name.trim()} Enterprise`;
+          payload.buyerType = form.buyerType || 'Wholesaler';
+          payload.gstNumber = form.gstNumber?.trim() || undefined;
+        }
+      }
+
+      await register(payload);
       setSuccess(true);
     } catch (err) {
       setApiError(err.message || t('auth.registerFailed', 'Registration failed. Please try again.'));
@@ -131,8 +150,12 @@ export default function RegisterPage() {
           <Alert variant="info" className="mb-6">
             {t('auth.reviewStatus', 'Account status: Pending Verification. An admin will review and activate your account.')}
           </Alert>
-          <Button variant="primary" fullWidth onClick={() => navigate('/login')}>
-            {t('auth.goToLogin', 'Go to Sign In')}
+          <Button
+            variant="primary"
+            fullWidth
+            onClick={() => navigate(form.role === 'BUYER' ? '/buyer/login' : '/login')}
+          >
+            {form.role === 'BUYER' ? 'Sign In to Buyer Portal' : t('auth.goToLogin', 'Go to Sign In')}
           </Button>
         </div>
       </div>
@@ -340,51 +363,73 @@ export default function RegisterPage() {
             )}
 
             {form.role === 'BUYER' && (
-              <div className="p-4 rounded-xl bg-blue-50/70 border border-blue-200 space-y-3">
-                <p className="text-xs font-bold uppercase tracking-wider text-blue-800">🏪 {t('auth.buyerDetailsTitle', 'Business & Procurement Details')}</p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <FormField
-                    id="reg-orgName"
-                    label={`${t('auth.orgNameLabel', 'Firm / Company Name')} *`}
-                    name="organizationName"
-                    value={form.organizationName}
-                    onChange={handleChange}
-                    error={errors.organizationName}
-                    placeholder={t('auth.orgNamePlaceholder', 'e.g. FreshB2B Wholesale Traders')}
-                  />
-                  <div className="form-group">
-                    <label className="form-label">{t('auth.buyerCategoryLabel', 'Buyer Category')}</label>
-                    <select
-                      name="buyerType"
-                      className="form-select"
-                      value={form.buyerType}
-                      onChange={handleChange}
-                    >
-                      <option value="Wholesaler">{t('auth.buyerWholesaler', 'Wholesaler / Distributor')}</option>
-                      <option value="Supermarket">{t('auth.buyerSupermarket', 'Supermarket / Retail Chain')}</option>
-                      <option value="Processor">{t('auth.buyerProcessor', 'Food Processor / Exporter')}</option>
-                      <option value="Hotel">{t('auth.buyerHotel', 'Hotel / Restaurant Bulk Buyer')}</option>
-                    </select>
+              <div className="space-y-4">
+                <BuyerTypeSelector value={buyerSubtype} onChange={setBuyerSubtype} />
+
+                {buyerSubtype === 'business' ? (
+                  <div className="p-4 rounded-xl bg-blue-50/70 border border-blue-200 space-y-3">
+                    <p className="text-xs font-bold uppercase tracking-wider text-blue-800">🏪 {t('auth.buyerDetailsTitle', 'Business & Procurement Details')}</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <FormField
+                        id="reg-orgName"
+                        label={`${t('auth.orgNameLabel', 'Firm / Company Name')} *`}
+                        name="organizationName"
+                        value={form.organizationName}
+                        onChange={handleChange}
+                        error={errors.organizationName}
+                        placeholder={t('auth.orgNamePlaceholder', 'e.g. FreshB2B Wholesale Traders')}
+                      />
+                      <div className="form-group">
+                        <label className="form-label">{t('auth.buyerCategoryLabel', 'Buyer Category')}</label>
+                        <select
+                          name="buyerType"
+                          className="form-select"
+                          value={form.buyerType}
+                          onChange={handleChange}
+                        >
+                          <option value="Wholesaler">{t('auth.buyerWholesaler', 'Wholesaler / Distributor')}</option>
+                          <option value="Supermarket">{t('auth.buyerSupermarket', 'Supermarket / Retail Chain')}</option>
+                          <option value="Processor">{t('auth.buyerProcessor', 'Food Processor / Exporter')}</option>
+                          <option value="Hotel">{t('auth.buyerHotel', 'Hotel / Restaurant Bulk Buyer')}</option>
+                          <option value="Retailer">{t('auth.buyerRetailer', 'Local Retailer / Store')}</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <FormField
+                        id="reg-gst"
+                        label={t('auth.gstLabel', 'GSTIN (Optional)')}
+                        name="gstNumber"
+                        value={form.gstNumber}
+                        onChange={handleChange}
+                        placeholder="27AAAAA0000A1Z5"
+                      />
+                      <FormField
+                        id="reg-address"
+                        label={t('auth.deliveryAddressLabel', 'Delivery Warehouse Address')}
+                        name="deliveryAddress"
+                        value={form.deliveryAddress}
+                        onChange={handleChange}
+                        placeholder={t('auth.deliveryAddressPlaceholder', 'e.g. APMC Market Yard, Hadapsar')}
+                      />
+                    </div>
                   </div>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <FormField
-                    id="reg-gst"
-                    label={t('auth.gstLabel', 'GSTIN (Optional)')}
-                    name="gstNumber"
-                    value={form.gstNumber}
-                    onChange={handleChange}
-                    placeholder="27AAAAA0000A1Z5"
-                  />
-                  <FormField
-                    id="reg-address"
-                    label={t('auth.deliveryAddressLabel', 'Delivery Warehouse Address')}
-                    name="deliveryAddress"
-                    value={form.deliveryAddress}
-                    onChange={handleChange}
-                    placeholder={t('auth.deliveryAddressPlaceholder', 'e.g. APMC Market Yard, Hadapsar')}
-                  />
-                </div>
+                ) : (
+                  <div className="p-4 rounded-xl bg-emerald-50/70 border border-emerald-200 space-y-3">
+                    <p className="text-xs font-bold uppercase tracking-wider text-emerald-800">🛒 {t('auth.consumerProfileTitle', 'Consumer Profile Details')}</p>
+                    <p className="text-xs text-slate-600">
+                      {t('auth.consumerProfileDesc', 'Buying for home consumption or family produce orders. No GSTIN or company documents required.')}
+                    </p>
+                    <FormField
+                      id="reg-address"
+                      label={t('auth.deliveryAddressConsumerLabel', 'Delivery Address (Optional)')}
+                      name="deliveryAddress"
+                      value={form.deliveryAddress}
+                      onChange={handleChange}
+                      placeholder={t('auth.deliveryAddressConsumerPlaceholder', 'e.g. Flat 301, Lakeview Apts, Pune')}
+                    />
+                  </div>
+                )}
               </div>
             )}
 

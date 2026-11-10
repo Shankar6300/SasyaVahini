@@ -82,12 +82,27 @@ api.interceptors.response.use(
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         return api(originalRequest);
       } catch {
-        // Refresh failed — clear session and redirect
+        // Refresh failed — clear session and redirect only if on a protected route
         pendingRequests.forEach(({ reject }) => reject(new Error('Session expired')));
         pendingRequests = [];
         clearSession();
-        if (window.location.pathname !== '/login') {
-          window.location.href = '/login';
+
+        const isAuthMe = originalRequest?.url?.includes('/auth/me');
+        const pathname = window.location.pathname;
+        const isPublicPath = pathname === '/' ||
+                             pathname.includes('/login') ||
+                             pathname.includes('/register') ||
+                             pathname.includes('/forgot-password') ||
+                             pathname.includes('/reset-password');
+
+        if (!isAuthMe && !isPublicPath) {
+          if (pathname.startsWith('/buyer')) {
+            window.location.href = '/buyer/login';
+          } else if (pathname.startsWith('/logistics')) {
+            window.location.href = '/logistics/login';
+          } else {
+            window.location.href = '/login';
+          }
         }
         return Promise.reject(normalizeError(error));
       } finally {
