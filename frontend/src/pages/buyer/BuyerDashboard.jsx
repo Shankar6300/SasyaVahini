@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
-  LayoutDashboard, Search, ShoppingCart, ClipboardList, Truck,
+  LayoutDashboard, Search, ShoppingCart, ShoppingBag, ClipboardList, Truck,
   Heart, MapPin, FileText, Bell, Settings,
   Package, TrendingUp, Clock, Leaf, ShieldCheck, CheckCircle,
   Building2, User, ArrowRight, Sparkles, Filter, RefreshCw,
