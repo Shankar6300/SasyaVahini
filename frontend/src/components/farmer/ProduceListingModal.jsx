@@ -99,7 +99,8 @@ const ProduceListingModal = ({
         });
 
         if (isMounted && res.data) {
-          setMarketBenchmark(res.data);
+          const benchmarkData = res.data?.data || res.data;
+          setMarketBenchmark(benchmarkData);
           setBenchmarkSource('SasyaVahini Fair Value Engine (Pune Mandi Benchmark)');
         }
       } catch (err) {

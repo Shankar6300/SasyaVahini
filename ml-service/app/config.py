@@ -39,4 +39,4 @@ SERVICE_PORT = int(os.getenv("ML_PORT", "8000"))
 CORS_ORIGINS = os.getenv("ML_CORS_ORIGINS", "http://localhost:5000,http://localhost:5173").split(",")
 
 # ── Model defaults ──────────────────────────────────────────────────────────
-MODEL_VERSION = "0.2.0-advanced-quantile"
+MODEL_VERSION = "0.3.0-calibrated-multicommodity"

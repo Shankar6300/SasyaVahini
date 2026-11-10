@@ -9,8 +9,9 @@ const { z } = require('zod');
 
 const demandForecastSchema = z.object({
   crop: z.string().min(1, 'Crop name is required'),
-  district: z.string().min(1, 'District is required'),
-  state: z.string().min(1, 'State is required'),
+  district: z.string().optional().default('Pune'),
+  location: z.string().optional(),
+  state: z.string().optional().default('Maharashtra'),
   month: z.number().int().min(1).max(12).optional(),
   season: z.enum(['Kharif', 'Rabi', 'Zaid']).optional(),
   festival_period: z.boolean().optional().default(false),
@@ -21,9 +22,11 @@ const demandForecastSchema = z.object({
 
 const priceRecommendSchema = z.object({
   crop: z.string().min(1, 'Crop name is required'),
-  district: z.string().min(1, 'District is required'),
-  state: z.string().min(1, 'State is required'),
-  quantity_kg: z.number().positive('Quantity must be greater than 0'),
+  district: z.string().optional().default('Pune'),
+  location: z.string().optional(),
+  state: z.string().optional().default('Maharashtra'),
+  quantity_kg: z.number().positive('Quantity must be greater than 0').optional().default(1000),
+  quantity: z.number().positive().optional(),
   current_supply_kg: z.number().nonnegative().optional(),
   predicted_demand_kg: z.number().nonnegative().optional(),
   historical_price_per_kg: z.number().nonnegative().optional(),

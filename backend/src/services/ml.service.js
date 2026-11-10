@@ -53,10 +53,20 @@ async function checkHealth() {
   }
 }
 
+function normalizeMLPayload(payload) {
+  return {
+    ...payload,
+    district: payload.district || payload.location || 'Pune',
+    state: payload.state || 'Maharashtra',
+    quantity_kg: Number(payload.quantity_kg || payload.quantity || 1000),
+  };
+}
+
 /**
  * Predict regional crop demand with multi-horizon uncertainty
  */
-async function predictDemand(payload) {
+async function predictDemand(rawPayload) {
+  const payload = normalizeMLPayload(rawPayload);
   try {
     const res = await fetch(`${ML_SERVICE_URL}/predict-demand`, {
       method: 'POST',
@@ -81,7 +91,8 @@ async function predictDemand(payload) {
 /**
  * Recommend fair listing price grounded in price elasticity and decay discounting
  */
-async function recommendPrice(payload) {
+async function recommendPrice(rawPayload) {
+  const payload = normalizeMLPayload(rawPayload);
   try {
     const res = await fetch(`${ML_SERVICE_URL}/recommend-price`, {
       method: 'POST',
@@ -92,12 +103,15 @@ async function recommendPrice(payload) {
 
     if (res.ok) {
       const data = await res.json();
+      const minP = data.price_range_min || (data.recommended_price_per_kg * 0.9);
+      const maxP = data.price_range_max || (data.recommended_price_per_kg * 1.15);
       return {
         ...data,
         // Provide backwards-compatible field aliases for frontend components
         recommended_price: data.recommended_price_per_kg,
-        min_price: data.price_range_min,
-        max_price: data.price_range_max,
+        min_price: minP,
+        max_price: maxP,
+        market_range: `₹${minP.toFixed(1)} - ₹${maxP.toFixed(1)}/kg`,
       };
     }
     const errText = await res.text();
