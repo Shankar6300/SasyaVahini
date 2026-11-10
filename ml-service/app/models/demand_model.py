@@ -28,6 +28,7 @@ from app.training.features import (
     build_advanced_feature_row,
     compute_mandi_arbitrage,
     detect_season,
+    get_district_price_factor,
 )
 from app.training.agronomic_matrix import (
     calculate_festival_multiplier,
@@ -145,8 +146,9 @@ def predict_demand(
         season = detect_season(month)
 
     profile = COMMODITY_PROFILES.get(crop, COMMODITY_PROFILES["Tomato"])
+    dist_factor = get_district_price_factor(district)
     base_demand = profile["baseline_demand_kg"]
-    base_price = profile["base_modal_price"]
+    base_price = round(profile["base_modal_price"] * dist_factor, 2)
     elasticity = profile["price_elasticity"]
 
     supply = current_supply_kg if current_supply_kg is not None else float(base_demand * 0.95)
@@ -280,7 +282,9 @@ def predict_price(
     and perishable transit decay discounting.
     """
     profile = COMMODITY_PROFILES.get(crop, COMMODITY_PROFILES["Tomato"])
-    base_price = historical_price_per_kg if historical_price_per_kg is not None else profile["base_modal_price"]
+    dist_factor = get_district_price_factor(district)
+    local_base_price = round(profile["base_modal_price"] * dist_factor, 2)
+    base_price = historical_price_per_kg if historical_price_per_kg is not None else local_base_price
     base_demand = profile["baseline_demand_kg"]
     elasticity = profile["price_elasticity"]
 

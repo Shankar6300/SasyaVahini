@@ -21,17 +21,36 @@ const COMMODITIES = [
   { id: 'Tomato', labelKey: 'crops.Tomato', defaultLabel: 'Tomato (టమాట / टमाटर)', defaultSupply: 25000, temp: 30 },
   { id: 'Onion', labelKey: 'crops.Onion', defaultLabel: 'Onion (ఉల్లిపాయ / प्याज़)', defaultSupply: 40000, temp: 28 },
   { id: 'Potato', labelKey: 'crops.Potato', defaultLabel: 'Potato (బంగాళాదుంప / आलू)', defaultSupply: 35000, temp: 26 },
-  { id: 'Wheat', labelKey: 'crops.Wheat', defaultLabel: 'Wheat (గోధుమ / गेहूं)', defaultSupply: 50000, temp: 24 },
   { id: 'Rice', labelKey: 'crops.Paddy', defaultLabel: 'Paddy / Rice (వరి / चावल)', defaultSupply: 45000, temp: 28 },
-  { id: 'Chili', labelKey: 'crops.Chilli', defaultLabel: 'Chilli (మిరప / मिर्च)', defaultSupply: 12000, temp: 31 },
-  { id: 'Maize', labelKey: 'crops.Maize', defaultLabel: 'Maize / Corn (మొక్కజొన్న / मक्का)', defaultSupply: 30000, temp: 29 },
-  { id: 'Cotton', labelKey: 'crops.Cotton', defaultLabel: 'Cotton (పత్తి / कपास)', defaultSupply: 20000, temp: 32 },
-  { id: 'Soybean', labelKey: 'crops.Soybean', defaultLabel: 'Soybean (సోయాబీన్ / सोयाबीन)', defaultSupply: 28000, temp: 27 },
+  { id: 'Wheat', labelKey: 'crops.Wheat', defaultLabel: 'Wheat (గోధుమ / गेहूं)', defaultSupply: 50000, temp: 24 },
+  { id: 'Maize', labelKey: 'crops.Maize', defaultLabel: 'Maize / Corn (మొక్కజొన్న / मक्का)', defaultSupply: 20000, temp: 27 },
+  { id: 'Chilli', labelKey: 'crops.Chilli', defaultLabel: 'Chilli (మిరప / मिर्च)', defaultSupply: 12000, temp: 31 },
+  { id: 'Garlic', labelKey: 'crops.Garlic', defaultLabel: 'Garlic (వెల్లుల్లి / लहसुन)', defaultSupply: 10000, temp: 26 },
+  { id: 'Ginger', labelKey: 'crops.Ginger', defaultLabel: 'Ginger (అల్లం / अदरक)', defaultSupply: 11000, temp: 27 },
+  { id: 'Turmeric', labelKey: 'crops.Turmeric', defaultLabel: 'Turmeric (పసుపు / हल्दी)', defaultSupply: 15000, temp: 28 },
+  { id: 'Soybean', labelKey: 'crops.Soybean', defaultLabel: 'Soybean (సోయాబీన్ / सोयाबीन)', defaultSupply: 25000, temp: 28 },
+  { id: 'Cotton', labelKey: 'crops.Cotton', defaultLabel: 'Cotton (పత్తి / कपास)', defaultSupply: 22000, temp: 30 },
+  { id: 'Sugarcane', labelKey: 'crops.Sugarcane', defaultLabel: 'Sugarcane (చెరకు / गन्ना)', defaultSupply: 60000, temp: 30 },
+  { id: 'Banana', labelKey: 'crops.Banana', defaultLabel: 'Banana (అరటి / केला)', defaultSupply: 30000, temp: 29 },
+  { id: 'Grapes', labelKey: 'crops.Grapes', defaultLabel: 'Grapes (ద్రాక్ష / अंगूर)', defaultSupply: 18000, temp: 26 },
+  { id: 'Pomegranate', labelKey: 'crops.Pomegranate', defaultLabel: 'Pomegranate (దానిమ్మ / अनार)', defaultSupply: 14000, temp: 29 },
+  { id: 'Mango', labelKey: 'crops.Mango', defaultLabel: 'Mango (మామిడి / आम)', defaultSupply: 20000, temp: 32 },
+  { id: 'Papaya', labelKey: 'crops.Papaya', defaultLabel: 'Papaya (బొప్పాయి / పపయి)', defaultSupply: 18000, temp: 29 },
+  { id: 'Lemon', labelKey: 'crops.Lemon', defaultLabel: 'Lemon (నిమ్మ / नींबू)', defaultSupply: 12000, temp: 30 },
+  { id: 'Capsicum', labelKey: 'crops.Capsicum', defaultLabel: 'Capsicum (క్యాప్సికమ్ / शिमला मिर्च)', defaultSupply: 14000, temp: 26 },
+  { id: 'Brinjal', labelKey: 'crops.Brinjal', defaultLabel: 'Brinjal (వంకాయ / बैंगन)', defaultSupply: 16000, temp: 28 },
+  { id: 'Cauliflower', labelKey: 'crops.Cauliflower', defaultLabel: 'Cauliflower (కాలీఫ్లవర్ / फूलगोभी)', defaultSupply: 18000, temp: 25 },
+  { id: 'Cabbage', labelKey: 'crops.Cabbage', defaultLabel: 'Cabbage (క్యాబేజీ / पत्तागोभी)', defaultSupply: 18000, temp: 25 },
+  { id: 'Cucumber', labelKey: 'crops.Cucumber', defaultLabel: 'Cucumber (దోసకాయ / खीरा)', defaultSupply: 16000, temp: 27 },
 ];
 
 const MANDI_DISTRICTS = [
-  'Pune', 'Nashik', 'Ahmednagar', 'Nagpur', 'Kolhapur', 'Solapur', 'Aurangabad',
-  'Chittoor', 'Guntur', 'Kurnool', 'Warangal', 'Rangareddy', 'Khammam', 'Krishna', 'Anantapur'
+  'Pune', 'Nashik', 'Ahmednagar', 'Solapur', 'Nagpur',
+  'Satara', 'Kolhapur', 'Sangli', 'Jalgaon', 'Aurangabad',
+  'Mumbai', 'Kadapa', 'Kurnool', 'Guntur', 'Hyderabad',
+  'Bengaluru', 'Indore', 'Bhopal', 'Jaipur', 'Lucknow',
+  'Delhi', 'Ahmedabad', 'Surat', 'Chandigarh', 'Kolkata',
+  'Chittoor', 'Warangal', 'Rangareddy', 'Khammam', 'Krishna', 'Anantapur'
 ];
 
 export default function MarketIntelligenceWidget({ initialCrop = 'Tomato', initialDistrict = 'Pune', onPriceSelect }) {
@@ -113,7 +132,7 @@ export default function MarketIntelligenceWidget({ initialCrop = 'Tomato', initi
                   {t('ml.title', 'AI Market Demand & Price Intelligence')}
                 </h3>
                 <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/30 text-emerald-100 border border-emerald-400/30">
-                  SIH 2026 • Live ML Engine
+                  Agmarknet Verified • Live APMC
                 </span>
               </div>
               <p className="text-xs text-emerald-100/90 mt-0.5">

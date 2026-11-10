@@ -4,14 +4,31 @@
  */
 
 export const INITIAL_CROPS = [
-  { id: 'Tomato', name: 'Tomato', vernacular: 'टमाटर', category: 'Vegetables', icon: '🍅', defaultPrice: 24 },
-  { id: 'Onion', name: 'Onion', vernacular: 'प्याज', category: 'Vegetables', icon: '🧅', defaultPrice: 28 },
-  { id: 'Potato', name: 'Potato', vernacular: 'आलू', category: 'Vegetables', icon: '🥔', defaultPrice: 20 },
-  { id: 'Paddy', name: 'Paddy / Rice', vernacular: 'धान / चावल', category: 'Grains', icon: '🌾', defaultPrice: 32 },
-  { id: 'Wheat', name: 'Wheat', vernacular: 'गेहूं', category: 'Grains', icon: '🌾', defaultPrice: 26 },
-  { id: 'Maize', name: 'Maize / Corn', vernacular: 'मक्का', category: 'Grains', icon: '🌽', defaultPrice: 22 },
-  { id: 'Leafy vegetables', name: 'Leafy Vegetables', vernacular: 'हरी सब्जियां', category: 'Vegetables', icon: '🥬', defaultPrice: 18 },
-  { id: 'Other', name: 'Other Produce', vernacular: 'अन्य फसल', category: 'Vegetables', icon: '🌱', defaultPrice: 25 }
+  { id: 'Tomato', name: 'Tomato', vernacular: 'टमाटर', category: 'Vegetables', icon: '🍅', defaultPrice: 30 },
+  { id: 'Onion', name: 'Onion', vernacular: 'प्याज', category: 'Vegetables', icon: '🧅', defaultPrice: 54 },
+  { id: 'Potato', name: 'Potato', vernacular: 'आलू', category: 'Vegetables', icon: '🥔', defaultPrice: 21 },
+  { id: 'Rice', name: 'Rice / Paddy', vernacular: 'चावल / धान', category: 'Grains', icon: '🌾', defaultPrice: 45 },
+  { id: 'Wheat', name: 'Wheat', vernacular: 'गेहूं', category: 'Grains', icon: '🌾', defaultPrice: 28 },
+  { id: 'Maize', name: 'Maize / Corn', vernacular: 'मक्का', category: 'Grains', icon: '🌽', defaultPrice: 26 },
+  { id: 'Chilli', name: 'Chilli', vernacular: 'मिर्च', category: 'Spices', icon: '🌶️', defaultPrice: 48 },
+  { id: 'Garlic', name: 'Garlic', vernacular: 'लहसुन', category: 'Spices', icon: '🧄', defaultPrice: 165 },
+  { id: 'Ginger', name: 'Ginger', vernacular: 'अदरक', category: 'Spices', icon: '🫚', defaultPrice: 92 },
+  { id: 'Turmeric', name: 'Turmeric', vernacular: 'हल्दी', category: 'Spices', icon: '🌿', defaultPrice: 155 },
+  { id: 'Soybean', name: 'Soybean', vernacular: 'सोयाबीन', category: 'Oilseeds', icon: '🌱', defaultPrice: 45 },
+  { id: 'Cotton', name: 'Cotton', vernacular: 'कपास', category: 'Commercial', icon: '☁️', defaultPrice: 88 },
+  { id: 'Sugarcane', name: 'Sugarcane', vernacular: 'गन्ना', category: 'Commercial', icon: '🎋', defaultPrice: 4 },
+  { id: 'Banana', name: 'Banana', vernacular: 'केला', category: 'Fruits', icon: '🍌', defaultPrice: 48 },
+  { id: 'Grapes', name: 'Grapes', vernacular: 'अंगूर', category: 'Fruits', icon: '🍇', defaultPrice: 105 },
+  { id: 'Pomegranate', name: 'Pomegranate', vernacular: 'अनार', category: 'Fruits', icon: '🍎', defaultPrice: 140 },
+  { id: 'Mango', name: 'Mango', vernacular: 'आम', category: 'Fruits', icon: '🥭', defaultPrice: 120 },
+  { id: 'Papaya', name: 'Papaya', vernacular: 'पपीता', category: 'Fruits', icon: '🍈', defaultPrice: 26 },
+  { id: 'Lemon', name: 'Lemon', vernacular: 'नींबू', category: 'Fruits', icon: '🍋', defaultPrice: 56 },
+  { id: 'Capsicum', name: 'Capsicum', vernacular: 'शिमला मिर्च', category: 'Vegetables', icon: '🫑', defaultPrice: 46 },
+  { id: 'Brinjal', name: 'Brinjal / Eggplant', vernacular: 'बैंगन', category: 'Vegetables', icon: '🍆', defaultPrice: 22 },
+  { id: 'Cauliflower', name: 'Cauliflower', vernacular: 'फूलगोभी', category: 'Vegetables', icon: '🥦', defaultPrice: 20 },
+  { id: 'Cabbage', name: 'Cabbage', vernacular: 'पत्तागोभी', category: 'Vegetables', icon: '🥬', defaultPrice: 16 },
+  { id: 'Cucumber', name: 'Cucumber', vernacular: 'खीरा', category: 'Vegetables', icon: '🥒', defaultPrice: 22 },
+  { id: 'Other', name: 'Other Produce', vernacular: 'अन्य फसल', category: 'Vegetables', icon: '🌱', defaultPrice: 25 },
 ];
 
 /**
