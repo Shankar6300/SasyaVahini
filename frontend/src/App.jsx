@@ -74,6 +74,7 @@ export default function App() {
 
         {/* ── Logistics auth routes ─────────────────────────────────── */}
         <Route path="/logistics/login"      element={<LogisticsLoginPage />} />
+        <Route path="/logistics/register"   element={<RegisterPage />} />
 
         {/* Farmer — Member 2 will add child routes */}
         <Route

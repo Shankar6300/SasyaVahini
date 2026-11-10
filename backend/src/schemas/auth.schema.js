@@ -43,7 +43,75 @@ const registerSchema = z.object({
   fpoName: z.string().optional(),
   registrationNo: z.string().optional(),
   memberCount: z.number().int().nonnegative().optional(),
-});
+
+  // Transport Partner Sub-Roles & Personal Details
+  partnerType: z.string().optional(),
+  ownerName: z.string().optional(),
+  dob: z.string().optional(),
+  emergencyContact: z.string().optional(),
+  profilePhotoUrl: z.string().optional(),
+
+  // Driving Licence Verification
+  drivingLicenceNo: z.string().optional(),
+  licenceExpiry: z.string().optional(),
+  permittedClasses: z.union([z.array(z.string()), z.string()]).optional(),
+  licenceFrontUrl: z.string().optional(),
+  licenceBackUrl: z.string().optional(),
+
+  // Fleet Operator Business Credentials
+  panNumber: z.string().optional(),
+  gstin: z.string().optional(),
+  businessRegNo: z.string().optional(),
+  businessCertUrl: z.string().optional(),
+  ownershipType: z.string().optional(),
+
+  // Payout & Banking Credentials
+  accountHolderName: z.string().optional(),
+  bankName: z.string().optional(),
+  accountNumber: z.string().optional(),
+  ifscCode: z.string().optional(),
+
+  // Commercial Vehicle Specifications
+  vehicleNumber: z.string().optional(),
+  vehicleType: z.string().optional(),
+  capacityKg: z.number().positive().optional(),
+  driverName: z.string().optional(),
+  driverPhone: z.string().optional(),
+  make: z.string().optional(),
+  model: z.string().optional(),
+  manufacturingYear: z.number().optional(),
+  category: z.string().optional(),
+  fuelType: z.string().optional(),
+  gvwKg: z.number().optional(),
+  mileageKmpl: z.number().positive().optional(),
+  dimensions: z.string().optional(),
+  isRefrigerated: z.boolean().optional(),
+  minTempC: z.number().optional(),
+  maxTempC: z.number().optional(),
+  baseHub: z.string().optional(),
+  photoUrls: z.union([z.array(z.string()), z.string()]).optional(),
+  documents: z.array(z.any()).optional(),
+
+  // Statutory Document Uploads
+  rcNumber: z.string().optional(),
+  rcDocUrl: z.string().optional(),
+  rcExpiry: z.string().optional(),
+  insuranceNumber: z.string().optional(),
+  insuranceDocUrl: z.string().optional(),
+  insuranceExpiry: z.string().optional(),
+  fitnessNumber: z.string().optional(),
+  fitnessDocUrl: z.string().optional(),
+  fitnessExpiry: z.string().optional(),
+  permitNumber: z.string().optional(),
+  permitDocUrl: z.string().optional(),
+  permitExpiry: z.string().optional(),
+  pucNumber: z.string().optional(),
+  pucDocUrl: z.string().optional(),
+  pucExpiry: z.string().optional(),
+  taxNumber: z.string().optional(),
+  taxDocUrl: z.string().optional(),
+  taxExpiry: z.string().optional(),
+}).passthrough();
 
 const loginSchema = z.object({
   email: z.string().email(),

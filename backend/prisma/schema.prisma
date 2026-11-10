@@ -301,12 +301,46 @@ model LogisticsProfile {
   userId           String    @unique
   user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  // Transport Partner Sub-Role: "DRIVER" | "VEHICLE_OWNER" | "FLEET_OPERATOR"
+  partnerType      String    @default("VEHICLE_OWNER")
   companyName      String
   licenseNo        String?
   serviceStates    String[]
   serviceDistricts String[]
 
+  // Individual Driver / Owner Personal Attributes
+  ownerName        String?
+  dob              DateTime?
+  emergencyContact String?
+  profilePhotoUrl  String?
+
+  // Driving Licence Verification Details
+  drivingLicenceNo String?
+  licenceExpiry    DateTime?
+  permittedClasses String[]  @default([])
+  licenceFrontUrl  String?
+  licenceBackUrl   String?
+  driverVerified   Boolean   @default(false)
+
+  // Fleet Operator / Business Credentials
+  panNumber        String?
+  gstin            String?
+  businessRegNo    String?
+  businessCertUrl  String?
+  ownershipType    String?   @default("Individual") // "Individual" | "Partnership" | "Private Ltd"
+
+  // Payout & Banking Details
+  accountHolderName String?
+  bankName         String?
+  accountNumber    String?
+  ifscCode         String?
+
+  // Verification Audit & Status
   licenseVerified  Boolean   @default(false)
+  verificationStatus String  @default("PENDING") // "PENDING" | "VERIFIED" | "REJECTED"
+  adminRemarks     String?
+  rejectionReason  String?
+  verifiedAt       DateTime?
 
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
@@ -315,6 +349,8 @@ model LogisticsProfile {
   deliveries       DeliveryRecord[]
 
   @@index([licenseNo])
+  @@index([partnerType])
+  @@index([verificationStatus])
 }
 
 model AdminProfile {
@@ -568,21 +604,76 @@ model Vehicle {
   driverName       String
   driverPhone      String
 
+  // Professional Vehicle Specifications
+  make             String?          // e.g. Tata, Mahindra, Ashok Leyland, Eicher
+  model            String?          // e.g. Intra V30, Ace Gold, Bolero Maxi Truck, 407 Gold
+  manufacturingYear Int?            // e.g. 2022
+  category         String           @default("MCV") // "SCV" | "MCV" | "HCV"
+  fuelType         String           @default("DIESEL") // "DIESEL" | "PETROL" | "CNG" | "ELECTRIC"
+  gvwKg            Float?           // Gross vehicle weight
+  mileageKmpl      Float?           // Fuel efficiency in km/L
+  dimensions       String?          // e.g. "14ft x 6ft x 6ft"
+  isRefrigerated   Boolean          @default(false)
+  minTempC         Float?
+  maxTempC         Float?
+  baseHub          String?          // Base depot / city
+  operatingDistricts String[]       @default([])
+  photoUrls        String[]         @default([])
+
   status           VehicleStatus    @default(AVAILABLE)
   currentLatitude  Float?
   currentLongitude Float?
   lastLocationAt   DateTime?
 
-  rcVerified       Boolean          @default(false)
+  // Document verification statuses
+  rcVerified        Boolean         @default(false)
   insuranceVerified Boolean         @default(false)
+  fitnessVerified   Boolean         @default(false)
+  permitVerified    Boolean         @default(false)
+  pucVerified       Boolean         @default(false)
+  taxVerified       Boolean         @default(false)
+
+  verificationStatus String         @default("PENDING") // "PENDING" | "VERIFIED" | "REJECTED"
+  rejectionReason   String?
+  adminRemarks      String?
+  verifiedAt        DateTime?
 
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
 
+  documents        VehicleDocument[]
   deliveries       DeliveryRecord[]
 
   @@index([status])
   @@index([logisticsId])
+  @@index([verificationStatus])
+  @@index([category])
+}
+
+model VehicleDocument {
+  id                 String    @id @default(uuid())
+  vehicleId          String
+  vehicle            Vehicle   @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  docType            String    // "RC" | "INSURANCE" | "FITNESS" | "PERMIT" | "PUC" | "ROAD_TAX"
+  docNumber          String?
+  fileUrl            String    // URL or Base64/Data URL
+  frontUrl           String?
+  backUrl            String?
+  issueDate          DateTime?
+  expiryDate         DateTime?
+
+  verificationStatus String    @default("PENDING") // "PENDING" | "VERIFIED" | "REJECTED"
+  adminRemarks       String?
+  rejectionReason    String?
+  verifiedAt         DateTime?
+
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  @@index([vehicleId])
+  @@index([docType])
+  @@index([verificationStatus])
 }
 
 model DeliveryRecord {

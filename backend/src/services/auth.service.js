@@ -55,25 +55,86 @@ async function register(data) {
     password,
     role,
     preferredLocale,
-    // Role-specific fields
+    // Farmer-specific fields
     landSizeAcres,
     state,
     district,
     village,
     produceTypes,
+    // Buyer-specific fields
     organizationName,
     buyerType,
     gstNumber,
     deliveryState,
     deliveryDistrict,
     deliveryAddress,
+    // FPO-specific fields
+    fpoName,
+    registrationNo,
+    memberCount,
+    // Logistics & Transport Partner enriched fields
     companyName,
     licenseNo,
     serviceStates,
     serviceDistricts,
-    fpoName,
-    registrationNo,
-    memberCount,
+    partnerType,
+    ownerName,
+    dob,
+    emergencyContact,
+    profilePhotoUrl,
+    drivingLicenceNo,
+    licenceExpiry,
+    permittedClasses,
+    licenceFrontUrl,
+    licenceBackUrl,
+    panNumber,
+    gstin,
+    businessRegNo,
+    businessCertUrl,
+    ownershipType,
+    accountHolderName,
+    bankName,
+    accountNumber,
+    ifscCode,
+    // Primary vehicle inputs
+    vehicleNumber,
+    vehicleType,
+    capacityKg,
+    driverName,
+    driverPhone,
+    make,
+    model,
+    manufacturingYear,
+    category,
+    fuelType,
+    gvwKg,
+    mileageKmpl,
+    dimensions,
+    isRefrigerated,
+    minTempC,
+    maxTempC,
+    baseHub,
+    photoUrls,
+    // Document uploads
+    rcNumber,
+    rcDocUrl,
+    rcExpiry,
+    insuranceNumber,
+    insuranceDocUrl,
+    insuranceExpiry,
+    fitnessNumber,
+    fitnessDocUrl,
+    fitnessExpiry,
+    permitNumber,
+    permitDocUrl,
+    permitExpiry,
+    pucNumber,
+    pucDocUrl,
+    pucExpiry,
+    taxNumber,
+    taxDocUrl,
+    taxExpiry,
+    documents,
   } = data;
 
   // Unique checks
@@ -107,6 +168,86 @@ async function register(data) {
     : typeof serviceDistricts === 'string' && serviceDistricts.trim()
     ? serviceDistricts.split(',').map((s) => s.trim())
     : district ? [district] : [];
+
+  const parsedPermittedClasses = Array.isArray(permittedClasses)
+    ? permittedClasses
+    : typeof permittedClasses === 'string' && permittedClasses.trim()
+    ? permittedClasses.split(',').map((s) => s.trim())
+    : ['LMV'];
+
+  // Construct vehicle documents list if documents or individual uploads provided
+  const vehicleDocs = [];
+  if (Array.isArray(documents) && documents.length > 0) {
+    for (const d of documents) {
+      if (d.docType && (d.fileUrl || d.frontUrl)) {
+        vehicleDocs.push({
+          docType: d.docType,
+          docNumber: d.docNumber || null,
+          fileUrl: d.fileUrl || d.frontUrl || '',
+          frontUrl: d.frontUrl || null,
+          backUrl: d.backUrl || null,
+          issueDate: d.issueDate ? new Date(d.issueDate) : null,
+          expiryDate: d.expiryDate ? new Date(d.expiryDate) : null,
+          verificationStatus: 'PENDING',
+        });
+      }
+    }
+  } else {
+    if (rcDocUrl || rcNumber) {
+      vehicleDocs.push({
+        docType: 'RC',
+        docNumber: rcNumber || null,
+        fileUrl: rcDocUrl || 'https://storage.sasyavahini.gov.in/docs/rc_sample.pdf',
+        expiryDate: rcExpiry ? new Date(rcExpiry) : null,
+        verificationStatus: 'PENDING',
+      });
+    }
+    if (insuranceDocUrl || insuranceNumber) {
+      vehicleDocs.push({
+        docType: 'INSURANCE',
+        docNumber: insuranceNumber || null,
+        fileUrl: insuranceDocUrl || 'https://storage.sasyavahini.gov.in/docs/insurance_sample.pdf',
+        expiryDate: insuranceExpiry ? new Date(insuranceExpiry) : null,
+        verificationStatus: 'PENDING',
+      });
+    }
+    if (fitnessDocUrl || fitnessNumber) {
+      vehicleDocs.push({
+        docType: 'FITNESS',
+        docNumber: fitnessNumber || null,
+        fileUrl: fitnessDocUrl || 'https://storage.sasyavahini.gov.in/docs/fitness_sample.pdf',
+        expiryDate: fitnessExpiry ? new Date(fitnessExpiry) : null,
+        verificationStatus: 'PENDING',
+      });
+    }
+    if (permitDocUrl || permitNumber) {
+      vehicleDocs.push({
+        docType: 'PERMIT',
+        docNumber: permitNumber || null,
+        fileUrl: permitDocUrl || 'https://storage.sasyavahini.gov.in/docs/permit_sample.pdf',
+        expiryDate: permitExpiry ? new Date(permitExpiry) : null,
+        verificationStatus: 'PENDING',
+      });
+    }
+    if (pucDocUrl || pucNumber) {
+      vehicleDocs.push({
+        docType: 'PUC',
+        docNumber: pucNumber || null,
+        fileUrl: pucDocUrl || 'https://storage.sasyavahini.gov.in/docs/puc_sample.pdf',
+        expiryDate: pucExpiry ? new Date(pucExpiry) : null,
+        verificationStatus: 'PENDING',
+      });
+    }
+    if (taxDocUrl || taxNumber) {
+      vehicleDocs.push({
+        docType: 'ROAD_TAX',
+        docNumber: taxNumber || null,
+        fileUrl: taxDocUrl || 'https://storage.sasyavahini.gov.in/docs/tax_sample.pdf',
+        expiryDate: taxExpiry ? new Date(taxExpiry) : null,
+        verificationStatus: 'PENDING',
+      });
+    }
+  }
 
   const user = await prisma.user.create({
     data: {
@@ -160,10 +301,59 @@ async function register(data) {
         role === 'LOGISTICS'
           ? {
               create: {
-                companyName: companyName || `${name} Transport & Logistics`,
-                licenseNo: licenseNo || `LOG-${Date.now().toString().slice(-6)}`,
+                partnerType: partnerType || 'VEHICLE_OWNER',
+                companyName: companyName || (partnerType === 'DRIVER' ? `${name} (Driver)` : `${name} Transport & Logistics`),
+                licenseNo: licenseNo || drivingLicenceNo || `LOG-${Date.now().toString().slice(-6)}`,
                 serviceStates: parsedStates.length ? parsedStates : ['Maharashtra'],
                 serviceDistricts: parsedDistricts.length ? parsedDistricts : ['Pune', 'Nashik'],
+                ownerName: ownerName || name,
+                dob: dob ? new Date(dob) : null,
+                emergencyContact: emergencyContact || null,
+                profilePhotoUrl: profilePhotoUrl || null,
+                drivingLicenceNo: drivingLicenceNo || null,
+                licenceExpiry: licenceExpiry ? new Date(licenceExpiry) : null,
+                permittedClasses: parsedPermittedClasses,
+                licenceFrontUrl: licenceFrontUrl || null,
+                licenceBackUrl: licenceBackUrl || null,
+                driverVerified: false,
+                panNumber: panNumber || null,
+                gstin: gstin || null,
+                businessRegNo: businessRegNo || null,
+                businessCertUrl: businessCertUrl || null,
+                ownershipType: ownershipType || 'Individual',
+                accountHolderName: accountHolderName || name,
+                bankName: bankName || null,
+                accountNumber: accountNumber || null,
+                ifscCode: ifscCode || null,
+                verificationStatus: 'PENDING',
+                vehicles: vehicleNumber
+                  ? {
+                      create: {
+                        vehicleNumber: vehicleNumber.trim().toUpperCase(),
+                        vehicleType:
+                          vehicleType ||
+                          (category === 'HCV' ? 'Truck' : category === 'SCV' ? 'Tempo' : 'Mini-Truck'),
+                        capacityKg: capacityKg ? Number(capacityKg) : 2500,
+                        driverName: driverName || ownerName || name,
+                        driverPhone: driverPhone || phone,
+                        make: make || 'Tata',
+                        model: model || 'Intra V30',
+                        manufacturingYear: manufacturingYear ? Number(manufacturingYear) : 2023,
+                        category: category || 'MCV',
+                        fuelType: fuelType || 'DIESEL',
+                        gvwKg: gvwKg ? Number(gvwKg) : null,
+                        mileageKmpl: mileageKmpl ? Number(mileageKmpl) : 14.5,
+                        dimensions: dimensions || '10ft x 5.5ft x 5ft',
+                        isRefrigerated: !!isRefrigerated,
+                        minTempC: minTempC !== undefined && minTempC !== '' ? Number(minTempC) : null,
+                        maxTempC: maxTempC !== undefined && maxTempC !== '' ? Number(maxTempC) : null,
+                        baseHub: baseHub || 'Pune Agri Hub',
+                        operatingDistricts: parsedDistricts.length ? parsedDistricts : ['Pune', 'Nashik'],
+                        photoUrls: photoUrls ? (Array.isArray(photoUrls) ? photoUrls : [photoUrls]) : [],
+                        documents: vehicleDocs.length > 0 ? { create: vehicleDocs } : undefined,
+                      },
+                    }
+                  : undefined,
               },
             }
           : undefined,

@@ -20,6 +20,8 @@ export default function LiveMap({
   vehicle = null,
   fpo = null,
   routeGeometry = null,
+  alternativeGeometry = null,
+  activeRouteMode = 'HIGHWAY',
   height = '420px',
   interactive = true,
 }) {
@@ -216,14 +218,24 @@ export default function LiveMap({
         `);
       }
 
-      // 5. Route Polyline
+      // 5. Route Polylines (Primary Solid & Alternative Dashed)
+      if (alternativeGeometry?.coordinates && alternativeGeometry.coordinates.length > 1) {
+        const altLatLngs = alternativeGeometry.coordinates.map((c) => [c[1], c[0]]);
+        const isAltActive = activeRouteMode === 'RURAL';
+        L.polyline(altLatLngs, {
+          color: isAltActive ? '#2563EB' : '#94A3B8',
+          weight: isAltActive ? 5 : 3,
+          opacity: isAltActive ? 0.9 : 0.45,
+          dashArray: '6, 8',
+        }).addTo(map);
+      }
       if (routeGeometry?.coordinates && routeGeometry.coordinates.length > 1) {
         const latLngs = routeGeometry.coordinates.map((c) => [c[1], c[0]]);
         L.polyline(latLngs, {
           color: '#07875B',
           weight: 4,
           opacity: 0.85,
-          dashArray: '8, 8',
+          dashArray: activeRouteMode === 'RURAL' ? '4, 6' : undefined,
         }).addTo(map);
       } else if (allPoints.length > 1) {
         // Fallback straight lines connecting stops in order

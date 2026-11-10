@@ -147,33 +147,70 @@ class VehicleService {
    * Return fleet vehicles (from DB if available, else in-memory seed)
    */
   async listVehicles(query = {}) {
-    const isMock = config.dataSource === 'mock';
-    if (!isMock && prisma.vehicle) {
+    let dbVehicles = [];
+    if (prisma.vehicle) {
       try {
-        const dbVehicles = await prisma.vehicle.findMany({
-          where: query.status ? { status: query.status } : undefined,
-          include: { logistics: true },
+        const whereClause = {};
+        if (query.status) whereClause.status = query.status;
+        if (query.category) whereClause.category = query.category;
+        if (query.verificationStatus) whereClause.verificationStatus = query.verificationStatus;
+        if (query.logisticsId) whereClause.logisticsId = query.logisticsId;
+
+        dbVehicles = await prisma.vehicle.findMany({
+          where: whereClause,
+          include: {
+            logistics: {
+              include: { user: { select: { id: true, name: true, phone: true, email: true } } },
+            },
+            documents: true,
+          },
+          orderBy: { createdAt: 'desc' },
         });
-        if (dbVehicles.length > 0) return dbVehicles;
       } catch (err) {
         logger.warn('Failed to query DB for vehicles, using in-memory fleet', { error: err.message });
       }
     }
 
-    if (query.status) {
-      return inMemoryFleet.filter((v) => v.status === query.status);
+    // Merge DB vehicles with non-duplicate seed vehicles so demo scenarios continue working
+    const dbNumbers = new Set(dbVehicles.map((v) => (v.vehicleNumber || '').toUpperCase()));
+    let resultFleet = [...dbVehicles];
+
+    for (const seed of inMemoryFleet) {
+      if (!dbNumbers.has((seed.vehicleNumber || '').toUpperCase())) {
+        resultFleet.push(seed);
+      }
     }
-    return inMemoryFleet;
+
+    if (query.status) {
+      resultFleet = resultFleet.filter((v) => v.status === query.status);
+    }
+    if (query.category) {
+      resultFleet = resultFleet.filter((v) => (v.category || '').toUpperCase() === query.category.toUpperCase());
+    }
+    if (query.verificationStatus) {
+      resultFleet = resultFleet.filter((v) => (v.verificationStatus || 'VERIFIED') === query.verificationStatus);
+    }
+
+    return resultFleet;
   }
 
   /**
    * Find vehicle by ID
    */
   async findById(vehicleId) {
-    const isMock = config.dataSource === 'mock';
-    if (!isMock && prisma.vehicle) {
+    if (prisma.vehicle) {
       try {
-        const v = await prisma.vehicle.findUnique({ where: { id: vehicleId } });
+        const v = await prisma.vehicle.findFirst({
+          where: {
+            OR: [{ id: vehicleId }, { vehicleNumber: vehicleId.toUpperCase() }],
+          },
+          include: {
+            logistics: {
+              include: { user: { select: { id: true, name: true, phone: true, email: true } } },
+            },
+            documents: true,
+          },
+        });
         if (v) return v;
       } catch (err) {
         logger.warn('Prisma find vehicle failed, using in-memory', { error: err.message });
@@ -371,6 +408,257 @@ class VehicleService {
       timestamp: new Date().toISOString(),
     };
   }
+
+  /**
+   * Register a new vehicle with full commercial specifications and documents
+   */
+  async createVehicle(logisticsId, data) {
+    const {
+      vehicleNumber,
+      vehicleType,
+      capacityKg,
+      driverName,
+      driverPhone,
+      make,
+      model,
+      manufacturingYear,
+      category = 'MCV',
+      fuelType = 'DIESEL',
+      gvwKg,
+      mileageKmpl = 14.5,
+      dimensions,
+      isRefrigerated = false,
+      minTempC,
+      maxTempC,
+      baseHub = 'Pune Rural Hub',
+      operatingDistricts = ['Pune'],
+      photoUrls = [],
+      documents = [],
+    } = data;
+
+    const normalizedNo = vehicleNumber.trim().toUpperCase();
+
+    // Check duplicate
+    const existing = await prisma.vehicle.findUnique({
+      where: { vehicleNumber: normalizedNo },
+    });
+    if (existing) {
+      const err = new Error(`Vehicle number ${normalizedNo} is already registered.`);
+      err.statusCode = 409;
+      throw err;
+    }
+
+    const parsedDistricts = Array.isArray(operatingDistricts)
+      ? operatingDistricts
+      : typeof operatingDistricts === 'string' && operatingDistricts.trim()
+      ? operatingDistricts.split(',').map((s) => s.trim())
+      : ['Pune'];
+
+    const parsedPhotos = Array.isArray(photoUrls)
+      ? photoUrls
+      : typeof photoUrls === 'string' && photoUrls.trim()
+      ? [photoUrls]
+      : [];
+
+    const docCreates = [];
+    if (Array.isArray(documents)) {
+      for (const doc of documents) {
+        if (doc.docType && (doc.fileUrl || doc.frontUrl)) {
+          docCreates.push({
+            docType: doc.docType,
+            docNumber: doc.docNumber || null,
+            fileUrl: doc.fileUrl || doc.frontUrl || '',
+            frontUrl: doc.frontUrl || null,
+            backUrl: doc.backUrl || null,
+            issueDate: doc.issueDate ? new Date(doc.issueDate) : null,
+            expiryDate: doc.expiryDate ? new Date(doc.expiryDate) : null,
+            verificationStatus: 'PENDING',
+          });
+        }
+      }
+    }
+
+    const created = await prisma.vehicle.create({
+      data: {
+        logisticsId,
+        vehicleNumber: normalizedNo,
+        vehicleType: vehicleType || (category === 'HCV' ? 'Truck' : category === 'SCV' ? 'Tempo' : 'Mini-Truck'),
+        capacityKg: capacityKg ? Number(capacityKg) : 2500,
+        driverName: driverName || 'Designated Driver',
+        driverPhone: driverPhone || '+919800000000',
+        make: make || 'Tata',
+        model: model || 'Intra V30',
+        manufacturingYear: manufacturingYear ? Number(manufacturingYear) : 2023,
+        category,
+        fuelType,
+        gvwKg: gvwKg ? Number(gvwKg) : null,
+        mileageKmpl: mileageKmpl ? Number(mileageKmpl) : 14.5,
+        dimensions: dimensions || '10ft x 5.5ft x 5ft',
+        isRefrigerated: !!isRefrigerated,
+        minTempC: minTempC !== undefined && minTempC !== '' ? Number(minTempC) : null,
+        maxTempC: maxTempC !== undefined && maxTempC !== '' ? Number(maxTempC) : null,
+        baseHub,
+        operatingDistricts: parsedDistricts,
+        photoUrls: parsedPhotos,
+        status: 'AVAILABLE',
+        verificationStatus: 'PENDING',
+        documents: docCreates.length > 0 ? { create: docCreates } : undefined,
+      },
+      include: {
+        logistics: {
+          include: { user: { select: { id: true, name: true, phone: true, email: true } } },
+        },
+        documents: true,
+      },
+    });
+
+    // Also push to inMemoryFleet
+    inMemoryFleet.unshift({
+      id: created.id,
+      vehicleNumber: created.vehicleNumber,
+      vehicleType: created.vehicleType,
+      capacityKg: created.capacityKg,
+      driverName: created.driverName,
+      driverPhone: created.driverPhone,
+      status: created.status,
+      hubName: created.baseHub,
+      category: created.category,
+      make: created.make,
+      model: created.model,
+      verificationStatus: created.verificationStatus,
+    });
+
+    return created;
+  }
+
+  /**
+   * Verify or reject vehicle with DoCA officer remarks
+   */
+  async verifyVehicle(vehicleId, { status = 'VERIFIED', adminRemarks = '', rejectionReason = '' }) {
+    const isApproved = status === 'VERIFIED';
+    const updated = await prisma.vehicle.update({
+      where: { id: vehicleId },
+      data: {
+        verificationStatus: status,
+        rcVerified: isApproved,
+        insuranceVerified: isApproved,
+        fitnessVerified: isApproved,
+        permitVerified: isApproved,
+        pucVerified: isApproved,
+        taxVerified: isApproved,
+        adminRemarks: adminRemarks || null,
+        rejectionReason: rejectionReason || null,
+        verifiedAt: new Date(),
+      },
+      include: { documents: true, logistics: true },
+    });
+
+    // Automatically update attached documents to the matching verification status
+    if (updated.documents && updated.documents.length > 0) {
+      await prisma.vehicleDocument.updateMany({
+        where: { vehicleId },
+        data: {
+          verificationStatus: status,
+          adminRemarks: adminRemarks || null,
+          rejectionReason: rejectionReason || null,
+          verifiedAt: new Date(),
+        },
+      });
+    }
+
+    // Update in-memory copy
+    const inMem = inMemoryFleet.find((v) => v.id === vehicleId || v.vehicleNumber === updated.vehicleNumber);
+    if (inMem) {
+      inMem.verificationStatus = status;
+    }
+
+    return updated;
+  }
+
+  /**
+   * Verify or reject Driver / Transport Partner
+   */
+  async verifyDriver(logisticsProfileId, { status = 'VERIFIED', adminRemarks = '', rejectionReason = '' }) {
+    const isApproved = status === 'VERIFIED';
+    const updated = await prisma.logisticsProfile.update({
+      where: { id: logisticsProfileId },
+      data: {
+        verificationStatus: status,
+        driverVerified: isApproved,
+        licenseVerified: isApproved,
+        adminRemarks: adminRemarks || null,
+        rejectionReason: rejectionReason || null,
+        verifiedAt: new Date(),
+      },
+      include: { user: { select: { id: true, name: true, phone: true, email: true } }, vehicles: true },
+    });
+    return updated;
+  }
+
+  /**
+   * Verify or reject single vehicle document
+   */
+  async verifyDocument(documentId, { status = 'VERIFIED', adminRemarks = '', rejectionReason = '' }) {
+    const updated = await prisma.vehicleDocument.update({
+      where: { id: documentId },
+      data: {
+        verificationStatus: status,
+        adminRemarks: adminRemarks || null,
+        rejectionReason: rejectionReason || null,
+        verifiedAt: new Date(),
+      },
+    });
+    return updated;
+  }
+
+  /**
+   * DoCA Admin Verification Queue: retrieve pending vehicles, drivers, and fleet audits
+   */
+  async getAdminVerificationQueue() {
+    const [pendingVehicles, verifiedVehicles, rejectedVehicles, pendingPartners, allPartners] = await Promise.all([
+      prisma.vehicle.findMany({
+        where: { verificationStatus: 'PENDING' },
+        include: {
+          logistics: {
+            include: { user: { select: { id: true, name: true, email: true, phone: true } } },
+          },
+          documents: true,
+        },
+        orderBy: { createdAt: 'desc' },
+      }),
+      prisma.vehicle.count({ where: { verificationStatus: 'VERIFIED' } }),
+      prisma.vehicle.count({ where: { verificationStatus: 'REJECTED' } }),
+      prisma.logisticsProfile.findMany({
+        where: { verificationStatus: 'PENDING' },
+        include: {
+          user: { select: { id: true, name: true, email: true, phone: true } },
+          vehicles: { include: { documents: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+      }),
+      prisma.logisticsProfile.findMany({
+        include: {
+          user: { select: { id: true, name: true, email: true, phone: true } },
+          vehicles: { include: { documents: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+      }),
+    ]);
+
+    return {
+      stats: {
+        pendingVehiclesCount: pendingVehicles.length,
+        verifiedVehiclesCount: verifiedVehicles,
+        rejectedVehiclesCount: rejectedVehicles,
+        pendingPartnersCount: pendingPartners.length,
+        totalPartnersCount: allPartners.length,
+      },
+      pendingVehicles,
+      pendingPartners,
+      allPartners,
+    };
+  }
+
 }
 
 module.exports = new VehicleService();
