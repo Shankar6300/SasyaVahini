@@ -262,6 +262,48 @@ KNOWN_DISTRICTS = [
     "Delhi", "Ahmedabad", "Surat", "Chandigarh", "Kolkata",
 ]
 
+# Regional Spatial Price Index Multipliers (M_loc)
+# Terminal consumption hubs trade at a premium; rural harvest belts trade at farm-gate discount.
+DISTRICT_PRICE_FACTORS: Dict[str, float] = {
+    # Terminal Mega-Hubs (Heavy urban demand, freight & handling added)
+    "Mumbai": 1.28,      # Vashi APMC (+28%)
+    "Delhi": 1.24,       # Azadpur APMC (+24%)
+    "Bengaluru": 1.22,   # Yeshwanthpur APMC (+22%)
+    "Kolkata": 1.20,     # Posta / Koley (+20%)
+    "Hyderabad": 1.18,   # Bowenpally APMC (+18%)
+
+    # Secondary Metro & Regional Commercial Hubs
+    "Pune": 1.12,        # Gultekdi APMC (+12%)
+    "Ahmedabad": 1.11,   # Jamalpur / Vasna (+11%)
+    "Surat": 1.10,       # Industrial consumption (+10%)
+    "Chandigarh": 1.08,  # Northern regional hub (+8%)
+    "Nagpur": 1.07,      # Kalamna Market (+7%)
+    "Jaipur": 1.06,      # Muhana Mandi (+6%)
+    "Indore": 1.05,      # Choithram Mandi (+5%)
+    "Lucknow": 1.05,     # Dubagga Mandi (+5%)
+    "Bhopal": 1.04,      # Karond Mandi (+4%)
+
+    # Semi-Urban Trade Centers
+    "Kolhapur": 0.98,
+    "Aurangabad": 0.98,
+    "Sangli": 0.97,
+    "Satara": 0.96,
+
+    # Primary Rural Harvest Belts (Heavy producer surplus, farm-gate wholesale origin)
+    "Solapur": 0.95,
+    "Guntur": 0.94,      # Major spice & agricultural origin (-6%)
+    "Nashik": 0.93,      # Lasalgaon / Pimpalgaon harvest basin (-7%)
+    "Jalgaon": 0.93,     # Banana & pulse belt (-7%)
+    "Kadapa": 0.92,      # Rayalaseema farm belt (-8%)
+    "Kurnool": 0.91,     # Andhra farming hub (-9%)
+    "Ahmednagar": 0.91,  # Rural production cluster (-9%)
+}
+
+
+def get_district_price_factor(district: str) -> float:
+    """Return regional price multiplier for a district/mandi hub relative to national benchmark."""
+    return DISTRICT_PRICE_FACTORS.get(district, 1.00)
+
 KNOWN_SEASONS = ["Kharif", "Rabi", "Zaid"]
 
 
@@ -462,7 +504,8 @@ def build_advanced_feature_row(
 
     profile = COMMODITY_PROFILES.get(crop, COMMODITY_PROFILES["Tomato"])
     base_demand = profile["baseline_demand_kg"]
-    base_price = profile["base_modal_price"]
+    dist_factor = get_district_price_factor(district)
+    base_price = round(profile["base_modal_price"] * dist_factor, 2)
     msp_floor = profile.get("msp_floor", 0.0)
 
     if previous_demand_kg is None:
@@ -480,7 +523,7 @@ def build_advanced_feature_row(
     if modal_price_lag1 is None:
         modal_price_lag1 = base_price
     if modal_price_lag7 is None:
-        modal_price_lag7 = base_price * 0.98
+        modal_price_lag7 = round(base_price * 0.98, 2)
 
     # 1. Festival Proximity Multiplier & Harmonics
     fest_mult, fest_name = calculate_festival_multiplier(sample_dt, crop)

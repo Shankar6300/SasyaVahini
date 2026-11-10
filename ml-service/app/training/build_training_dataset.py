@@ -34,6 +34,7 @@ from app.training.features import (
     build_advanced_feature_row,
     detect_season,
     get_feature_column_names,
+    get_district_price_factor,
 )
 from app.training.agronomic_matrix import (
     calculate_festival_multiplier,
@@ -159,10 +160,12 @@ def build_master_market_dataset(records_per_crop: int = 5000) -> pd.DataFrame:
                 prev_supply = float(supplies_kg[i - 1]) if i >= 1 else cur_supply * rng.uniform(0.92, 1.08)
                 supply_lag7 = float(supplies_kg[i - 7]) if i >= 7 else cur_supply * rng.uniform(0.88, 1.12)
 
-                # Economic market-clearing equilibrium centered on calibrated Agmarknet modal price
+                # Economic market-clearing equilibrium centered on calibrated Agmarknet modal price with spatial district factor
+                dist_factor = get_district_price_factor(canonical_district)
+                district_onion_base = base_price_onion * dist_factor
                 supply_shock = (cur_supply - 18500.0) / 18500.0
-                modal_price = base_price_onion * (1.0 - (0.18 * supply_shock)) + rng.normal(0, 1.2)
-                modal_price = max(base_price_onion * 0.5, min(base_price_onion * 1.8, round(float(modal_price), 2)))
+                modal_price = district_onion_base * (1.0 - (0.18 * supply_shock)) + rng.normal(0, 1.2)
+                modal_price = max(district_onion_base * 0.5, min(district_onion_base * 1.8, round(float(modal_price), 2)))
 
                 lag1_price = max(14.0, modal_price * (1.0 + rng.normal(0, 0.025)))
                 lag7_price = max(14.0, modal_price * (1.0 + rng.normal(0, 0.05)))
@@ -269,13 +272,15 @@ def build_master_market_dataset(records_per_crop: int = 5000) -> pd.DataFrame:
             prev_demand = base_demand * (1.0 + rng.normal(0, 0.08))
             supply_lag7 = cur_supply * rng.uniform(0.90, 1.10)
 
-            # Price formation: inverse supply elasticity + festival pull + MSP floor support
+            # Price formation: inverse supply elasticity + festival pull + MSP floor support + spatial district factor
+            dist_factor = get_district_price_factor(district)
+            district_effective_base = effective_base_price * dist_factor
             supply_shock = (cur_supply - base_demand) / base_demand
-            modal_price = effective_base_price * (1.0 - (0.38 * supply_shock) + (fest_mult - 1.0) * 0.45) + rng.normal(0, price_sigma * 0.25)
+            modal_price = district_effective_base * (1.0 - (0.38 * supply_shock) + (fest_mult - 1.0) * 0.45) + rng.normal(0, price_sigma * 0.25)
             # Enforce MSP floor boundary if statutory floor exists
             if msp_floor > 0:
                 modal_price = max(msp_floor * 0.95, modal_price)
-            modal_price = max(effective_base_price * 0.45, min(effective_base_price * 2.5, round(float(modal_price), 2)))
+            modal_price = max(district_effective_base * 0.45, min(district_effective_base * 2.5, round(float(modal_price), 2)))
 
             lag1_price = max(2.0, modal_price * (1.0 + rng.normal(0, 0.025)))
             lag7_price = max(2.0, modal_price * (1.0 + rng.normal(0, 0.05)))

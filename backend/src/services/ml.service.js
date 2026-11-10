@@ -43,6 +43,18 @@ const BASELINE_PRICES = {
   cucumber: 22.00,
 };
 
+const DISTRICT_PRICE_FACTORS = {
+  Mumbai: 1.28, Delhi: 1.24, Bengaluru: 1.22, Kolkata: 1.20, Hyderabad: 1.18,
+  Pune: 1.12, Ahmedabad: 1.11, Surat: 1.10, Chandigarh: 1.08, Nagpur: 1.07,
+  Jaipur: 1.06, Indore: 1.05, Lucknow: 1.05, Bhopal: 1.04, Kolhapur: 0.98,
+  Aurangabad: 0.98, Sangli: 0.97, Satara: 0.96, Solapur: 0.95, Guntur: 0.94,
+  Nashik: 0.93, Jalgaon: 0.93, Kadapa: 0.92, Kurnool: 0.91, Ahmednagar: 0.91,
+};
+
+function getDistrictFactor(district) {
+  return DISTRICT_PRICE_FACTORS[district] || 1.00;
+}
+
 /**
  * Check ML Service Health
  */
@@ -141,7 +153,9 @@ async function recommendPrice(rawPayload) {
 
 function generateFallbackDemand(payload) {
   const cropLower = (payload.crop || 'Tomato').toLowerCase();
-  const baseModal = BASELINE_PRICES[cropLower] || 25.0;
+  const rawBase = BASELINE_PRICES[cropLower] || 25.0;
+  const distFactor = getDistrictFactor(payload.district);
+  const baseModal = Number((rawBase * distFactor).toFixed(2));
   const currentSupply = payload.current_supply_kg || 30000;
   const festivalMultiplier = payload.festival_period ? 1.25 : 1.0;
   
@@ -200,7 +214,9 @@ function generateFallbackDemand(payload) {
 
 function generateFallbackPrice(payload) {
   const cropLower = (payload.crop || 'Tomato').toLowerCase();
-  const baseModal = BASELINE_PRICES[cropLower] || 25.0;
+  const rawBase = BASELINE_PRICES[cropLower] || 25.0;
+  const distFactor = getDistrictFactor(payload.district);
+  const baseModal = Number((rawBase * distFactor).toFixed(2));
   const transitDays = payload.transit_days || 1.5;
   const decayDiscount = Math.min(baseModal * 0.15, transitDays * 0.8);
   const recPrice = Math.max(8.0, Number((baseModal - decayDiscount).toFixed(2)));
