@@ -109,6 +109,9 @@ app.use('/api/farmers', require('./routes/farmer.routes'));
 app.use('/api/fpo', require('./routes/fpo.routes'));
 app.use('/api/notifications', require('./routes/notification.routes'));
 
+// Member 3 Routes: Buyer & Marketplace
+app.use('/api/marketplace', require('./routes/marketplace.routes'));
+
 // Member 4 Routes: Logistics
 app.use('/api/logistics', require('./routes/logistics.routes'));
 

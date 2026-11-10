@@ -47,7 +47,8 @@ services:
     environment:
       NODE_ENV: production
       PORT: 5000
-      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-sasyavahini}?schema=public
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-sasyavahini}?schema=public
+      DIRECT_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-sasyavahini}?schema=public
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-sasyavahini_jwt_access_secret_production_2026}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-sasyavahini_jwt_refresh_secret_production_2026}
       JWT_ACCESS_EXPIRES_IN: ${JWT_ACCESS_EXPIRES_IN:-15m}

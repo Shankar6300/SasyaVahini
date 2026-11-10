@@ -18,7 +18,8 @@ export default function ProtectedRoute({ children, roles }) {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    const redirectPath = location.pathname.startsWith('/buyer') ? '/buyer/login' : '/login';
+    return <Navigate to={redirectPath} state={{ from: location }} replace />;
   }
 
   if (roles && !roles.includes(user?.role)) {
