@@ -76,13 +76,22 @@ def load_real_agmarknet_dataset() -> pd.DataFrame:
     """
     Ingests, cleans, and featurizes genuine daily market records from Agmarknet
     (data.gov.in official feed: min, max, modal prices across 1,200+ mandis).
-    Option A: First checks external Data Lake (outside Git repo).
-    Fallback: Uses internal seed dataset in DATA_DIR.
+    Option 1: Primary in-repo unified dataset in DATA_DIR (65,000+ records).
+    Option 2: External Data Lake (outside Git repo).
+    Fallback: In-memory dynamic synthesis.
     """
-    # ── Option A: External Data Lake ──────────────────────────────────────────
+    # ── Option 1: In-Repo Master Unified Dataset ─────────────────────────────
+    in_repo_csv = DATA_DIR / "unified_market_dataset.csv"
+    if in_repo_csv.exists():
+        print(f"  [OK] Ingesting in-repo master dataset: {in_repo_csv.name}")
+        df = pd.read_csv(in_repo_csv)
+        print(f"  [OK] Loaded {len(df):,} balanced observations across {df['_crop'].nunique() if '_crop' in df else 'multiple'} crops")
+        return df
+
+    # ── Option 2: External Data Lake ──────────────────────────────────────────
     data_lake_csv = Path(r"D:\Projects\Capstone\data_lake\unified_training_dataset.csv")
     if data_lake_csv.exists():
-        print(f"  [OK] Ingesting unified dataset from Data Lake (Option A): {data_lake_csv.name}")
+        print(f"  [OK] Ingesting unified dataset from Data Lake (Option 2): {data_lake_csv.name}")
         df = pd.read_csv(data_lake_csv)
         print(f"  [OK] Loaded {len(df):,} records from Data Lake")
         return df
@@ -238,9 +247,11 @@ def train_advanced_models(df: pd.DataFrame | None = None) -> dict:
     model_p10 = HistGradientBoostingRegressor(
         loss="quantile",
         quantile=0.10,
-        max_iter=160,
-        max_depth=10,
-        min_samples_leaf=15,
+        max_iter=220,
+        learning_rate=0.08,
+        max_depth=12,
+        min_samples_leaf=20,
+        l2_regularization=0.15,
         random_state=42,
     )
     model_p10.fit(X_train, y_demand_train)
@@ -253,9 +264,11 @@ def train_advanced_models(df: pd.DataFrame | None = None) -> dict:
     model_p50 = HistGradientBoostingRegressor(
         loss="quantile",
         quantile=0.50,
-        max_iter=180,
-        max_depth=12,
-        min_samples_leaf=12,
+        max_iter=240,
+        learning_rate=0.08,
+        max_depth=14,
+        min_samples_leaf=15,
+        l2_regularization=0.15,
         random_state=42,
     )
     model_p50.fit(X_train, y_demand_train)
@@ -268,9 +281,11 @@ def train_advanced_models(df: pd.DataFrame | None = None) -> dict:
     model_p90 = HistGradientBoostingRegressor(
         loss="quantile",
         quantile=0.90,
-        max_iter=160,
-        max_depth=10,
-        min_samples_leaf=15,
+        max_iter=220,
+        learning_rate=0.08,
+        max_depth=12,
+        min_samples_leaf=20,
+        l2_regularization=0.15,
         random_state=42,
     )
     model_p90.fit(X_train, y_demand_train)
@@ -288,9 +303,11 @@ def train_advanced_models(df: pd.DataFrame | None = None) -> dict:
     print("\n[5/5] Training Econometric Price Model (HistGradientBoosting)...")
     price_model = HistGradientBoostingRegressor(
         loss="squared_error",
-        max_iter=180,
-        max_depth=10,
-        min_samples_leaf=12,
+        max_iter=240,
+        learning_rate=0.08,
+        max_depth=12,
+        min_samples_leaf=15,
+        l2_regularization=0.10,
         random_state=42,
     )
     price_model.fit(X_train, y_price_train)
@@ -307,6 +324,26 @@ def train_advanced_models(df: pd.DataFrame | None = None) -> dict:
     print(f"       Test MAE      : Rs. {test_mae:.2f}/kg")
     print(f"       Test RMSE     : Rs. {test_rmse:.2f}/kg")
     print(f"       Test MAPE     : {mape:.2f}%")
+
+    # ── Per-Commodity Accuracy Breakdown ─────────────────────────────────────
+    if "_crop" in df.columns:
+        test_indices = X_test.index
+        test_crops = df.loc[test_indices, "_crop"].values
+        print("\n  [PER-COMMODITY ACCURACY BENCHMARK ON UNSEEN TEST SET]")
+        print("  " + "-" * 62)
+        print(f"  {'Commodity':<15} | {'Price MAE':<12} | {'Price R²':<10} | {'Coverage (80%)':<14}")
+        print("  " + "-" * 62)
+        unique_crops = sorted(list(set(test_crops)))
+        for c in unique_crops:
+            c_mask = (test_crops == c)
+            if np.sum(c_mask) > 10:
+                c_price_true = y_price_test[c_mask]
+                c_price_pred = y_price_pred_test[c_mask]
+                c_mae = mean_absolute_error(c_price_true, c_price_pred)
+                c_r2 = r2_score(c_price_true, c_price_pred) if np.var(c_price_true) > 0 else 1.0
+                c_cov = np.mean((y_demand_test[c_mask] >= preds_p10_test[c_mask]) & (y_demand_test[c_mask] <= preds_p90_test[c_mask])) * 100.0
+                print(f"  {c:<15} | Rs. {c_mae:>5.2f}/kg   | {c_r2:>8.4f}  | {c_cov:>10.2f}%")
+        print("  " + "-" * 62)
 
     # 5-fold cross-validation on full dataset for robustness verification
     kf = KFold(n_splits=5, shuffle=True, random_state=42)
