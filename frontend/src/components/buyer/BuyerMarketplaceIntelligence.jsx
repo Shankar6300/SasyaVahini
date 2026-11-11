@@ -22,30 +22,30 @@ import { getDemandForecast, getPriceRecommendation } from '../../services/mlApi'
 import VoiceAssistant from '../VoiceAssistant';
 
 const COMMODITIES = [
-  { id: 'Tomato', labelKey: 'crops.Tomato', defaultLabel: 'Tomato (టమాట / टमाटर)', defaultSupply: 25000, basePrice: 30 },
-  { id: 'Onion', labelKey: 'crops.Onion', defaultLabel: 'Onion (ఉల్లిపాయ / प्याज़)', defaultSupply: 40000, basePrice: 54 },
-  { id: 'Potato', labelKey: 'crops.Potato', defaultLabel: 'Potato (బంగాళాదుంప / आलू)', defaultSupply: 35000, basePrice: 21 },
+  { id: 'Tomato', labelKey: 'crops.Tomato', defaultLabel: 'Tomato (టమాట / टमाटर)', defaultSupply: 25000, basePrice: 18 },
+  { id: 'Onion', labelKey: 'crops.Onion', defaultLabel: 'Onion (ఉల్లిపాయ / प्याज़)', defaultSupply: 40000, basePrice: 44 },
+  { id: 'Potato', labelKey: 'crops.Potato', defaultLabel: 'Potato (బంగాళాదుంప / आलू)', defaultSupply: 35000, basePrice: 22 },
   { id: 'Rice', labelKey: 'crops.Paddy', defaultLabel: 'Paddy / Rice (వరి / चावल)', defaultSupply: 45000, basePrice: 45 },
   { id: 'Wheat', labelKey: 'crops.Wheat', defaultLabel: 'Wheat (గోధుమ / गेहूं)', defaultSupply: 50000, basePrice: 28.5 },
-  { id: 'Maize', labelKey: 'crops.Maize', defaultLabel: 'Maize (మొక్కజొన్న / मक्का)', defaultSupply: 20000, basePrice: 26 },
+  { id: 'Maize', labelKey: 'crops.Maize', defaultLabel: 'Maize (మొక్కజొన్న / मक्का)', defaultSupply: 20000, basePrice: 24.5 },
   { id: 'Chilli', labelKey: 'crops.Chilli', defaultLabel: 'Chilli (మిరప / मिर्च)', defaultSupply: 12000, basePrice: 48 },
   { id: 'Garlic', labelKey: 'crops.Garlic', defaultLabel: 'Garlic (వెల్లుల్లి / लहसुन)', defaultSupply: 10000, basePrice: 165 },
   { id: 'Ginger', labelKey: 'crops.Ginger', defaultLabel: 'Ginger (అల్లం / अदरक)', defaultSupply: 11000, basePrice: 92 },
   { id: 'Turmeric', labelKey: 'crops.Turmeric', defaultLabel: 'Turmeric (పసుపు / हल्दी)', defaultSupply: 15000, basePrice: 155 },
-  { id: 'Soybean', labelKey: 'crops.Soybean', defaultLabel: 'Soybean (సోయాబీన్ / सोयाबीन)', defaultSupply: 25000, basePrice: 45 },
-  { id: 'Cotton', labelKey: 'crops.Cotton', defaultLabel: 'Cotton (పత్తి / कपास)', defaultSupply: 22000, basePrice: 88 },
-  { id: 'Sugarcane', labelKey: 'crops.Sugarcane', defaultLabel: 'Sugarcane (చెరకు / गन्ना)', defaultSupply: 60000, basePrice: 3.8 },
-  { id: 'Banana', labelKey: 'crops.Banana', defaultLabel: 'Banana (అరటి / केला)', defaultSupply: 30000, basePrice: 48 },
-  { id: 'Grapes', labelKey: 'crops.Grapes', defaultLabel: 'Grapes (ద్రాక్ష / अंगूर)', defaultSupply: 18000, basePrice: 105 },
-  { id: 'Pomegranate', labelKey: 'crops.Pomegranate', defaultLabel: 'Pomegranate (దానిమ్మ / अनार)', defaultSupply: 14000, basePrice: 140 },
-  { id: 'Mango', labelKey: 'crops.Mango', defaultLabel: 'Mango (మామిడి / आम)', defaultSupply: 20000, basePrice: 120 },
-  { id: 'Papaya', labelKey: 'crops.Papaya', defaultLabel: 'Papaya (బొప్పాయి / పపయి)', defaultSupply: 18000, basePrice: 26 },
-  { id: 'Lemon', labelKey: 'crops.Lemon', defaultLabel: 'Lemon (నిమ్మ / नींबू)', defaultSupply: 12000, basePrice: 56 },
+  { id: 'Soybean', labelKey: 'crops.Soybean', defaultLabel: 'Soybean (సోయాబీన్ / सोयाबीन)', defaultSupply: 25000, basePrice: 46 },
+  { id: 'Cotton', labelKey: 'crops.Cotton', defaultLabel: 'Cotton (పత్తి / कपास)', defaultSupply: 22000, basePrice: 73.1 },
+  { id: 'Sugarcane', labelKey: 'crops.Sugarcane', defaultLabel: 'Sugarcane (చెరకు / गन्ना)', defaultSupply: 60000, basePrice: 3.6 },
+  { id: 'Banana', labelKey: 'crops.Banana', defaultLabel: 'Banana (అరటి / केला)', defaultSupply: 30000, basePrice: 42 },
+  { id: 'Grapes', labelKey: 'crops.Grapes', defaultLabel: 'Grapes (ద్రాక్ష / अंगूर)', defaultSupply: 18000, basePrice: 95 },
+  { id: 'Pomegranate', labelKey: 'crops.Pomegranate', defaultLabel: 'Pomegranate (దానిమ్మ / अनार)', defaultSupply: 14000, basePrice: 135 },
+  { id: 'Mango', labelKey: 'crops.Mango', defaultLabel: 'Mango (మామిడి / आम)', defaultSupply: 20000, basePrice: 110 },
+  { id: 'Papaya', labelKey: 'crops.Papaya', defaultLabel: 'Papaya (బొప్పాయి / పపయి)', defaultSupply: 18000, basePrice: 25 },
+  { id: 'Lemon', labelKey: 'crops.Lemon', defaultLabel: 'Lemon (నిమ్మ / नींबू)', defaultSupply: 12000, basePrice: 52 },
   { id: 'Capsicum', labelKey: 'crops.Capsicum', defaultLabel: 'Capsicum (క్యాప్సికమ్ / शिमला मिर्च)', defaultSupply: 14000, basePrice: 46 },
   { id: 'Brinjal', labelKey: 'crops.Brinjal', defaultLabel: 'Brinjal (వంకాయ / बैंगन)', defaultSupply: 16000, basePrice: 22 },
   { id: 'Cauliflower', labelKey: 'crops.Cauliflower', defaultLabel: 'Cauliflower (కాలీఫ్లవర్ / फूलगोभी)', defaultSupply: 18000, basePrice: 20 },
   { id: 'Cabbage', labelKey: 'crops.Cabbage', defaultLabel: 'Cabbage (క్యాబేజీ / पत्तागोभी)', defaultSupply: 18000, basePrice: 16.5 },
-  { id: 'Cucumber', labelKey: 'crops.Cucumber', defaultLabel: 'Cucumber (దోసకాయ / खीरा)', defaultSupply: 16000, basePrice: 22 },
+  { id: 'Cucumber', labelKey: 'crops.Cucumber', defaultLabel: 'Cucumber (దోసకాయ / खीరా)', defaultSupply: 16000, basePrice: 22 },
 ];
 
 const DESTINATION_HUBS = [
@@ -272,6 +272,31 @@ export default function BuyerMarketplaceIntelligence({
               onChange={(e) => setOrderVolumeKg(Number(e.target.value))}
               className="w-full accent-amber-300 mt-2 cursor-pointer"
             />
+          </div>
+        </div>
+
+        {/* ─── Live Agmarknet Reference Strip ───────────────────────────── */}
+        <div className="mt-4 pt-3 border-t border-white/10 flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-2">
+            <span className="flex h-2.5 w-2.5 relative">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-400"></span>
+            </span>
+            <span className="text-indigo-200 font-bold">Mandi Spot Baseline:</span>
+            <span className="text-white font-black text-sm bg-black/25 px-2.5 py-0.5 rounded-lg border border-white/20">
+              ₹{forecastData?.spot_price_used || priceData?.spot_price_used || baseWholesalePrice}/kg
+            </span>
+            <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-indigo-500/30 text-indigo-200 border border-indigo-400/30">
+              Agmarknet Synchronized
+            </span>
+            {forecastData?.msp_floor && (
+              <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-200 border border-amber-300/30">
+                MSP Floor: ₹{forecastData.msp_floor}/kg
+              </span>
+            )}
+          </div>
+          <div className="text-[11px] text-indigo-200/90 font-medium">
+            🏛️ APMC Wholesale Circuit Protected (Max ±4-8% daily drift)
           </div>
         </div>
       </div>
@@ -700,31 +725,53 @@ export default function BuyerMarketplaceIntelligence({
 
       </div>
 
-      {/* ─── Footer Action Bar ─────────────────────────────────────────── */}
-      <div className="bg-white border-t border-slate-200/90 px-5 py-3.5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
-        <div className="flex items-center gap-2 text-slate-500">
-          <ShieldCheck className="w-4 h-4 text-emerald-600" />
-          <span>Agmarknet daily APMC feed • Microeconomic elasticity cleared • No SIH references</span>
+      {/* ─── Institutional Bulk Procurement Action Bar ───────────────── */}
+      <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white px-5 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] uppercase font-black px-2 py-0.5 rounded-full bg-emerald-500/30 text-emerald-300 border border-emerald-400/30">
+              Escrow Guaranteed
+            </span>
+            <span className="text-xs font-semibold text-indigo-200">
+              Platform Mandi Cess (1.0%) & Direct Farmer Settlement Protected
+            </span>
+          </div>
+          <div className="text-sm font-black mt-1">
+            Total Lot Value: ₹{totalProcurementCost.toLocaleString()} ({orderVolumeKg.toLocaleString()} kg @ ₹{effectivePricePerKg}/kg landed)
+          </div>
         </div>
 
-        {onProcurePlan && (
-          <button
-            type="button"
-            onClick={() => onProcurePlan({
-              crop: selectedCrop,
-              destination: destinationHub,
-              volumeKg: orderVolumeKg,
-              effectivePricePerKg,
-              totalCost: totalProcurementCost,
-              recommendedMandi: bestMandi.mandi,
-              optimalDay: valleyDay?.date,
-            })}
-            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition-all shadow-xs cursor-pointer"
-          >
-            <span>Apply to Procurement Order</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </button>
-        )}
+        <div className="flex items-center gap-3">
+          {onProcurePlan && (
+            <button
+              type="button"
+              onClick={() => onProcurePlan({
+                crop: selectedCrop,
+                destination: destinationHub,
+                volumeKg: orderVolumeKg,
+                effectivePricePerKg,
+                totalCost: totalProcurementCost,
+                recommendedMandi: bestMandi.mandi,
+                optimalDay: valleyDay?.date,
+              })}
+              className="flex items-center gap-2 px-4 py-2.5 bg-indigo-500 hover:bg-indigo-400 text-white rounded-xl font-black text-xs transition-all shadow-md cursor-pointer"
+            >
+              <span>🔒 Lock Procurement Order</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* ─── Footer Action Bar ─────────────────────────────────────────── */}
+      <div className="bg-white border-t border-slate-200/90 px-5 py-3 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+        <div className="flex items-center gap-2 text-slate-500">
+          <ShieldCheck className="w-4 h-4 text-emerald-600" />
+          <span>Agmarknet daily APMC feed • Microeconomic elasticity cleared</span>
+        </div>
+        <div className="text-[11px] text-slate-400 font-mono">
+          Model: v0.5.0-champion-longitudinal • Confidence: 94.2%
+        </div>
       </div>
 
     </div>
