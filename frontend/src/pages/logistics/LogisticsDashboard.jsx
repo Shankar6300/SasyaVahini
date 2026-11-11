@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import {
+  Lock,
   Truck,
   RotateCw,
   Navigation,
@@ -315,6 +316,228 @@ function MainOperationsDashboard() {
 
       {activeTab === 'operations' && (
         <>
+      {/* ─── Progressive Onboarding & Statutory Compliance Audit Hub ────────── */}
+      {(() => {
+        const partnerType = profile?.partnerType || 'VEHICLE_OWNER';
+        const isOrg = partnerType === 'FLEET_OPERATOR';
+        const isDriver = partnerType === 'DRIVER' || partnerType === 'INDIVIDUAL_DRIVER';
+
+        const hasStep1 = true; // Account created at signup
+        const hasStep2 = isDriver
+          ? Boolean(profile?.drivingLicenceNo)
+          : isOrg
+          ? Boolean(profile?.businessRegNo || profile?.panNumber || profile?.businessCertUrl)
+          : Boolean(profile?.ownerName);
+        const hasStep3 = vehicles.length > 0;
+        const hasStep4 = Boolean(profile?.accountNumber && profile?.ifscCode);
+
+        const stepsCount = [hasStep1, hasStep2, hasStep3, hasStep4].filter(Boolean).length;
+        const progressPct = Math.round((stepsCount / 4) * 100);
+        const isVerified = profile?.verificationStatus === 'VERIFIED';
+        const isRejected = profile?.verificationStatus === 'REJECTED';
+
+        return (
+          <div className="space-y-4">
+            {/* Status Alert Banner */}
+            {!isVerified && (
+              <div
+                className={`p-4 rounded-xl border flex flex-col md:flex-row items-start md:items-center justify-between gap-3 shadow-sm ${
+                  isRejected
+                    ? 'bg-rose-50 border-rose-300 text-rose-950'
+                    : 'bg-amber-50 border-amber-300 text-amber-950'
+                }`}
+              >
+                <div className="flex items-start gap-3">
+                  <div
+                    className={`p-2 rounded-lg shrink-0 ${
+                      isRejected ? 'bg-rose-100 text-rose-800' : 'bg-amber-100 text-amber-800'
+                    }`}
+                  >
+                    {isRejected ? <XCircle size={22} /> : <Clock size={22} />}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-bold text-sm">
+                        {isRejected
+                          ? 'DoCA Statutory Compliance Action Required'
+                          : 'Account In Verification Mode (DoCA Regulatory Audit)'}
+                      </h3>
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                          isRejected
+                            ? 'bg-rose-200 text-rose-900'
+                            : 'bg-amber-200 text-amber-900'
+                        }`}
+                      >
+                        {isRejected ? 'REJECTED' : 'RESTRICTED ACCESS'}
+                      </span>
+                    </div>
+                    <p className="text-xs mt-1 leading-relaxed opacity-90">
+                      {isRejected
+                        ? `Compliance remarks: ${profile?.adminRemarks || profile?.rejectionReason || 'Please review your uploaded documents and resubmit for verification.'}`
+                        : 'Your account was registered successfully! You can upload your Driving Licence, RC, and Bank details below at your own pace. Farmer shipments will be unlocked as soon as DoCA officers verify your credentials.'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="shrink-0 flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('profile')}
+                    className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-white text-gray-900 border border-gray-300 hover:bg-gray-50 shadow-sm transition"
+                  >
+                    Manage Documents
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {isVerified && (
+              <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-950 flex items-center justify-between shadow-sm">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-1.5 bg-emerald-100 text-emerald-800 rounded-lg">
+                    <CheckCircle size={18} />
+                  </div>
+                  <div>
+                    <span className="font-bold text-xs block">DoCA Verified Commercial Logistics Partner</span>
+                    <span className="text-[11px] text-emerald-800">
+                      Full statutory compliance active. You are authorized to accept farmer pickups across Maharashtra corridors.
+                    </span>
+                  </div>
+                </div>
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-200 text-emerald-900">
+                  ACTIVE PARTNER
+                </span>
+              </div>
+            )}
+
+            {/* In-Portal Progressive Onboarding Checklist Card */}
+            {!isVerified && (
+              <div className="card p-5 rounded-xl bg-white border shadow-sm" style={{ borderColor: 'var(--color-border)' }}>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+                  <div>
+                    <h3 className="font-bold text-sm text-gray-900 flex items-center gap-2">
+                      <span>Onboarding & Verification Checklist</span>
+                      <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-teal-100 text-teal-800">
+                        {stepsCount} of 4 Complete ({progressPct}%)
+                      </span>
+                    </h3>
+                    <p className="text-xs text-secondary mt-0.5">
+                      Submit each requirement at your convenience. You do not need to submit everything at once.
+                    </p>
+                  </div>
+
+                  <div className="w-full sm:w-48 bg-gray-100 rounded-full h-2.5 overflow-hidden border">
+                    <div
+                      className="bg-emerald-600 h-2.5 rounded-full transition-all duration-500"
+                      style={{ width: `${progressPct}%` }}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-2">
+                  {/* Step 1 */}
+                  <div className="p-3 rounded-lg border border-emerald-200 bg-emerald-50/50 flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider">Step 1</span>
+                        <CheckCircle size={14} className="text-emerald-700" />
+                      </div>
+                      <span className="font-bold text-xs text-gray-900 block">Identity & Role</span>
+                      <span className="text-[11px] text-gray-500">Phone & OTP verified</span>
+                    </div>
+                    <span className="text-[10px] font-bold text-emerald-700 mt-2">COMPLETED</span>
+                  </div>
+
+                  {/* Step 2 */}
+                  <div className={`p-3 rounded-lg border flex flex-col justify-between ${
+                    hasStep2 ? 'border-emerald-200 bg-emerald-50/50' : 'border-amber-200 bg-amber-50/40'
+                  }`}>
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-gray-600">Step 2</span>
+                        {hasStep2 ? <CheckCircle size={14} className="text-emerald-700" /> : <Clock size={14} className="text-amber-700" />}
+                      </div>
+                      <span className="font-bold text-xs text-gray-900 block">
+                        {isDriver ? 'Commercial DL' : isOrg ? 'Business Reg (CIN)' : 'Owner Profile'}
+                      </span>
+                      <span className="text-[11px] text-gray-500">
+                        {hasStep2 ? 'Submitted for audit' : 'Upload front & back'}
+                      </span>
+                    </div>
+                    {hasStep2 ? (
+                      <span className="text-[10px] font-bold text-emerald-700 mt-2">SUBMITTED</span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('profile')}
+                        className="text-[11px] font-bold text-teal-700 hover:text-teal-900 text-left mt-2 underline"
+                      >
+                        Submit Now →
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Step 3 */}
+                  <div className={`p-3 rounded-lg border flex flex-col justify-between ${
+                    hasStep3 ? 'border-emerald-200 bg-emerald-50/50' : 'border-amber-200 bg-amber-50/40'
+                  }`}>
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-gray-600">Step 3</span>
+                        {hasStep3 ? <CheckCircle size={14} className="text-emerald-700" /> : <Clock size={14} className="text-amber-700" />}
+                      </div>
+                      <span className="font-bold text-xs text-gray-900 block">Vehicle & RC</span>
+                      <span className="text-[11px] text-gray-500">
+                        {hasStep3 ? `${vehicles.length} vehicle(s) listed` : 'Add your primary truck'}
+                      </span>
+                    </div>
+                    {hasStep3 ? (
+                      <span className="text-[10px] font-bold text-emerald-700 mt-2">LISTED</span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setIsAddVehicleOpen(true)}
+                        className="text-[11px] font-bold text-teal-700 hover:text-teal-900 text-left mt-2 underline"
+                      >
+                        + Add Vehicle →
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Step 4 */}
+                  <div className={`p-3 rounded-lg border flex flex-col justify-between ${
+                    hasStep4 ? 'border-emerald-200 bg-emerald-50/50' : 'border-amber-200 bg-amber-50/40'
+                  }`}>
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-gray-600">Step 4</span>
+                        {hasStep4 ? <CheckCircle size={14} className="text-emerald-700" /> : <Clock size={14} className="text-amber-700" />}
+                      </div>
+                      <span className="font-bold text-xs text-gray-900 block">Freight Bank Account</span>
+                      <span className="text-[11px] text-gray-500">
+                        {hasStep4 ? 'Direct DBT linked' : 'For freight payments'}
+                      </span>
+                    </div>
+                    {hasStep4 ? (
+                      <span className="text-[10px] font-bold text-emerald-700 mt-2">LINKED</span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('profile')}
+                        className="text-[11px] font-bold text-teal-700 hover:text-teal-900 text-left mt-2 underline"
+                      >
+                        Add Bank →
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })()}
+
       <div className="logistics-workflow">
         <div className="logistics-workflow-heading">
           <div>

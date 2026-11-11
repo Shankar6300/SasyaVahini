@@ -1,3 +1,18 @@
+const { AuthorizationError } = require('../utils/errors');
+
+const checkLogisticsVerified = async (user) => {
+  if (!user || user.role !== 'LOGISTICS') return;
+  if (!prisma.logisticsProfile) return;
+  const profile = await prisma.logisticsProfile.findUnique({
+    where: { userId: user.id },
+  });
+  if (profile && profile.verificationStatus !== 'VERIFIED') {
+    throw new AuthorizationError(
+      'Verification required: Your account is currently pending statutory compliance verification by DoCA. Please submit your required documents in your profile and await approval before accepting farmer shipments.'
+    );
+  }
+};
+
 /**
  * SasyaVahini — Logistics Controller
  *
@@ -25,6 +40,7 @@ const getAvailableShipments = async (req, res, next) => {
 
 const acceptShipment = async (req, res, next) => {
   try {
+    await checkLogisticsVerified(req.user);
     const result = await logisticsService.acceptShipment(req.params.id, req.body, req.user?.id);
     return sendSuccess(res, result);
   } catch (err) {
@@ -84,6 +100,7 @@ const confirmPlan = async (req, res, next) => {
 
 const dispatchPlan = async (req, res, next) => {
   try {
+    await checkLogisticsVerified(req.user);
     return sendSuccess(res, await logisticsService.dispatchPlan(req.params.quoteId));
   } catch (err) {
     next(err);
@@ -92,6 +109,7 @@ const dispatchPlan = async (req, res, next) => {
 
 const acceptOffer = async (req, res, next) => {
   try {
+    await checkLogisticsVerified(req.user);
     return sendSuccess(res, await logisticsService.acceptOffer(req.params.offerId, req.body.vehicleId));
   } catch (err) {
     next(err);
