@@ -14,7 +14,7 @@ const config = require('../config/logistics.config');
 const { haversineKm } = require('../utils/geo');
 const logger = require('../utils/logger');
 const prisma = require('../lib/prisma');
-const { AuthorizationError, NotFoundError } = require('../utils/errors');
+const { AuthorizationError, NotFoundError, ValidationError } = require('../utils/errors');
 
 // 10 Pune Agricultural Zone Seed Vehicles
 const SEED_VEHICLES = [
@@ -651,6 +651,35 @@ class VehicleService {
         verifiedAt: new Date(),
       },
     });
+
+    const fieldMap = {
+      RC: 'rcVerified',
+      INSURANCE: 'insuranceVerified',
+      FITNESS: 'fitnessVerified',
+      PERMIT: 'permitVerified',
+      PUC: 'pucVerified',
+      ROAD_TAX: 'taxVerified',
+    };
+
+    const isApproved = status === 'VERIFIED';
+    const vehicleUpdate = {};
+    if (fieldMap[updated.docType]) {
+      vehicleUpdate[fieldMap[updated.docType]] = isApproved;
+    }
+
+    if (status === 'REJECTED') {
+      vehicleUpdate.verificationStatus = 'REJECTED';
+      vehicleUpdate.rejectionReason = rejectionReason || `Document ${updated.docType} was rejected by DoCA auditor.`;
+      vehicleUpdate.adminRemarks = adminRemarks || null;
+    }
+
+    if (Object.keys(vehicleUpdate).length > 0) {
+      await prisma.vehicle.update({
+        where: { id: updated.vehicleId },
+        data: vehicleUpdate,
+      });
+    }
+
     return updated;
   }
 
@@ -705,6 +734,122 @@ class VehicleService {
   /**
    * Retrieve logged-in logistics partner's complete profile, classification, documents & fleet metrics
    */
+  /**
+   * Upload or re-upload a statutory document for a vehicle (RC, INSURANCE, FITNESS, PERMIT, PUC, ROAD_TAX).
+   * Automatically resets document and vehicle status to PENDING so DoCA compliance officer can review it.
+   */
+  async uploadVehicleDocument(vehicleId, docData, user = null) {
+    if (!prisma.vehicle) {
+      throw new NotFoundError('Vehicle database');
+    }
+
+    // 1. Verify vehicle existence and tenant ownership
+    const vehicle = await prisma.vehicle.findUnique({
+      where: { id: vehicleId },
+      include: {
+        logistics: {
+          include: { user: { select: { id: true } } },
+        },
+        documents: true,
+      },
+    });
+
+    if (!vehicle) {
+      throw new NotFoundError('Vehicle');
+    }
+
+    if (user && user.role === 'LOGISTICS') {
+      const profile = await prisma.logisticsProfile.findUnique({
+        where: { userId: user.id },
+      });
+      if (!profile || vehicle.logisticsId !== profile.id) {
+        throw new AuthorizationError('Access denied: You can only upload documents for vehicles in your own fleet.');
+      }
+    }
+
+    const { docType, docNumber, fileUrl, frontUrl, backUrl, issueDate, expiryDate } = docData;
+    if (!docType || (!fileUrl && !frontUrl)) {
+      throw new ValidationError('Document type and file are required.');
+    }
+
+    // 2. Check if a document of this docType already exists for this vehicle
+    const existingDoc = await prisma.vehicleDocument.findFirst({
+      where: {
+        vehicleId,
+        docType,
+      },
+    });
+
+    let savedDoc;
+    if (existingDoc) {
+      savedDoc = await prisma.vehicleDocument.update({
+        where: { id: existingDoc.id },
+        data: {
+          docNumber: docNumber !== undefined ? docNumber : existingDoc.docNumber,
+          fileUrl: fileUrl || frontUrl || existingDoc.fileUrl,
+          frontUrl: frontUrl || existingDoc.frontUrl,
+          backUrl: backUrl || existingDoc.backUrl,
+          issueDate: issueDate ? new Date(issueDate) : existingDoc.issueDate,
+          expiryDate: expiryDate ? new Date(expiryDate) : existingDoc.expiryDate,
+          verificationStatus: 'PENDING',
+          adminRemarks: 'Re-uploaded by transporter. Pending DoCA verification.',
+          rejectionReason: null,
+          verifiedAt: null,
+        },
+      });
+    } else {
+      savedDoc = await prisma.vehicleDocument.create({
+        data: {
+          vehicleId,
+          docType,
+          docNumber: docNumber || null,
+          fileUrl: fileUrl || frontUrl || '',
+          frontUrl: frontUrl || null,
+          backUrl: backUrl || null,
+          issueDate: issueDate ? new Date(issueDate) : null,
+          expiryDate: expiryDate ? new Date(expiryDate) : null,
+          verificationStatus: 'PENDING',
+          adminRemarks: 'Newly uploaded document. Pending DoCA verification.',
+        },
+      });
+    }
+
+    // 3. Reset vehicle status to PENDING so it re-enters DoCA audit queue
+    const fieldMap = {
+      RC: 'rcVerified',
+      INSURANCE: 'insuranceVerified',
+      FITNESS: 'fitnessVerified',
+      PERMIT: 'permitVerified',
+      PUC: 'pucVerified',
+      ROAD_TAX: 'taxVerified',
+    };
+    const updateVehicleData = {
+      verificationStatus: 'PENDING',
+      adminRemarks: 'Document re-uploaded. Re-queued for DoCA statutory audit.',
+      rejectionReason: null,
+      verifiedAt: null,
+    };
+    if (fieldMap[docType]) {
+      updateVehicleData[fieldMap[docType]] = false;
+    }
+
+    await prisma.vehicle.update({
+      where: { id: vehicleId },
+      data: updateVehicleData,
+    });
+
+    // Return updated vehicle with all documents
+    return await prisma.vehicle.findUnique({
+      where: { id: vehicleId },
+      include: {
+        documents: true,
+        logistics: {
+          include: { user: { select: { id: true, name: true, phone: true, email: true } } },
+        },
+      },
+    });
+  }
+
   async getProfile(userId) {
     if (!prisma.logisticsProfile) return null;
 
@@ -802,6 +947,20 @@ class VehicleService {
           phone: updateData.phone !== undefined ? updateData.phone : undefined,
         },
       });
+    }
+
+    // If profile was REJECTED or critical KYC documents were updated, reset to PENDING and re-queue for DoCA audit
+    if (
+      existing.verificationStatus === 'REJECTED' ||
+      updateData.businessCertUrl ||
+      updateData.licenceFrontUrl ||
+      updateData.licenceBackUrl ||
+      updateData.drivingLicenceNo
+    ) {
+      dataToUpdate.verificationStatus = 'PENDING';
+      dataToUpdate.adminRemarks = 'Credentials updated/re-submitted by partner. Pending DoCA statutory audit.';
+      dataToUpdate.rejectionReason = null;
+      dataToUpdate.verifiedAt = null;
     }
 
     return await prisma.logisticsProfile.update({

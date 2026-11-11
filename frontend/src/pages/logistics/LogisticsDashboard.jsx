@@ -18,6 +18,10 @@ import {
   Clock,
   Eye,
   ShieldCheck,
+  Upload,
+  AlertTriangle,
+  FileText,
+  Check,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import logisticsApi from '../../services/logisticsApi';
@@ -54,6 +58,15 @@ export default function LogisticsDashboard() {
   // Otherwise, render main Logistics Operations Dashboard
   return <MainOperationsDashboard />;
 }
+
+const STATUTORY_DOC_TYPES = [
+  { type: 'RC', label: 'Registration Certificate (RC)', mandatory: true, flagKey: 'rcVerified', sampleNum: 'MH14-AZ-RC-2024' },
+  { type: 'INSURANCE', label: 'Commercial Vehicle Insurance', mandatory: true, flagKey: 'insuranceVerified', sampleNum: 'NIC-COMM-991204' },
+  { type: 'FITNESS', label: 'Vehicle Fitness Certificate (Form 38)', mandatory: true, flagKey: 'fitnessVerified', sampleNum: 'MH-FIT-8891-2024' },
+  { type: 'PERMIT', label: 'Goods Carriage Route Permit (Form 47)', mandatory: true, flagKey: 'permitVerified', sampleNum: 'MH-NP-4491-2024' },
+  { type: 'PUC', label: 'Pollution Under Control (PUC)', mandatory: false, flagKey: 'pucVerified', sampleNum: 'PUC-MH-998811' },
+  { type: 'ROAD_TAX', label: 'Motor Vehicle Road Tax Token', mandatory: false, flagKey: 'taxVerified', sampleNum: 'MV-TAX-2024-25' },
+];
 
 function MainOperationsDashboard() {
   const navigate = useNavigate();
@@ -93,6 +106,87 @@ function MainOperationsDashboard() {
     rcNumber: 'MH-14-AZ-RC99',
     insuranceNumber: 'COMM-INS-44910',
   });
+
+  // Document Re-upload & Inspection State
+  const [reuploadingDoc, setReuploadingDoc] = useState(false);
+  const [activeReuploadType, setActiveReuploadType] = useState(null);
+  const [reuploadForm, setReuploadForm] = useState({
+    docType: '',
+    docNumber: '',
+    expiryDate: '',
+    fileUrl: '',
+    fileName: '',
+  });
+  const [reuploadSuccessMsg, setReuploadSuccessMsg] = useState(null);
+  const [reuploadError, setReuploadError] = useState(null);
+
+  const handleInspectVehicle = async (veh) => {
+    setInspectedVehicle(veh);
+    setActiveReuploadType(null);
+    setReuploadError(null);
+    setReuploadSuccessMsg(null);
+    try {
+      const fresh = await logisticsApi.getVehicleDetail(veh.id);
+      if (fresh) {
+        setInspectedVehicle(fresh);
+        setVehicles((prev) => prev.map((v) => (v.id === fresh.id ? fresh : v)));
+      }
+    } catch {
+      // Fallback to current veh state
+    }
+  };
+
+  const handleOpenReupload = (docType, existingDoc = null) => {
+    setActiveReuploadType(docType);
+    setReuploadError(null);
+    setReuploadSuccessMsg(null);
+    setReuploadForm({
+      docType,
+      docNumber: existingDoc?.docNumber || (docType === 'RC' ? `${inspectedVehicle?.vehicleNumber || 'MH14'}-RC` : ''),
+      expiryDate: existingDoc?.expiryDate ? existingDoc.expiryDate.slice(0, 10) : '',
+      fileUrl: existingDoc?.fileUrl || '',
+      fileName: '',
+    });
+  };
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setReuploadForm((prev) => ({
+        ...prev,
+        fileUrl: reader.result,
+        fileName: file.name,
+      }));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleReuploadSubmit = async (e) => {
+    e.preventDefault();
+    if (!inspectedVehicle || !reuploadForm.docType) return;
+    try {
+      setReuploadingDoc(true);
+      setReuploadError(null);
+      const updatedVeh = await logisticsApi.uploadVehicleDocument(inspectedVehicle.id, {
+        docType: reuploadForm.docType,
+        docNumber: reuploadForm.docNumber,
+        expiryDate: reuploadForm.expiryDate || null,
+        fileUrl: reuploadForm.fileUrl || `https://storage.sasyavahini.gov.in/docs/doc_${reuploadForm.docType.toLowerCase()}_${Date.now()}.pdf`,
+      });
+      setInspectedVehicle(updatedVeh);
+      setVehicles((prev) => prev.map((v) => (v.id === updatedVeh.id ? updatedVeh : v)));
+      setReuploadSuccessMsg(`Document (${reuploadForm.docType}) re-uploaded successfully! Re-queued for DoCA Compliance Officer audit.`);
+      setActiveReuploadType(null);
+      setTimeout(() => setReuploadSuccessMsg(null), 6000);
+    } catch (err) {
+      console.error('Failed to upload document', err);
+      setReuploadError(err.message || 'Failed to upload document');
+    } finally {
+      setReuploadingDoc(false);
+    }
+  };
 
   const handleAddVehicleSubmit = async (e) => {
     e.preventDefault();
@@ -857,7 +951,7 @@ function MainOperationsDashboard() {
                     <td className="py-2.5 text-right">
                       <button
                         type="button"
-                        onClick={() => setInspectedVehicle(v)}
+                        onClick={() => handleInspectVehicle(v)}
                         className="px-2 py-1 rounded bg-gray-100 hover:bg-gray-200 text-gray-700 text-[11px] font-semibold"
                         title="Inspect technical specifications and certificates"
                       >
@@ -1084,76 +1178,390 @@ function MainOperationsDashboard() {
         </div>
       )}
 
-      {/* ─── Modal: Inspect Vehicle Specs & Documents ─── */}
+      {/* ─── Modal: Inspect Vehicle Specs & Statutory Document Management ─── */}
       {inspectedVehicle && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto">
+          <div className="bg-white rounded-2xl max-w-2xl w-full p-6 space-y-4 shadow-2xl my-8 max-h-[90vh] overflow-y-auto">
+            {/* Header */}
             <div className="flex items-center justify-between border-b pb-3">
-              <div className="flex items-center gap-2">
-                <Truck size={20} className="text-emerald-700" />
+              <div className="flex items-center gap-2.5">
+                <div className="p-2.5 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200">
+                  <Truck size={22} />
+                </div>
                 <div>
-                  <h3 className="font-bold text-base text-gray-900">{inspectedVehicle.vehicleNumber}</h3>
-                  <p className="text-[11px] text-secondary">{inspectedVehicle.make || 'Tata'} {inspectedVehicle.model || inspectedVehicle.vehicleType}</p>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-bold text-base text-gray-900">{inspectedVehicle.vehicleNumber}</h3>
+                    {getVerificationBadge(inspectedVehicle)}
+                    {inspectedVehicle.isRefrigerated && (
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-cyan-100 text-cyan-800">
+                        ❄️ Cold-Chain
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-secondary">
+                    {inspectedVehicle.make || 'Tata'} {inspectedVehicle.model || inspectedVehicle.vehicleType} • {inspectedVehicle.category || 'SCV'} • {inspectedVehicle.fuelType || 'DIESEL'}
+                  </p>
                 </div>
               </div>
               <button
                 type="button"
-                onClick={() => setInspectedVehicle(null)}
-                className="p-1 rounded text-gray-400 hover:text-gray-700"
+                onClick={() => {
+                  setInspectedVehicle(null);
+                  setActiveReuploadType(null);
+                }}
+                className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition"
               >
                 ✕
               </button>
             </div>
 
-            <div className="p-3.5 rounded-xl bg-gray-50 border border-gray-200 grid grid-cols-2 gap-3 text-xs">
-              <div>
-                <span className="text-secondary block">Category:</span>
-                <span className="font-bold text-gray-900">{inspectedVehicle.category || 'SCV'}</span>
+            {/* Rejection Alert Banner if vehicle status is REJECTED */}
+            {inspectedVehicle.verificationStatus === 'REJECTED' && (
+              <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-900 space-y-1">
+                <div className="font-bold flex items-center gap-1.5 text-rose-800 text-sm">
+                  <AlertTriangle size={16} /> Statutory Audit Notice — Action Required
+                </div>
+                <p className="text-rose-800">
+                  This vehicle has been marked <strong>REJECTED</strong> by the DoCA Compliance Officer.
+                  {inspectedVehicle.rejectionReason && (
+                    <span className="block font-semibold mt-0.5">
+                      Reason: {inspectedVehicle.rejectionReason}
+                    </span>
+                  )}
+                  {inspectedVehicle.adminRemarks && (
+                    <span className="block text-[11px] text-rose-700 mt-0.5">
+                      Auditor Remarks: {inspectedVehicle.adminRemarks}
+                    </span>
+                  )}
+                </p>
+                <p className="text-[11px] text-rose-700">
+                  Please review the statutory document items flagged below, click <strong>Re-upload Document</strong>, and provide updated valid certificates. Once submitted, the vehicle will immediately re-enter the DoCA review queue.
+                </p>
               </div>
+            )}
+
+            {/* Success message banner */}
+            {reuploadSuccessMsg && (
+              <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-300 text-xs text-emerald-900 flex items-center gap-2">
+                <CheckCircle size={16} className="text-emerald-700 shrink-0" />
+                <span className="font-medium">{reuploadSuccessMsg}</span>
+              </div>
+            )}
+
+            {/* Specs Grid */}
+            <div className="p-3 rounded-xl bg-gray-50 border border-gray-200 grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
               <div>
-                <span className="text-secondary block">Legal Payload:</span>
+                <span className="text-secondary block text-[10px] uppercase font-semibold">Legal Payload</span>
                 <span className="font-bold text-gray-900">{inspectedVehicle.capacityKg} kg</span>
               </div>
               <div>
-                <span className="text-secondary block">Mileage (Physics Model):</span>
+                <span className="text-secondary block text-[10px] uppercase font-semibold">Mileage</span>
                 <span className="font-bold text-gray-900">{inspectedVehicle.mileageKmpl || 14.5} km/L</span>
               </div>
               <div>
-                <span className="text-secondary block">Fuel Type:</span>
-                <span className="font-bold text-gray-900">{inspectedVehicle.fuelType || 'DIESEL'}</span>
+                <span className="text-secondary block text-[10px] uppercase font-semibold">Cargo Dimensions</span>
+                <span className="font-bold text-gray-900 truncate block">{inspectedVehicle.dimensions || '8.8ft x 5.3ft x 5.0ft'}</span>
               </div>
               <div>
-                <span className="text-secondary block">Cargo Dimensions:</span>
-                <span className="font-bold text-gray-900">{inspectedVehicle.dimensions || '8.8ft x 5.3ft x 5.0ft'}</span>
+                <span className="text-secondary block text-[10px] uppercase font-semibold">Home Depot</span>
+                <span className="font-bold text-gray-900 truncate block">{inspectedVehicle.baseHub || inspectedVehicle.hubName || 'Pune Rural Depot'}</span>
               </div>
-              <div>
-                <span className="text-secondary block">Refrigeration:</span>
-                <span className="font-bold text-gray-900">{inspectedVehicle.isRefrigerated ? 'Yes (Cold-Chain)' : 'No (Ambient)'}</span>
-              </div>
-              <div>
-                <span className="text-secondary block">Driver Assigned:</span>
+              <div className="col-span-2">
+                <span className="text-secondary block text-[10px] uppercase font-semibold">Driver</span>
                 <span className="font-bold text-gray-900">{inspectedVehicle.driverName} ({inspectedVehicle.driverPhone})</span>
               </div>
-              <div>
-                <span className="text-secondary block">Home Hub:</span>
-                <span className="font-bold text-gray-900">{inspectedVehicle.baseHub || inspectedVehicle.hubName || 'Pune Rural Depot'}</span>
+              <div className="col-span-2">
+                <span className="text-secondary block text-[10px] uppercase font-semibold">RTO Compliance</span>
+                <span className="font-bold text-emerald-800">
+                  {inspectedVehicle.rcVerified && inspectedVehicle.insuranceVerified ? 'Fully Compliant ✓' : 'Statutory Review Incomplete ⏳'}
+                </span>
               </div>
             </div>
 
-            <div className="p-3 rounded-lg bg-teal-50 border border-teal-200 text-xs text-teal-900 space-y-1">
-              <div className="font-bold flex items-center gap-1.5 text-teal-800">
-                <ShieldCheck size={15} /> Statutory Verification Status
+            {/* Statutory Documents Section Header */}
+            <div className="pt-2">
+              <div className="flex items-center justify-between mb-2">
+                <div>
+                  <h4 className="font-bold text-sm text-gray-900 flex items-center gap-1.5">
+                    <ShieldCheck size={16} className="text-teal-700" />
+                    Statutory Documents & DoCA Compliance Vault
+                  </h4>
+                  <p className="text-[11px] text-secondary">
+                    Official RTO & Central Motor Vehicles Rules compliance. Re-upload rejected or expired certificates to re-queue for verification.
+                  </p>
+                </div>
               </div>
-              <div>• Status: <strong>{inspectedVehicle.verificationStatus || 'VERIFIED'}</strong></div>
-              <div>• RC Certificate: {inspectedVehicle.rcVerified ? 'Verified ✓' : 'Under Review ⏳'}</div>
-              <div>• Insurance: {inspectedVehicle.insuranceVerified ? 'Verified ✓' : 'Under Review ⏳'}</div>
-              {inspectedVehicle.adminRemarks && <div>• Remarks: {inspectedVehicle.adminRemarks}</div>}
+
+              {/* Documents List */}
+              <div className="space-y-2.5">
+                {STATUTORY_DOC_TYPES.map((docDef) => {
+                  const existingDoc = inspectedVehicle.documents?.find((d) => d.docType === docDef.type);
+                  const isFlagVerified = inspectedVehicle[docDef.flagKey];
+                  const docStatus = existingDoc?.verificationStatus || (isFlagVerified ? 'VERIFIED' : 'NOT_UPLOADED');
+                  const isRejected = docStatus === 'REJECTED';
+                  const isPending = docStatus === 'PENDING';
+                  const isVerified = docStatus === 'VERIFIED';
+                  const isMissing = docStatus === 'NOT_UPLOADED';
+                  const isEditingThis = activeReuploadType === docDef.type;
+
+                  return (
+                    <div
+                      key={docDef.type}
+                      className={`p-3 rounded-xl border transition-all ${
+                        isRejected
+                          ? 'bg-rose-50/50 border-rose-300'
+                          : isPending
+                          ? 'bg-amber-50/40 border-amber-300'
+                          : isVerified
+                          ? 'bg-emerald-50/30 border-emerald-200'
+                          : 'bg-gray-50/70 border-gray-200'
+                      }`}
+                    >
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div className="flex items-start gap-2.5">
+                          <div className={`p-2 rounded-lg shrink-0 mt-0.5 ${
+                            isRejected
+                              ? 'bg-rose-100 text-rose-800'
+                              : isPending
+                              ? 'bg-amber-100 text-amber-800'
+                              : isVerified
+                              ? 'bg-emerald-100 text-emerald-800'
+                              : 'bg-gray-100 text-gray-600'
+                          }`}>
+                            <FileText size={16} />
+                          </div>
+                          <div>
+                            <div className="flex flex-wrap items-center gap-1.5">
+                              <span className="font-bold text-xs text-gray-900">{docDef.label}</span>
+                              <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-gray-200 text-gray-700">
+                                {docDef.type}
+                              </span>
+                              {docDef.mandatory && (
+                                <span className="text-[9px] font-bold text-rose-600 uppercase">Mandatory</span>
+                              )}
+                            </div>
+                            <div className="text-[11px] text-secondary flex flex-wrap items-center gap-2 mt-0.5">
+                              <span>Doc No: <strong className="font-mono text-gray-800">{existingDoc?.docNumber || '—'}</strong></span>
+                              {existingDoc?.expiryDate && (
+                                <span>• Valid Till: <strong>{new Date(existingDoc.expiryDate).toLocaleDateString()}</strong></span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Status badge & action buttons */}
+                        <div className="flex items-center gap-2 self-end sm:self-center">
+                          {isVerified && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                              <CheckCircle size={10} /> VERIFIED
+                            </span>
+                          )}
+                          {isPending && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
+                              <Clock size={10} /> UNDER AUDIT
+                            </span>
+                          )}
+                          {isRejected && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-300 animate-pulse">
+                              <XCircle size={10} /> REJECTED
+                            </span>
+                          )}
+                          {isMissing && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-600 border border-gray-300">
+                              NOT UPLOADED
+                            </span>
+                          )}
+
+                          {existingDoc?.fileUrl && (
+                            <a
+                              href={existingDoc.fileUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="px-2 py-1 rounded bg-white hover:bg-gray-100 border text-[11px] font-semibold text-gray-700 inline-flex items-center gap-1 shadow-sm"
+                              title="View current uploaded certificate"
+                            >
+                              <ExternalLink size={11} /> View
+                            </a>
+                          )}
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (isEditingThis) {
+                                setActiveReuploadType(null);
+                              } else {
+                                handleOpenReupload(docDef.type, existingDoc);
+                              }
+                            }}
+                            className={`px-2.5 py-1 rounded text-[11px] font-bold inline-flex items-center gap-1 shadow-sm transition ${
+                              isRejected
+                                ? 'bg-rose-700 hover:bg-rose-800 text-white'
+                                : isMissing
+                                ? 'bg-emerald-700 hover:bg-emerald-800 text-white'
+                                : 'bg-gray-100 hover:bg-gray-200 text-gray-800 border border-gray-300'
+                            }`}
+                          >
+                            {isEditingThis ? (
+                              'Cancel'
+                            ) : isRejected ? (
+                              <>
+                                <Upload size={11} />
+                                Re-upload
+                              </>
+                            ) : isMissing ? (
+                              <>
+                                <Plus size={11} />
+                                Upload
+                              </>
+                            ) : (
+                              <>
+                                <RotateCw size={11} />
+                                Replace
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Auditor Remarks / Rejection details */}
+                      {(existingDoc?.rejectionReason || existingDoc?.adminRemarks) && (
+                        <div className="mt-2 p-2 rounded-lg bg-rose-100/70 border border-rose-200 text-[11px] text-rose-900 flex items-start gap-1.5">
+                          <AlertTriangle size={13} className="text-rose-700 shrink-0 mt-0.5" />
+                          <div>
+                            <strong>DoCA Compliance Auditor Remarks: </strong>
+                            <span>{existingDoc.rejectionReason || existingDoc.adminRemarks}</span>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Inline Re-upload Form Drawer */}
+                      {isEditingThis && (
+                        <form onSubmit={handleReuploadSubmit} className="mt-3 p-3.5 rounded-xl bg-white border border-teal-300 shadow-md space-y-3">
+                          <div className="flex items-center justify-between border-b pb-2">
+                            <span className="font-bold text-xs text-teal-950 flex items-center gap-1">
+                              <Upload size={13} className="text-teal-700" />
+                              {isRejected ? 'Re-upload / Replace Document' : isMissing ? 'Upload Document' : 'Update Existing Document'}: {docDef.label}
+                            </span>
+                            <span className="text-[10px] text-secondary">PDF, PNG, JPG (Max 5MB)</span>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                            <div>
+                              <label className="text-[11px] font-semibold text-gray-700 block mb-0.5">
+                                Document / Certificate Number *
+                              </label>
+                              <input
+                                type="text"
+                                required
+                                placeholder={`e.g. ${docDef.sampleNum}`}
+                                value={reuploadForm.docNumber}
+                                onChange={(e) => setReuploadForm((f) => ({ ...f, docNumber: e.target.value }))}
+                                className="form-input text-xs w-full py-1.5 px-2.5 rounded-lg border-gray-300"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[11px] font-semibold text-gray-700 block mb-0.5">
+                                Expiry Date (Optional)
+                              </label>
+                              <input
+                                type="date"
+                                value={reuploadForm.expiryDate}
+                                onChange={(e) => setReuploadForm((f) => ({ ...f, expiryDate: e.target.value }))}
+                                className="form-input text-xs w-full py-1.5 px-2.5 rounded-lg border-gray-300"
+                              />
+                            </div>
+                          </div>
+
+                          {/* File Picker & URL */}
+                          <div className="space-y-1.5">
+                            <label className="text-[11px] font-semibold text-gray-700 block">
+                              Select Document File / Upload
+                            </label>
+                            <div className="flex flex-col sm:flex-row gap-2 items-start sm:items-center">
+                              <input
+                                type="file"
+                                accept=".pdf,image/png,image/jpeg"
+                                onChange={handleFileUpload}
+                                className="text-xs file:mr-2 file:py-1 file:px-2.5 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-teal-50 file:text-teal-800 hover:file:bg-teal-100"
+                              />
+                              <span className="text-[10px] text-gray-400">or enter link:</span>
+                              <input
+                                type="url"
+                                placeholder="https://storage.sasyavahini.gov.in/docs/cert.pdf"
+                                value={reuploadForm.fileUrl && !reuploadForm.fileUrl.startsWith('data:') ? reuploadForm.fileUrl : ''}
+                                onChange={(e) => setReuploadForm((f) => ({ ...f, fileUrl: e.target.value }))}
+                                className="form-input text-xs flex-1 py-1.5 px-2.5 rounded-lg border-gray-300"
+                              />
+                            </div>
+                            {reuploadForm.fileName && (
+                              <p className="text-[10px] text-teal-700 font-semibold flex items-center gap-1">
+                                <Check size={11} /> Selected: {reuploadForm.fileName}
+                              </p>
+                            )}
+                          </div>
+
+                          {reuploadError && (
+                            <div className="p-2 rounded bg-rose-50 border border-rose-200 text-[11px] text-rose-800">
+                              {reuploadError}
+                            </div>
+                          )}
+
+                          <div className="pt-2 flex flex-wrap items-center justify-between gap-2 border-t">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setReuploadForm((f) => ({
+                                  ...f,
+                                  docNumber: f.docNumber || docDef.sampleNum,
+                                  fileUrl: `https://storage.sasyavahini.gov.in/docs/sample_${docDef.type.toLowerCase()}.pdf`,
+                                }));
+                              }}
+                              className="text-[10px] font-semibold text-teal-800 hover:underline"
+                            >
+                              + Use Gov Vault Sample Document
+                            </button>
+
+                            <div className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => setActiveReuploadType(null)}
+                                className="btn btn-secondary text-xs py-1 px-3"
+                              >
+                                Cancel
+                              </button>
+                              <button
+                                type="submit"
+                                disabled={reuploadingDoc}
+                                className="btn btn-primary text-xs py-1 px-3.5 flex items-center gap-1"
+                              >
+                                {reuploadingDoc ? (
+                                  <>
+                                    <RotateCw size={12} className="animate-spin" /> Submitting...
+                                  </>
+                                ) : (
+                                  <>
+                                    <Upload size={12} /> Submit to DoCA Verification Queue
+                                  </>
+                                )}
+                              </button>
+                            </div>
+                          </div>
+                        </form>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
 
-            <div className="pt-2 flex justify-end">
+            {/* Footer */}
+            <div className="pt-3 border-t flex justify-end">
               <button
                 type="button"
-                onClick={() => setInspectedVehicle(null)}
+                onClick={() => {
+                  setInspectedVehicle(null);
+                  setActiveReuploadType(null);
+                }}
                 className="btn btn-secondary text-xs"
               >
                 Close

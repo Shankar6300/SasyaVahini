@@ -218,6 +218,19 @@ const streamTracking = async (req, res, next) => {
 };
 
 
+const uploadVehicleDocument = async (req, res, next) => {
+  try {
+    const updatedVehicle = await vehicleService.uploadVehicleDocument(
+      req.params.id,
+      req.body,
+      req.user
+    );
+    return sendSuccess(res, updatedVehicle);
+  } catch (err) {
+    next(err);
+  }
+};
+
 const createVehicle = async (req, res, next) => {
   try {
     let logisticsId = req.body.logisticsId;
@@ -345,6 +358,7 @@ module.exports = {
   getShipmentById,
   listVehicles,
   createVehicle,
+  uploadVehicleDocument,
   getVehicleDetail,
   getAdminVerificationQueue,
   verifyVehicle,

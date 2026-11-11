@@ -450,3 +450,79 @@ To eliminate user churn and support real-world commercial goods vehicle operator
      - Checks `profile.verificationStatus === 'VERIFIED'`.
      - Non-verified operators receive `HTTP 403 Forbidden` (`AuthorizationError: Verification required: Your account is currently pending statutory compliance verification by DoCA. Please submit your required documents in your profile and await approval before accepting farmer shipments.`).
    - **UI Gating**: "Accept Shipment" button is replaced with a locked badge `🔒 Locked (Verification Required)` to provide clear, actionable feedback to the driver.
+
+---
+
+## 16. Statutory Document Re-Upload, Replacement Mechanism & DoCA Compliance Queue Integration
+
+### Motivation & Real-World Operations
+Transport operators frequently experience statutory rejections due to expired certificates, blurred scans, illegible policy numbers, or updated RTO Form 23/38 documents. If an operator cannot replace or re-upload failed documents within the portal, their account and vehicles remain indefinitely locked.
+
+This enhancement introduces a dedicated **Statutory Document Re-Upload & Replacement Architecture** for both commercial fleet vehicles and partner KYC profiles, seamlessly wiring all re-submissions back into the **Department of Consumer Affairs (DoCA) Compliance Audit Queue**.
+
+---
+
+### Core Architectural Features
+
+#### 1. Vehicle Statutory Document Audit Table & In-Portal Re-Upload
+- **Statutory Document Suite Covered**:
+  1. `RC` — Registration Certificate (Form 23)
+  2. `INSURANCE` — Commercial Comprehensive / Third-Party Policy
+  3. `FITNESS` — Mandatory Vehicle Fitness Certificate (Form 38)
+  4. `PERMIT` — Goods Carriage Route Permit (Form 47)
+  5. `PUC` — Pollution Under Control Certificate (Form 59)
+  6. `ROAD_TAX` — State Motor Vehicle Tax Paid Token
+- **State Machine & Status Badges**:
+  - `VERIFIED` (Green): Approved by DoCA Compliance Officer.
+  - `PENDING` / `UNDER AUDIT` (Amber): Currently queued for statutory review.
+  - `REJECTED` (Red): Document failed compliance audit; displays full auditor remarks.
+  - `NOT UPLOADED` (Slate): Document missing; provides quick upload prompt.
+- **Dynamic Action Buttons**:
+  - **Re-upload Document** (Prominent Red/Rose): Rendered immediately when a document is rejected.
+  - **+ Upload Document** (Emerald): Rendered for un-uploaded mandatory or optional documents.
+  - **Replace / Update** (Gray/Subtle): Rendered for verified or pending documents when renewing before expiry.
+- **Auditor Remarks Callout**:
+  - When an auditor rejects a certificate (e.g. *"Policy expired on 2024-03-01"* or *"Photo unreadable"*), the remarks appear prominently in a red alert banner directly below that document item.
+- **Inline Upload Drawer**:
+  - Document / Certificate Number input.
+  - Expiry Date picker.
+  - Standalone File Picker (converts files to Base64 Data URLs with live filename preview) + direct URL input.
+  - Quick "+ Use Gov Vault Sample Document" helper for developer and testing flows.
+  - Immediate state reflection without page reload.
+
+#### 2. Driver & Enterprise KYC Re-Upload in Profile View
+- **Organization View**:
+  - Certificate of Incorporation / Registration PDF (`businessCertUrl`) with direct `Re-upload` button.
+- **Driver View**:
+  - Driving Licence Front Scan (`licenceFrontUrl`) with live `Re-upload` button.
+  - Driving Licence Back Scan (`licenceBackUrl`) with live `Re-upload` button.
+  - Commercial DL number and validity expiry date management.
+- **Profile Edit Drawer**:
+  - Built-in file pickers for all statutory KYC attachments.
+  - Re-submitting credentials resets `verificationStatus` to `PENDING` and re-queues the partner.
+
+#### 3. Backend State Transition & DoCA Audit Queue Synchronization
+- **Endpoint**: `POST /api/logistics/vehicles/:id/documents`
+  - Validates document payload and verifies tenant ownership (`AuthorizationError` if attempting to modify another operator's vehicle).
+  - Updates existing `VehicleDocument` or creates a new record.
+  - Resets `verificationStatus: 'PENDING'`, `adminRemarks: 'Document re-uploaded. Re-queued for DoCA statutory audit.'`, `rejectionReason: null`, and `verifiedAt: null`.
+  - Resets the corresponding vehicle boolean flag (`rcVerified: false`, `insuranceVerified: false`, etc.) and the parent vehicle's `verificationStatus: 'PENDING'`.
+- **Endpoint**: `PUT /api/logistics/profile`
+  - If a rejected profile re-submits or updates critical KYC documents (`drivingLicenceNo`, `licenceFrontUrl`, `licenceBackUrl`, `businessCertUrl`), its status automatically resets to `PENDING`.
+- **DoCA Compliance Queue**:
+  - `GET /api/logistics/admin/verification-queue` continuously indexes all `verificationStatus === 'PENDING'` vehicles and profiles.
+  - Re-uploaded vehicles immediately appear in `pendingVehicles`.
+  - Re-uploaded partner profiles immediately appear in `pendingPartners`.
+
+---
+
+### Verification Test Suite (`test_reupload_workflow.js`)
+Passed 7/7 test cases across the full end-to-end lifecycle:
+1. Transporter registration and JWT authentication.
+2. Vehicle registration with initial `RC` and `INSURANCE` documents.
+3. DoCA Compliance Officer login and statutory audit.
+4. Admin rejection of vehicle registration document (`PATCH /api/logistics/admin/documents/:id/verify`) with custom remarks.
+5. Transporter re-upload of renewed document (`POST /api/logistics/vehicles/:id/documents`), verifying vehicle and document reset to `PENDING`.
+6. Verified immediate presence of vehicle in DoCA Admin Verification Queue (`GET /api/logistics/admin/verification-queue`).
+7. Partner KYC rejection, re-submission via profile update, and re-entry into DoCA pending queue.
+

@@ -19,6 +19,9 @@ import {
   Save,
   X,
   BadgeCheck,
+  Upload,
+  AlertTriangle,
+  Check,
 } from 'lucide-react';
 import logisticsApi from '../../services/logisticsApi';
 
@@ -67,6 +70,16 @@ export default function LogisticsProfileView({ profile, user, vehicles = [], onP
   const handleEditChange = (e) => {
     const { name, value } = e.target;
     setEditForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleFileChange = (field, e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setEditForm((prev) => ({ ...prev, [field]: reader.result }));
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleSaveProfile = async (e) => {
@@ -392,6 +405,17 @@ export default function LogisticsProfileView({ profile, user, vehicles = [], onP
             </span>
           </div>
 
+          {profile?.verificationStatus === 'REJECTED' && (
+            <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-900 flex items-start gap-2">
+              <AlertTriangle size={15} className="text-rose-700 shrink-0 mt-0.5" />
+              <div>
+                <strong>DoCA Rejection Notice: </strong>
+                <span>{profile.adminRemarks || profile.rejectionReason || 'Credentials rejected by compliance auditor.'}</span>
+                <span className="block mt-0.5 font-medium text-rose-800">Please re-upload your document certificates below.</span>
+              </div>
+            </div>
+          )}
+
           <div className="space-y-3">
             {isOrganization && (
               <div className="p-3 rounded-xl border border-gray-200 bg-gray-50 flex items-center justify-between">
@@ -404,14 +428,23 @@ export default function LogisticsProfileView({ profile, user, vehicles = [], onP
                     <span className="text-[10px] text-secondary font-mono">{profile?.businessRegNo || 'CIN-MH-2023'} • PDF Upload</span>
                   </div>
                 </div>
-                <a
-                  href={profile?.businessCertUrl || 'https://storage.sasyavahini.gov.in/docs/sample_cin.pdf'}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="px-2.5 py-1 rounded bg-white hover:bg-gray-100 border text-xs font-semibold text-gray-700 flex items-center gap-1 shadow-sm"
-                >
-                  <ExternalLink size={12} /> View
-                </a>
+                <div className="flex items-center gap-2">
+                  <a
+                    href={profile?.businessCertUrl || 'https://storage.sasyavahini.gov.in/docs/sample_cin.pdf'}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="px-2.5 py-1 rounded bg-white hover:bg-gray-100 border text-xs font-semibold text-gray-700 flex items-center gap-1 shadow-sm"
+                  >
+                    <ExternalLink size={12} /> View
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => setIsEditOpen(true)}
+                    className="px-2.5 py-1 rounded bg-purple-700 hover:bg-purple-800 text-white text-xs font-semibold flex items-center gap-1 shadow-sm"
+                  >
+                    <Upload size={12} /> Re-upload
+                  </button>
+                </div>
               </div>
             )}
 
@@ -427,14 +460,23 @@ export default function LogisticsProfileView({ profile, user, vehicles = [], onP
                       <span className="text-[10px] text-secondary font-mono">{profile?.drivingLicenceNo || 'MH-12-DL'} • Scanned Copy</span>
                     </div>
                   </div>
-                  <a
-                    href={profile?.licenceFrontUrl || 'https://storage.sasyavahini.gov.in/docs/sample_dl_front.jpg'}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="px-2.5 py-1 rounded bg-white hover:bg-gray-100 border text-xs font-semibold text-gray-700 flex items-center gap-1 shadow-sm"
-                  >
-                    <ExternalLink size={12} /> View
-                  </a>
+                  <div className="flex items-center gap-2">
+                    <a
+                      href={profile?.licenceFrontUrl || 'https://storage.sasyavahini.gov.in/docs/sample_dl_front.jpg'}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="px-2.5 py-1 rounded bg-white hover:bg-gray-100 border text-xs font-semibold text-gray-700 flex items-center gap-1 shadow-sm"
+                    >
+                      <ExternalLink size={12} /> View
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => setIsEditOpen(true)}
+                      className="px-2.5 py-1 rounded bg-sky-700 hover:bg-sky-800 text-white text-xs font-semibold flex items-center gap-1 shadow-sm"
+                    >
+                      <Upload size={12} /> Re-upload
+                    </button>
+                  </div>
                 </div>
 
                 <div className="p-3 rounded-xl border border-gray-200 bg-gray-50 flex items-center justify-between">
@@ -447,14 +489,23 @@ export default function LogisticsProfileView({ profile, user, vehicles = [], onP
                       <span className="text-[10px] text-secondary font-mono">Endorsements & Validity</span>
                     </div>
                   </div>
-                  <a
-                    href={profile?.licenceBackUrl || 'https://storage.sasyavahini.gov.in/docs/sample_dl_back.jpg'}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="px-2.5 py-1 rounded bg-white hover:bg-gray-100 border text-xs font-semibold text-gray-700 flex items-center gap-1 shadow-sm"
-                  >
-                    <ExternalLink size={12} /> View
-                  </a>
+                  <div className="flex items-center gap-2">
+                    <a
+                      href={profile?.licenceBackUrl || 'https://storage.sasyavahini.gov.in/docs/sample_dl_back.jpg'}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="px-2.5 py-1 rounded bg-white hover:bg-gray-100 border text-xs font-semibold text-gray-700 flex items-center gap-1 shadow-sm"
+                    >
+                      <ExternalLink size={12} /> View
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => setIsEditOpen(true)}
+                      className="px-2.5 py-1 rounded bg-sky-700 hover:bg-sky-800 text-white text-xs font-semibold flex items-center gap-1 shadow-sm"
+                    >
+                      <Upload size={12} /> Re-upload
+                    </button>
+                  </div>
                 </div>
               </>
             )}
@@ -530,6 +581,15 @@ export default function LogisticsProfileView({ profile, user, vehicles = [], onP
             )}
 
             <form onSubmit={handleSaveProfile} className="space-y-4 text-xs">
+              {profile?.verificationStatus === 'REJECTED' && (
+                <div className="p-3 rounded-xl bg-rose-50 border border-rose-300 text-xs text-rose-900 flex items-start gap-2">
+                  <AlertTriangle size={15} className="text-rose-700 shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-bold">Re-submitting Rejected Credentials:</span>
+                    <p className="mt-0.5">Updating these documents will reset your status to <strong>PENDING</strong> and re-queue your profile into the DoCA Statutory Compliance review queue.</p>
+                  </div>
+                </div>
+              )}
               {isOrganization && (
                 <div className="space-y-3 p-3.5 rounded-xl bg-purple-50/50 border border-purple-200">
                   <h4 className="font-bold text-purple-950 uppercase tracking-wider text-[11px]">Organization Credentials</h4>
@@ -575,6 +635,116 @@ export default function LogisticsProfileView({ profile, user, vehicles = [], onP
                         className="w-full px-3 py-2 border rounded-lg font-mono uppercase"
                       />
                     </div>
+                  </div>
+
+                  <div className="pt-2 border-t border-purple-200/60 space-y-1.5">
+                    <label className="font-semibold block">Business Registration Certificate (CIN / LLPIN Document)</label>
+                    <div className="flex flex-col sm:flex-row gap-2 items-start sm:items-center">
+                      <input
+                        type="file"
+                        accept=".pdf,image/png,image/jpeg"
+                        onChange={(e) => handleFileChange('businessCertUrl', e)}
+                        className="text-xs file:mr-2 file:py-1 file:px-2.5 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-purple-100 file:text-purple-800"
+                      />
+                      <input
+                        type="url"
+                        name="businessCertUrl"
+                        placeholder="or paste PDF / Document URL"
+                        value={editForm.businessCertUrl && !editForm.businessCertUrl.startsWith('data:') ? editForm.businessCertUrl : ''}
+                        onChange={handleEditChange}
+                        className="w-full px-3 py-1.5 border rounded-lg text-xs"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setEditForm((f) => ({ ...f, businessCertUrl: 'https://storage.sasyavahini.gov.in/docs/sample_cin.pdf' }))}
+                      className="text-[10px] text-purple-700 font-semibold hover:underline"
+                    >
+                      + Use Sample Certificate
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {isDriver && (
+                <div className="space-y-3 p-3.5 rounded-xl bg-sky-50/50 border border-sky-200">
+                  <h4 className="font-bold text-sky-950 uppercase tracking-wider text-[11px]">Commercial Driving Licence & KYC</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="font-semibold block mb-1">Commercial DL Number *</label>
+                      <input
+                        type="text"
+                        name="drivingLicenceNo"
+                        value={editForm.drivingLicenceNo}
+                        onChange={handleEditChange}
+                        placeholder="e.g. MH-12-20170098121"
+                        className="w-full px-3 py-2 border rounded-lg font-mono uppercase"
+                      />
+                    </div>
+                    <div>
+                      <label className="font-semibold block mb-1">Licence Expiry Date</label>
+                      <input
+                        type="date"
+                        name="licenceExpiry"
+                        value={editForm.licenceExpiry ? editForm.licenceExpiry.slice(0, 10) : ''}
+                        onChange={handleEditChange}
+                        className="w-full px-3 py-2 border rounded-lg"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="pt-2 border-t border-sky-200/60 space-y-2">
+                    <div>
+                      <label className="font-semibold block mb-1">Driving Licence (Front Photo)</label>
+                      <div className="flex flex-col sm:flex-row gap-2 items-start sm:items-center">
+                        <input
+                          type="file"
+                          accept=".pdf,image/png,image/jpeg"
+                          onChange={(e) => handleFileChange('licenceFrontUrl', e)}
+                          className="text-xs file:mr-2 file:py-1 file:px-2.5 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-sky-100 file:text-sky-800"
+                        />
+                        <input
+                          type="url"
+                          name="licenceFrontUrl"
+                          placeholder="or paste image URL"
+                          value={editForm.licenceFrontUrl && !editForm.licenceFrontUrl.startsWith('data:') ? editForm.licenceFrontUrl : ''}
+                          onChange={handleEditChange}
+                          className="w-full px-3 py-1.5 border rounded-lg text-xs"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="font-semibold block mb-1">Driving Licence (Back Photo)</label>
+                      <div className="flex flex-col sm:flex-row gap-2 items-start sm:items-center">
+                        <input
+                          type="file"
+                          accept=".pdf,image/png,image/jpeg"
+                          onChange={(e) => handleFileChange('licenceBackUrl', e)}
+                          className="text-xs file:mr-2 file:py-1 file:px-2.5 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-sky-100 file:text-sky-800"
+                        />
+                        <input
+                          type="url"
+                          name="licenceBackUrl"
+                          placeholder="or paste image URL"
+                          value={editForm.licenceBackUrl && !editForm.licenceBackUrl.startsWith('data:') ? editForm.licenceBackUrl : ''}
+                          onChange={handleEditChange}
+                          className="w-full px-3 py-1.5 border rounded-lg text-xs"
+                        />
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setEditForm((f) => ({
+                        ...f,
+                        licenceFrontUrl: 'https://storage.sasyavahini.gov.in/docs/sample_dl_front.jpg',
+                        licenceBackUrl: 'https://storage.sasyavahini.gov.in/docs/sample_dl_back.jpg',
+                      }))}
+                      className="text-[10px] text-sky-700 font-semibold hover:underline"
+                    >
+                      + Use Sample Driver Licence Documents
+                    </button>
                   </div>
                 </div>
               )}

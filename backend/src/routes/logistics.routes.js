@@ -138,6 +138,14 @@ router.post(
   controller.createVehicle,
 );
 
+// POST /api/logistics/vehicles/:id/documents (Upload or replace statutory vehicle document)
+router.post(
+  '/vehicles/:id/documents',
+  authenticate,
+  requireRole(['LOGISTICS', 'ADMIN']),
+  controller.uploadVehicleDocument,
+);
+
 // GET /api/logistics/vehicles/:id (Vehicle specs & verification docs)
 router.get(
   '/vehicles/:id',

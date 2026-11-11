@@ -267,6 +267,12 @@ export const logisticsApi = {
     return res.data.data;
   },
 
+  // Upload or replace a statutory vehicle document (RC, Insurance, Fitness, Permit, PUC, Road Tax)
+  uploadVehicleDocument: async (vehicleId, documentPayload) => {
+    const res = await api.post(`/logistics/vehicles/${vehicleId}/documents`, documentPayload);
+    return res.data.data;
+  },
+
   // Detailed vehicle specifications & documents
   getVehicleDetail: async (vehicleId) => {
     const res = await api.get(`/logistics/vehicles/${vehicleId}`);
