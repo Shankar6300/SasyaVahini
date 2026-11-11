@@ -10,6 +10,7 @@
 
 const { Router } = require('express');
 const { authenticate, requireRole } = require('../middleware/auth');
+const { requireVerifiedLogistics } = require('../middleware/requireVerifiedLogistics');
 const { validate } = require('../middleware/validate');
 const {
   planOrderSchema,
@@ -39,6 +40,7 @@ router.post(
   '/shipments/:id/accept',
   authenticate,
   requireRole(['LOGISTICS', 'ADMIN']),
+  requireVerifiedLogistics,
   validate(acceptShipmentSchema),
   controller.acceptShipment,
 );
@@ -48,6 +50,7 @@ router.post(
   '/shipments/:id/milestones',
   authenticate,
   requireRole(['LOGISTICS', 'ADMIN']),
+  requireVerifiedLogistics,
   validate(updateMilestoneSchema),
   controller.updateMilestone,
 );
@@ -88,6 +91,7 @@ router.post(
   '/plans/:quoteId/dispatch',
   authenticate,
   requireRole(['LOGISTICS', 'ADMIN']),
+  requireVerifiedLogistics,
   controller.dispatchPlan,
 );
 
@@ -95,6 +99,7 @@ router.post(
   '/offers/:offerId/accept',
   authenticate,
   requireRole(['LOGISTICS', 'ADMIN']),
+  requireVerifiedLogistics,
   controller.acceptOffer,
 );
 
@@ -222,6 +227,7 @@ router.post(
   '/vehicles/:id/location',
   authenticate,
   requireRole(['LOGISTICS', 'ADMIN']),
+  requireVerifiedLogistics,
   validate(updateLocationSchema),
   controller.updateVehicleLocation,
 );

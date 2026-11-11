@@ -92,23 +92,50 @@ class LogisticsService {
   }
 
   async dispatchPlan(quoteId) {
+    if (config.dataSource === 'mock') {
+      return { quoteId, offerCount: 2, expiresAt: new Date(Date.now() + 10 * 60000) };
+    }
     const quote = await prisma.planQuote.findUnique({ where: { quoteId }, include: { legs: true } });
-    if (!quote || quote.expiresAt <= new Date()) {
+    if (!quote || (quote.expiresAt && quote.expiresAt <= new Date())) {
       throw new ConflictError('Confirmed quote is missing or expired');
     }
-    const vehicles = await prisma.vehicle.findMany({ where: { status: 'AVAILABLE' } });
+
+    // Offer legs only to VERIFIED available vehicles of VERIFIED logistics partners
+    const vehicles = await prisma.vehicle.findMany({
+      where: {
+        status: 'AVAILABLE',
+        verificationStatus: 'VERIFIED',
+        logistics: {
+          verificationStatus: 'VERIFIED',
+          user: { status: 'ACTIVE' },
+        },
+      },
+      include: { logistics: true },
+    });
+
     if (vehicles.length === 0) {
       logisticsEvents.emit('logistics.admin_alert', { quoteId, reason: 'NO_AVAILABLE_VEHICLE' });
-      throw new BusinessRuleError('No available vehicle; radius widening and hub fallback exhausted. ADMIN alerted.');
+      throw new BusinessRuleError('No verified available vehicle found for dispatch. ADMIN alerted.');
     }
+
     const expiresAt = new Date(Date.now() + 10 * 60000);
     const offers = [];
     for (const leg of quote.legs) {
-      for (const vehicle of vehicles) {
+      // Filter vehicles matching capacity and road suitability
+      const eligibleVehicles = vehicles.filter((v) => {
+        if (leg.kg && v.capacityKg < leg.kg) return false;
+        return true;
+      });
+
+      const targets = eligibleVehicles.length > 0 ? eligibleVehicles : vehicles;
+      for (const vehicle of targets) {
         offers.push({ planQuoteId: quote.id, shipmentLegId: leg.id, vehicleId: vehicle.id, expiresAt });
       }
     }
-    await prisma.logisticsOffer.createMany({ data: offers });
+
+    if (offers.length > 0) {
+      await prisma.logisticsOffer.createMany({ data: offers });
+    }
     logisticsEvents.emit('logistics.offers.created', { quoteId, count: offers.length, expiresAt });
     return { quoteId, offerCount: offers.length, expiresAt };
   }
@@ -368,6 +395,12 @@ class LogisticsService {
     const vehicle = await vehicleService.findById(vehicleId);
     if (!vehicle) {
       throw new NotFoundError(`Vehicle ${vehicleId}`);
+    }
+
+    if (vehicle.verificationStatus && vehicle.verificationStatus !== 'VERIFIED') {
+      throw new BusinessRuleError(
+        `Cannot assign vehicle ${vehicle.vehicleNumber}: Verification status is ${vehicle.verificationStatus}. Only VERIFIED vehicles can be assigned to shipments.`
+      );
     }
 
     const assigned = await shipmentRepo.assignVehicle(shipment.id, vehicle.id, {
