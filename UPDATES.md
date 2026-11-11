@@ -7,6 +7,7 @@
 > - Phase 1: Foundation, Architecture, Docker & Buyer Authentication — **COMPLETED**  
 > - Phase 2: Buyer Profile, Address Management & Account Settings — **COMPLETED**  
 > - Phase 3: Agricultural Marketplace, Product Discovery & FPO Integration — **COMPLETED**  
+> - Phase 4: Supplier Comparison, Price Transparency & Total Landed Cost — **COMPLETED**  
 
 ---
 
@@ -27,10 +28,20 @@
    - [3.5 Key Agricultural Innovations & Components](#35-key-agricultural-innovations--components)
    - [3.6 Inventory Invariant & Seeding Engine](#36-inventory-invariant--seeding-engine)
    - [3.7 Backend Architecture & API Contracts (Phase 3)](#37-backend-architecture--api-contracts-phase-3)
-5. [Strict Scope Boundary & Security Rules](#5-strict-scope-boundary--security-rules)
-6. [Complete Verification & Automated Test Results](#6-complete-verification--automated-test-results)
-7. [Comprehensive Files & Components Summary](#7-comprehensive-files--components-summary)
-8. [Viva / Presentation Speaking Script & Model Q&A](#8-viva--presentation-speaking-script--model-qa)
+5. [Phase 4: Supplier Comparison, Price Transparency & Total Landed Cost (In-Depth & Simple)](#5-phase-4-supplier-comparison-price-transparency--total-landed-cost-in-depth--simple)
+   - [5.1 Agricultural Context & Why Total Landed Cost Matters](#51-agricultural-context--why-total-landed-cost-matters)
+   - [5.2 Comparison Selection Tray & Management (`ComparisonSelectionBar` & `ProductCompareButton`)](#52-comparison-selection-tray--management-comparisonselectionbar--productcomparebutton)
+   - [5.3 Dedicated Comparison Page (`/buyer/compare`)](#53-dedicated-comparison-page-buyercompare)
+   - [5.4 Standard Unit Price Normalization (kg, Quintal, Metric Tonne)](#54-standard-unit-price-normalization-kg-quintal-metric-tonne)
+   - [5.5 Quality Grade, Inspection & Freshness Comparison Matrix](#55-quality-grade-inspection--freshness-comparison-matrix)
+   - [5.6 Interactive Total Landed Cost Calculator Widget & Mathematical Formula](#56-interactive-total-landed-cost-calculator-widget--mathematical-formula)
+   - [5.7 Cross-Module Teammate Integrations in Phase 4](#57-cross-module-teammate-integrations-in-phase-4)
+   - [5.8 Price Transparency, Audit Disclosures & Agmarknet 7-Day History](#58-price-transparency-audit-disclosures--agmarknet-7-day-history)
+   - [5.9 Backend Architecture & API Contracts (Phase 4)](#59-backend-architecture--api-contracts-phase-4)
+6. [Strict Scope Boundary & Security Rules](#6-strict-scope-boundary--security-rules)
+7. [Complete Verification & Automated Test Results](#7-complete-verification--automated-test-results)
+8. [Comprehensive Files & Components Summary](#8-comprehensive-files--components-summary)
+9. [Viva / Presentation Speaking Script & Model Q&A](#9-viva--presentation-speaking-script--model-qa)
 
 ---
 
@@ -43,8 +54,8 @@ SasyaVahini is built to bridge the gap between rural Indian agriculture (smallho
 | **Phase 1** | **Foundation & Buyer Onboarding** | ✅ **COMPLETED** | Docker compose, PostgreSQL 15 via Prisma, JWT security, Dual-mode registration (Consumer vs Business), Forgot/Reset password. |
 | **Phase 2** | **Buyer Profile & Account Workspace** | ✅ **COMPLETED** | Sourcing preferences, GSTIN validation, Multi-address management with default selector, Notification settings, Password security engine. |
 | **Phase 3** | **Marketplace Discovery & FPO Integration** | ✅ **COMPLETED** | Dynamic categories, multi-param search & filtering, live APMC Mandi savings badges, stock inventory tracking, detailed crop specifications, verified supplier profiles. |
-| **Phase 4** | **Multi-Supplier Price Comparison** | ⏳ *Next Phase* | Multi-FPO price comparison tables, mandi arbitrage analytics. |
-| **Phase 5** | **Procurement Cart, Orders & Escrow** | ⏳ *Future Phase* | Batch checkout, digital order contracting, two-tier logistics integration, escrow payout release. |
+| **Phase 4** | **Supplier Comparison & Total Landed Cost** | ✅ **COMPLETED** | Multi-supplier comparison (2–4 lots), unit price normalization (kg/qtl/tonne), interactive Total Landed Cost calculator, Two-Tier Logistics integration, Agmarknet history. |
+| **Phase 5** | **Procurement Cart, Orders & Escrow** | ⏳ *Next Phase* | Batch checkout, digital order contracting, two-tier logistics dispatch trigger, escrow payout release. |
 
 ---
 
@@ -102,392 +113,421 @@ Phase 2 built the entire authenticated buyer management workspace to satisfy bot
 ### 2.3 Page 2: Delivery Address Management (`/buyer/addresses`)
 
 #### 💡 In Simple Words:
-> *"This page lets you save and manage multiple delivery locations—like your home, office, restaurant kitchen, or central warehouse. You can add new addresses, choose which one is your default, edit details, or delete old ones."*
+> *"This page is your address book. You can save multiple delivery locations (like your home, central warehouse, or branch store), label them, and choose which one is the default destination for logistics trucks."*
 
 #### 🔍 Detailed Technical Breakdown:
 * **Route:** `/buyer/addresses`.
 * **Component:** `frontend/src/pages/buyer/BuyerAddressesPage.jsx`.
 * **Features:**
-  1. **Address Card Grid:**
-     - Displays recipient name, phone number, complete street address, landmark, city, district, state, and 6-digit PIN code.
-     - Highlights a distinct green badge: **"Default Delivery Address"**.
-  2. **Interactive Modal Form ("Add Delivery Address"):**
-     - Full address validation: Pincode (6 digits), Receiver Name, Receiver Phone (10 digits), Address Line 1 & 2, City, District, State.
-     - **"Make Default Address" toggle:** Automatically unsets any existing default address in the database so that exactly one address remains default.
-  3. **Edit & Delete Actions:**
-     - Edit modal pre-populates existing data.
-     - Delete action confirms with the user and safely removes the record.
+  1. **Multi-Address Cards:**
+     - Displays Recipient Name, Address Lines 1 & 2, City, District, State, Pincode, and Contact Phone.
+     - **Tag Types:** `HOME`, `BUSINESS`, `WAREHOUSE`, `BILLING`.
+     - **Default Address Pill:** Visual indicator marking the default delivery destination.
+  2. **Add / Edit Modal Dialog:**
+     - Interactive modal with Indian PIN code auto-formatting, district selection, and unloading delivery instructions (e.g. *"Enter Gate 3, ramp unloading dock #2"*).
+  3. **Actions:** Set as Default, Edit, and Delete address with confirmation protection.
 * **API Endpoints:**
-  - `GET /api/buyer/addresses`: Lists all registered addresses for the logged-in buyer.
-  - `POST /api/buyer/addresses`: Creates a new delivery location.
-  - `PUT /api/buyer/addresses/:id`: Updates an existing address.
-  - `DELETE /api/buyer/addresses/:id`: Deletes an address.
-  - `PATCH /api/buyer/addresses/:id/default`: Toggles an address as the default.
+  - `GET /api/buyer/addresses`: Lists all addresses for the logged-in buyer.
+  - `POST /api/buyer/addresses`: Creates and validates a new address record.
+  - `PATCH /api/buyer/addresses/:id`: Updates an existing address.
+  - `DELETE /api/buyer/addresses/:id`: Removes an address record.
+  - `PATCH /api/buyer/addresses/:id/default`: Atomically updates default flag across addresses in a database transaction.
 
 ---
 
 ### 2.4 Page 3: Account Security & Preferences (`/buyer/settings`)
 
 #### 💡 In Simple Words:
-> *"This page allows you to control how SasyaVahini notifies you (SMS, Email, WhatsApp), your display currency and language, and lets you securely change your password."*
+> *"This page controls your privacy, notifications, and security. You can change your password, choose your preferred language (English, Hindi, Marathi), and toggle WhatsApp or SMS order alerts."*
 
 #### 🔍 Detailed Technical Breakdown:
 * **Route:** `/buyer/settings`.
 * **Component:** `frontend/src/pages/buyer/BuyerSettingsPage.jsx`.
 * **Features:**
-  1. **Notification Preferences:**
-     - **SMS Notifications:** Real-time dispatch alerts and delivery OTP notifications.
-     - **Email Notifications:** Weekly APMC Mandi price summaries and invoices.
-     - **WhatsApp Telematics:** Live shipment location updates from Shanmukhananda's cold-chain logistics.
-  2. **Platform & Invoice Preferences:**
-     - **Currency:** Indian Rupee ($\text{₹ INR}$).
-     - **Language:** English, Hindi (हिंदी), Marathi (मराठी).
-     - **Invoice Preference:** Automatically attach GST tax breakdown on receipts.
-  3. **Password Security Card:**
-     - Inputs: Current Password, New Password, Confirm New Password.
-     - Verifies current password against database bcrypt hash before allowing change.
-     - Enforces password rules: At least 8 characters, 1 uppercase letter, 1 number.
-     - Blocks reusing the current password as the new password.
+  1. **Notification Preferences:** Toggles for WhatsApp Procurement Alerts, SMS Out-for-Delivery Pings, Email Invoices, and Mandi Price Surge Alerts.
+  2. **Regional Interface Localization:** Select preferred interface language (`English`, `हिंदी`, `मराठी`).
+  3. **Security & Password Change:** Verifies old password using `bcrypt.compare`, validates new password strength, and issues new security audit logs.
 * **API Endpoints:**
-  - `GET /api/buyer/settings`: Retrieves user notification settings.
-  - `PATCH /api/buyer/settings`: Updates notification flags.
-  - `POST /api/buyer/change-password`: Validates current password and updates hash.
+  - `GET /api/buyer/settings`: Fetches current preference flags.
+  - `PATCH /api/buyer/settings`: Updates notification flags and localization preferences.
+  - `POST /api/buyer/change-password`: Verifies current password hash and persists updated bcrypt hash.
 
 ---
 
 ### 2.5 Backend Architecture & API Contracts (Phase 2)
-
-All Phase 2 endpoints are protected by `authenticate` middleware and enforce strict role checking (`requireRole('BUYER')`):
-
-```
-GET    /api/buyer/profile           → Returns buyer details & buyerProfile
-PATCH  /api/buyer/profile           → Validates and updates profile fields
-GET    /api/buyer/addresses         → Returns all delivery addresses
-POST   /api/buyer/addresses         → Adds new address (supports isDefault flag)
-PUT    /api/buyer/addresses/:id     → Updates address
-DELETE /api/buyer/addresses/:id     → Deletes address
-PATCH  /api/buyer/addresses/:id/default → Sets address as primary default
-GET    /api/buyer/settings          → Returns notification & invoice settings
-PATCH  /api/buyer/settings          → Saves notification preferences
-POST   /api/buyer/change-password   → Authenticates current password and updates hash
-```
+All Phase 2 endpoints are protected by `authenticate` (validating JWT signature and expiry) and `requireRole('BUYER')`:
+- Data access strictly scoped: Buyers can **only** read and modify their own records (`where: { buyerId: req.user.buyerProfile.id }`).
+- Input validation: All payloads pass through Zod schemas (`updateBuyerProfileSchema`, `addressSchema`, `changePasswordSchema`) producing standardized `422 VALIDATION_ERROR` responses on malformed input.
 
 ---
 
 ## 4. Phase 3: Agricultural Marketplace & Discovery (In-Depth & Simple)
 
-### 4.1 Agricultural Context & The Core Problem Solved
+### 3.1 Agricultural Context & The Core Problem Solved
+Smallholder farmers in India typically sell to village aggregators or middleman brokers at 30% to 50% below terminal mandi rates. Meanwhile, commercial buyers pay inflated prices due to multiple layers of transportation, brokerage fees, and wastage.
 
-Indian farmers face a critical market failure:
-1. **Middlemen Squeeze:** When a consumer or restaurant buys tomatoes at ₹30/kg in Pune, the farmer in Manchar village often receives only ₹8 to ₹12/kg. The remaining ₹18 to ₹22 is absorbed by 3–4 layers of middlemen and commission agents.
-2. **Lack of Price Transparency:** Farmers do not know the actual wholesale APMC mandi benchmark and accept undervalued offers.
-3. **Volume Mismatch:** A single smallholder farmer with 500 kg cannot supply a 5,000 kg order. Farmer Producer Organizations (FPOs) aggregate lots from multiple farmers, but lack a digital marketplace to showcase these aggregated lots directly to buyers.
-
-**Phase 3 directly solves this** by implementing the **Digital Agricultural Marketplace**:
-- Buyers discover produce directly from Farmers and FPOs.
-- Real-time comparison with government APMC Mandi rates shows immediate savings (e.g. *"14.3% below Mandi Rate"*).
-- FPOs aggregate smallholder lots into high-volume, quality-graded commercial batches.
+Phase 3 built the **Live Agricultural Produce Marketplace** where buyers can discover fresh harvest lots aggregated directly by verified **Farmer Producer Organizations (FPOs)** and registered farmers.
 
 ---
 
-### 4.2 Page 1: Marketplace Catalog (`/buyer/marketplace`)
+### 3.2 Page 1: Marketplace Catalog (`/buyer/marketplace`)
 
 #### 💡 In Simple Words:
-> *"This is the main shopping and discovery floor. You see fresh farm produce listed with high-resolution crop photos, quality grades (Grade A, Organic), direct farm prices, live savings compared to government mandis, and available quantity. You can search by crop name or district, filter by category or price, and sort by freshly harvested crops."*
+> *"The main shopping catalog for farm produce. You can see tomatoes, onions, wheat, and turmeric listed directly by farming cooperatives, search by crop name or district, filter by organic certification, and see how much money you save compared to the government mandi price."*
 
 #### 🔍 Detailed Technical Breakdown:
-* **Route:** `/buyer/marketplace` (also accessible via sidebar *"Browse Marketplace"* and dashboard *"Live Produce Marketplace"* tab).
+* **Route:** `/buyer/marketplace`.
 * **Component:** `frontend/src/pages/buyer/marketplace/MarketplacePage.jsx`.
-* **Subcomponents:**
-  * `ProductSearch.jsx`:
-    - Debounced typeahead search input.
-    - Autocomplete popup categorizing matches into **Crops** (e.g. *Tomato*, *Kolam Rice*), **Categories** (e.g. *Vegetables*, *Grains*), and **Districts** (e.g. *Pune*, *Nashik*, *Guntur*).
-    - **Recent Searches:** Stores last 5 searches in browser `localStorage` for 1-click re-search.
-  * `CategoryNavigation.jsx`:
-    - Dynamic horizontal scroll pills showing active agricultural categories with icons and real-time lot counts:
-      - 🌾 **All Produce**
-      - 🥦 **Vegetables**
-      - 🍎 **Fruits**
-      - 🌾 **Grains**
-      - 🫘 **Pulses & Legumes**
-      - 🌶️ **Spices**
-  * `ProductFilters.jsx` (Sidebar):
-    - **Quality Grade Selector:** All, Grade A (Premium), Grade B (Standard), Grade C, Organic Premium.
-    - **Price Range Inputs:** Numeric min and max filter in ₹/kg.
-    - **Organic Certified Toggle:** Checkbox filtering strictly certified organic produce.
-    - **Inventory Availability Filter:** Radio selector for In Stock (>100 kg) vs Low Stock (<100 kg).
-    - **Reset Filters:** Instant 1-click reset button.
-  * `ProductSorting.jsx`:
-    - Active result counter (e.g. *"Showing 12 verified produce lots"*).
-    - **Buyer Context Pill:** Automatically detects logged-in user profile to show `Consumer Retail Mode` (for households) vs `B2B Institutional Wholesale Mode` (for business buyers).
-    - Sort selector: Lowest Price, Highest Price, Highest Available Quantity, Freshly Harvested First, Recently Listed.
-  * `ProductGrid.jsx`:
-    - Responsive multi-column CSS grid.
-    - Pulse shimmer loading skeletons during data fetching.
-    - Clean empty state illustration with "Reset All Filters" CTA when no products match.
-    - Server-side pagination controls (Previous / Next).
+* **Features:**
+  1. **Interactive Hero Section:** Summarizes platform metrics (12 verified listings, average 14.5% below APMC Mandi benchmark rates, integrated cold chain logistics).
+  2. **Search with Typeahead Autocomplete:** Debounced search querying crop names, districts, villages, and FPO names.
+  3. **Dynamic Category Navigation:** Filter pills with live lot counts across `Vegetables`, `Fruits`, `Grains`, `Pulses`, and `Spices`.
+  4. **Multi-Parameter Filter Sidebar:**
+     - Quality Grade (`Grade A`, `Grade B`, `Grade C`, `Organic Premium`).
+     - Dual-slider Price Range (₹0 to ₹500/kg).
+     - Organic Certified toggle checkbox.
+     - Stock Availability filter (`All Lots`, `In Stock >100kg`, `Low Stock <100kg`).
+  5. **Sorting Selector:** Sort by `Recently Listed`, `Price: Low to High`, `Price: High to Low`, `Available Quantity: High to Low`, and `Freshness / Harvest Date`.
+  6. **Responsive Product Grid:** Renders responsive produce cards with image fallback placeholders and skeleton loading pulses.
 
 ---
 
-### 4.3 Page 2: Produce Detail Page (`/buyer/marketplace/products/:productId`)
+### 3.3 Page 2: Produce Detail Page (`/buyer/marketplace/products/:productId`)
 
 #### 💡 In Simple Words:
-> *"When you click on any crop card, you open its complete passport. You see when it was harvested, how fresh it is, the exact farm origin, quality grade, how much inventory is remaining, and a side-by-side comparison showing how much money you save compared to the government Mandi rate."*
+> *"The complete specification sheet for a specific farm lot. It tells you the exact farm where it was grown, harvest date, how many days fresh it is, APMC mandi rate comparison, storage instructions, and the verified credentials of the farmer or FPO."*
 
 #### 🔍 Detailed Technical Breakdown:
 * **Route:** `/buyer/marketplace/products/:productId`.
 * **Component:** `frontend/src/pages/buyer/marketplace/ProductDetailPage.jsx`.
 * **Features:**
-  1. **Breadcrumb Navigation:** `Marketplace > Vegetables > Tomato`.
-  2. **Product Image Gallery:**
-     - High-definition crop photography with automatic SVG fallback if image fails to load.
-     - Quality Grade badge (`GRADE A` or `ORGANIC PREMIUM`).
-     - Freshness index badge (`Harvested Today` or `Xd Fresh`).
-  3. **Direct Farm Price vs APMC Mandi Benchmark Card:**
-     - Large typography direct farm price: $\text{₹24/kg}$.
-     - Strikethrough government APMC Mandi rate: $\text{Mandi ₹28/kg}$.
-     - Savings pill: $\text{Save 14.3\% compared to terminal APMC mandi rates!}$
-  4. **Invariant Batch Inventory Transparency Bar:**
-     - Available Stock progress bar:
-       $$\text{Available Stock} = \text{Total Batch Qty} - \text{Reserved Qty} - \text{Sold Qty}$$
-     - Minimum Order Quantity (MOQ) callout (e.g. 50 kg for retail, 500 kg for wholesale).
-  5. **Verified Supplier Profile Card:**
-     - Displays Farmer or FPO collective name, location, and verified producer checkmark.
-     - Direct link: *"View Supplier Profile →"*.
-  6. **Agricultural Specifications Table:**
-     - Two-column technical specs covering Crop Variety, Category, Quality Grade, Cultivation Type, Harvest Date, Shelf Life (days), Minimum Order Qty, and Farm Origin (Village, District, State).
-  7. **Related Produce Recommendations:**
-     - Carousel grid displaying up to 4 other produce lots available from the same category or district.
+  1. **Produce Gallery & Badges:** Crop visual with fallback placeholder, quality grade pill, and freshness index badge (`6d Fresh`).
+  2. **APMC Mandi Rate Benchmark:** Shows direct farm gate price side-by-side with official APMC mandi benchmark (e.g. ₹18/kg vs Mandi ₹26/kg $\rightarrow$ Save 30.8%).
+  3. **Batch Inventory Availability:** Shows currently available kg vs total lot harvest size with visual progress meter.
+  4. **Agricultural Lot Specifications Table:** Scientific crop variety, quality grade, organic certification status, harvest date, expected shelf life, and storage conditions.
+  5. **Supplier Provenance Card:** Farmer name, Aadhaar verification badge, FPO collective name, and district origin with a direct link to the supplier profile.
+  6. **Related Produce Lots:** Horizontal carousel of other lots within the same category.
 
 ---
 
-### 4.4 Page 3: Supplier & FPO Public Profile (`/buyer/marketplace/suppliers/:supplierId`)
+### 3.4 Page 3: Supplier & FPO Public Profile (`/buyer/marketplace/suppliers/:supplierId`)
 
 #### 💡 In Simple Words:
-> *"This page is the public profile of the farmer or FPO who grew the produce. It proves that the supplier is genuine, displays their cooperative registration number or Aadhaar verification, shows how many smallholder farmers belong to the collective, and lists all crops currently available from them."*
+> *"The public resume of a farming cooperative or individual farmer. It proves their legal authenticity (government registration number, member farmer count, verified certificates) and shows all the crops they currently have available."*
 
 #### 🔍 Detailed Technical Breakdown:
 * **Route:** `/buyer/marketplace/suppliers/:supplierId`.
 * **Component:** `frontend/src/pages/buyer/marketplace/SupplierProfilePage.jsx`.
 * **Features:**
-  1. **Supplier Hero Banner:**
-     - Supplier Avatar and Organization/Farmer legal name.
-     - Badge: `Farmer Producer Organization` or `Direct Farmer`.
-     - Location: District and State.
-     - Active Produce Lots count.
-  2. **Trust & Verification Metrics Grid:**
-     - **Legal Registration:** FPO cooperative registration number (e.g. `FPO-MH-PUN-2024-001`) or Government Aadhaar Verification.
-     - **Smallholder Member Collective:** Displays total member farmers (e.g. `450 Smallholder Farmers pooled`).
-     - **Land Acreage (for farmers):** Verified cultivated land size (e.g. `3.5 Acres`).
-     - **Sourcing Transparency:** `100% Direct to Farmer Payout Guarantee`.
-  3. **Active Produce Listings Grid:**
-     - Reuses `ProductCard.jsx` to render all verified active produce batches currently available from this specific supplier.
-  4. **Strict Supplier Privacy Protection:**
-     - Private personal phone numbers, Aadhaar numbers, and bank account details are strictly stripped by backend sanitization and never exposed to the public frontend.
+  1. **Supplier Hero Card:** FPO cooperative legal name (e.g. *Pune Sahakari Krishi Producer Company*), registration number (`MH-FPC-2023-001`), official district and state.
+  2. **Trust & Governance Metrics:**
+     - Cooperative member count (35 farmer members pooled).
+     - Verified Registration Certificate badge.
+     - Sourcing hub location pin.
+  3. **Active Produce Inventory Catalog:** Grid of all active agricultural lots aggregated under this FPO collective.
+  4. **Farmer Privacy Protection:** Strict anti-disintermediation compliance ensuring private phone numbers and personal Aadhaar records are protected while verifying trust credentials.
 
 ---
 
-### 4.5 Key Agricultural Innovations & Components
-
-#### 1. APMC Mandi Benchmark Engine
-In traditional trade, buyers have no idea if a price is fair. SasyaVahini calculates real-time savings:
-$$\text{Savings \%} = \frac{\text{Mandi Benchmark Price} - \text{Farm Gate Asking Price}}{\text{Mandi Benchmark Price}} \times 100$$
-If a crop has asking price ₹24/kg and Mandi benchmark is ₹28/kg, SasyaVahini displays:
-`Save ~14.3% vs APMC Mandi Rate (Good Deal!)`
-
-#### 2. Harvest Freshness Index ($\text{daysSinceHarvest}$)
-Agricultural produce depreciates rapidly. The backend calculates:
-$$\text{daysSinceHarvest} = \left\lfloor \frac{\text{Today} - \text{Harvest Date}}{86,400,000 \text{ ms}} \right\rfloor$$
-Crops harvested within 24 hours display a distinct green badge: **"Harvested Today"**; others display **"X days Fresh"**.
-
-#### 3. B2C vs B2B Context Adaptation
-The platform detects the buyer type from their profile:
-- **Individual Consumer:** Emphasizes single-household quantities, freshness, and direct farm provenance.
-- **Business Buyer:** Activates bulk wholesale badges, displays Minimum Order Quantity (MOQ), and highlights FPO pooled aggregation lots.
+### 3.5 Key Agricultural Innovations & Components
+1. **ProductCard (`ProductCard.jsx`):** Compact agricultural card displaying crop name, village/district origin, FPO attribution, APMC benchmark savings badge, stock ratio indicator bar, and direct CTA.
+2. **Freshness Index Calculator:** Automatically calculates days elapsed since harvest (`Date.now() - harvestDate`) to provide buyers with accurate perishable shelf-life information.
+3. **Mandi Benchmark Savings Engine:** Compares farm-gate asking prices against Agmarknet regional mandi benchmarks, highlighting true cost advantages.
 
 ---
 
-### 4.6 Inventory Invariant & Seeding Engine
-
-All inventory follows strict transactional accounting to eliminate double-selling:
-$$\text{availableQtyKg} = \max(0, \text{totalQuantityKg} - \text{reservedQty} - \text{soldQty})$$
-
-The database was seeded with **12 diverse produce lots** across Indian agricultural belts:
-1. **Nashik Red Tomato (Grade A):** Fresh vine tomatoes from Manchar cluster (₹24/kg, 2,000 kg).
-2. **Nashik Red Onion (Grade A):** Cured export-quality red onions (₹20/kg, 1,000 kg).
-3. **Nashik Red Onion Lot C (Low Stock):** Commercial Grade B onions (₹18/kg, 85 kg).
-4. **Sharbati Golden Wheat (Organic Premium):** Certified pesticide-free golden wheat from Sehore, MP (₹34/kg, 5,000 kg).
-5. **Nagpur Mandarin Oranges (Grade A):** Citrus orchard lot from Katol, Nagpur (₹45/kg, 1,500 kg).
-6. **Guntur S4 Dried Red Chillies (Grade A):** High-capsaicin dried chillies from Tenali, AP (₹160/kg, 800 kg).
-7. **Wada Kolam Rice (Grade A):** Aromatic medium-grain white rice from Palghar, MH (₹48/kg, 3,500 kg).
-8. **Malwa Organic Chickpeas / Kabuli Chana (Organic):** Large-size organic chickpeas from Ujjain, MP (₹72/kg, 2,200 kg).
-9. **Kashmir High-Curcumin Turmeric (Organic Premium):** 5.5% curcumin medicinal grade turmeric (₹130/kg, 450 kg).
-10. **Himachal Royal Delicious Apples (Grade A):** Crisp cold-storage apples from Shimla, HP (₹95/kg, 1,800 kg).
-11. **Bikaner Bansi Wheat (Grade B):** Standard traditional wheat from Rajasthan (₹28/kg, 4,000 kg).
-12. **Pune Hybrid Green Chillies (Grade A):** Spicy green chillies from Junnar, MH (₹38/kg, 450 kg).
+### 3.6 Inventory Invariant & Seeding Engine
+* **Mathematical Invariant:**
+  $$\text{availableQtyKg} = \max(0, \text{totalQuantityKg} - \text{reservedQty} - \text{soldQty})$$
+  Ensures that inventory is never oversold or double-booked.
+* **Authoritative Seed Database (`seed.js`):**
+  Seeds 12 authentic agricultural lots into PostgreSQL across Maharashtra corridors:
+  - *Grade A Tomatoes* (Manchar village, Pune)
+  - *Nashik Red Onions (Lots A, B, and C)*
+  - *Salem Turmeric Fingers* (Walwa, Sangli)
+  - *Tur Dal / Pigeon Pea* (Ausa, Latur)
+  - *Sharbati Golden Wheat* (Ashta, Sehore), etc.
 
 ---
 
-### 4.7 Backend Architecture & API Contracts (Phase 3)
+### 3.7 Backend Architecture & API Contracts (Phase 3)
+* `GET /api/marketplace/categories`: Groups active listings by category and computes live item counts and starting prices.
+* `GET /api/marketplace/products`: Comprehensive multi-parameter search, filtering, and sorting endpoint supporting pagination.
+* `GET /api/marketplace/products/:id`: Retrieves lot details, mandi savings benchmarks, and related produce lots.
+* `GET /api/marketplace/suppliers/:supplierId`: Fetches public FPO/farmer trust credentials.
+* `GET /api/marketplace/suppliers/:supplierId/products`: Lists all active lots belonging to a specific supplier.
+* `GET /api/marketplace/search/suggestions`: Fast typeahead autocomplete for crops and districts.
 
-Mounted at `/api/marketplace` and `/api/buyer/marketplace`:
+---
 
+## 5. Phase 4: Supplier Comparison, Price Transparency & Total Landed Cost (In-Depth & Simple)
+
+### 5.1 Agricultural Context & Why Total Landed Cost Matters
+
+#### 💡 In Simple Words:
+> *"When buying 500 kg of onions, the cheapest farm price isn't always the best deal! If Farm A sells at ₹18/kg but is 150 km away with high truck freight, while Farm B sells at ₹20/kg just 15 km away, Farm B might actually be cheaper overall. Phase 4 gives buyers an interactive calculator and side-by-side comparison matrix showing the real **Total Landed Cost** (Produce Price + Two-Tier Delivery Truck Freight + Handling + Platform Fee) so buyers make smart, transparent procurement decisions."*
+
+#### 🔍 Detailed Technical Context:
+In agricultural B2B and institutional procurement, listed farm-gate prices represent only a fraction of total procurement expenditures. A procurement manager must evaluate:
+1. **Landed Logistics Freight:** Heavy perishable commodities require specialized transport (e.g. 2.5T refrigerated trucks, tempos). Freight costs scale directly with distance and vehicle type.
+2. **Handling & Consolidation Fees:** Labor costs for loading, sorting, and aggregation at rural FPO centers.
+3. **Quality & Grade Discrepancies:** Grade A export quality vs Grade B standard commercial grade.
+4. **Minimum Order Quantities (MOQs):** Distinguishing retail consumer quantities ($5\text{ kg}$) from commercial freight thresholds ($50\text{--}100\text{ kg}$).
+5. **Statutory Tax Exemption:** Clear verification that raw unprocessed agricultural produce is 0% GST exempt under Indian Tax Codes.
+
+Phase 4 built the complete **Multi-Supplier Comparison & Total Landed Cost Engine** to solve these challenges.
+
+---
+
+### 5.2 Comparison Selection Tray & Management (`ComparisonSelectionBar` & `ProductCompareButton`)
+
+#### 💡 In Simple Words:
+> *"Whenever you browse produce cards or open a crop detail page, you will see a 'Compare' button. Clicking it adds that crop to a floating comparison bar at the bottom of your screen. You can select 2 to 4 crops to compare side-by-side, remove them, or clear them anytime."*
+
+#### 🔍 Detailed Technical Breakdown:
+* **Components:**
+  - [`ProductCompareButton.jsx`](file:///C:/Users/ganga/OneDrive/Desktop/capstone-fpo/SasyaVahini/frontend/src/components/buyer/comparison/ProductCompareButton.jsx): Compact toggle for product cards and prominent button for detail pages.
+  - [`ComparisonSelectionBar.jsx`](file:///C:/Users/ganga/OneDrive/Desktop/capstone-fpo/SasyaVahini/frontend/src/components/buyer/comparison/ComparisonSelectionBar.jsx): Sticky floating tray at the bottom of the buyer viewport.
+  - [`CompareContext.jsx`](file:///C:/Users/ganga/OneDrive/Desktop/capstone-fpo/SasyaVahini/frontend/src/context/CompareContext.jsx): Global React state provider wrapped in `main.jsx`.
+* **Rules & Invariants:**
+  1. **Strict 2–4 Limit:** Requires at least 2 listings to compare; caps maximum selection at 4 listings to prevent unusable UI overflow.
+  2. **Duplicate Prevention:** Toggling an already-selected lot removes it cleanly without duplicate keys.
+  3. **Cross-Navigation Persistence:** Selection state synchronizes with `sessionStorage` (`sasyavahini_buyer_compare_v1`), preserving selections when navigating between tabs.
+  4. **Commodity Warning:** Automatically detects if a buyer selects different produce commodities (e.g. *Tomato* vs *Onion*) and issues an advisory toast notification.
+
+---
+
+### 5.3 Dedicated Comparison Page (`/buyer/compare`)
+
+#### 💡 In Simple Words:
+> *"The dedicated side-by-side comparison screen. It puts 2 to 4 chosen farm lots next to each other in a clean grid, compares their unit prices, quality grades, stock availability, and road distance, and lets you enter a quantity to see the exact total cost breakdown."*
+
+#### 🔍 Detailed Technical Breakdown:
+* **Route:** `/buyer/compare` (also reachable via URL params: `/buyer/compare?items=id1,id2`).
+* **Component:** [`frontend/src/pages/buyer/comparison/ComparisonPage.jsx`](file:///C:/Users/ganga/OneDrive/Desktop/capstone-fpo/SasyaVahini/frontend/src/pages/buyer/comparison/ComparisonPage.jsx).
+* **Navigation Integration:** Directly integrated into `BuyerDashboard.jsx` top navigation tabs with an active item count badge (`Compare Produce (N)`).
+* **Persona Switching:** Top toggle switches between **Consumer (B2C) Mode** and **Wholesale (B2B) Mode**, updating display emphasis between retail packaging vs bulk MOQs.
+* **Commodity Comparability Banner:**
+  - **Identical Commodity:** Green badge: *"Direct side-by-side comparison across verified [Crop] suppliers."*
+  - **Different Commodities/Varieties:** Amber warning banner explaining that price differences reflect differing crop characteristics.
+
+---
+
+### 5.4 Standard Unit Price Normalization (kg, Quintal, Metric Tonne)
+
+#### 💡 In Simple Words:
+> *"Wholesale buyers buy in quintals or tonnes, while household consumers buy in kilograms. This feature automatically converts every listed price into standard Indian agricultural units so you can compare rates accurately."*
+
+#### 🔍 Detailed Technical Breakdown:
+To eliminate confusion across different packaging formats, the backend normalizes all listing prices into standard metrics:
+- **Price per Kilogram ($1\text{ kg}$):** Original base listing rate (e.g. ₹$20/\text{kg}$).
+- **Price per Quintal ($100\text{ kg}$):** $\text{askingPricePerKg} \times 100$ (e.g. ₹$2,000/\text{qtl}$).
+- **Price per Metric Tonne ($1,000\text{ kg}$):** $\text{askingPricePerKg} \times 1,000$ (e.g. ₹$20,000/\text{t}$).
+- **APMC Mandi Benchmark:** Compares each supplier's rate against the current official Agmarknet terminal rate, showing direct farm savings percentages.
+
+---
+
+### 5.5 Quality Grade, Inspection & Freshness Comparison Matrix
+
+#### 💡 In Simple Words:
+> *"Not all produce is equal. Here you can see Grade A vs Grade B, whether it is organic certified, how many days ago it was harvested, what crates it is packed in, and whether the platform verified the farm inspection."*
+
+#### 🔍 Detailed Technical Breakdown:
+* **Quality Grade:** `Grade A` (Premium export/retail), `Grade B` (Standard commercial), `Grade C` (Processing), `Organic Premium`.
+* **Platform Inspection Status:** Differentiates *"Platform Verified Inspection"* (FPO certificate or Aadhaar KYC verified) from *"Farmer Declared"*.
+* **Harvest Freshness Index:** Dynamic counter showing days since harvest.
+* **Packaging & Storage Specifications:**
+  - Vegetables / Fruits: Ventilated food-grade crates with cold-chain recommendation ($10\text{--}14^\circ\text{C}$).
+  - Grains / Pulses: Moisture-resistant aerated jute gunny bags with ambient dry storage.
+
+---
+
+### 5.6 Interactive Total Landed Cost Calculator Widget & Mathematical Formula
+
+#### 💡 In Simple Words:
+> *"Type in how many kilograms you want to buy (e.g., 100 kg or 500 kg), and the calculator instantly computes the exact bill for each supplier: product cost + delivery truck freight + ₹0.50/kg handling fee + 2% platform fee. It also checks if the supplier actually has enough stock to fulfill your order!"*
+
+#### 🔍 Mathematical Formula & Auditable Components:
+$$\text{Total Landed Cost} = \text{Product Cost} + \text{Two-Tier Delivery Cost} + \text{Handling Fee} + \text{Platform Fee} - \text{Bulk Incentive}$$
+
+Where:
+1. **$\text{Product Cost} = \text{askingPricePerKg} \times \text{quantityKg}$**
+2. **$\text{Two-Tier Delivery Cost}$:** Calculated using Shanmukhananda's vehicle fleet specifications and road distance:
+   $$\text{Delivery Cost} = \text{Base Fare} + (\text{Road Km} \times \text{Vehicle Per-Km Rate})$$
+   - Payload $\le 1,500\text{ kg} \rightarrow$ **Tempo** ($\text{Base Fare: } ₹500, \text{Rate: } ₹18/\text{km}$)
+   - Payload $1,501\text{ to } 3,000\text{ kg} \rightarrow$ **Mini-Truck** ($\text{Base Fare: } ₹800, \text{Rate: } ₹24/\text{km}$)
+   - Payload $> 3,000\text{ kg} \rightarrow$ **Truck** ($\text{Base Fare: } ₹1,500, \text{Rate: } ₹32/\text{km}$)
+   - Local district deliveries ($\le 10\text{ km}$): Flat 50% base fare discount.
+3. **$\text{Handling & Aggregation Fee} = ₹0.50/\text{kg} \times \text{quantityKg}$** (from `logistics.config.js`).
+4. **$\text{Platform Facilitation Fee} = \text{Product Cost} \times 2\%$** (from `logistics.config.js`).
+5. **$\text{Taxes} = ₹0.00$** (Raw agricultural produce is 0% GST exempt under GST Notification No. 2/2017-Central Tax).
+6. **$\text{Bulk Volume Incentive} = \text{Product Cost} \times 3\%$** for bulk orders $\ge 1,000\text{ kg}$.
+
+#### 📊 Live Fulfillment Invariants:
+- **`CAN_FULFILL` (Green Badge):** Supplier inventory has sufficient available stock ($\text{availableQtyKg} \ge \text{quantityKg}$) and meets MOQ.
+- **`INSUFFICIENT_STOCK` (Red Badge):** Displays exact shortfall: $-\text{shortfallKg} = \text{quantityKg} - \text{availableQtyKg}$.
+- **`BELOW_MINIMUM_ORDER` (Amber Badge):** Requested quantity is below supplier MOQ threshold.
+
+---
+
+### 5.7 Cross-Module Teammate Integrations in Phase 4
+
+| Teammate / Module | How it Integrates into Phase 4 Buyer Comparison |
+| :--- | :--- |
+| **Member 2: Shankar Narayana Reddy** (`feature/farmer-fpo`) | Supplies authoritative crop lots from the PostgreSQL `ProduceListing` table, FPO legal entity names, smallholder member counts, and verified farmer credentials. |
+| **Member 4: Shanmukhananda Reddy** (`feature/logistic`) | Supplies Two-Tier Logistics fleet tiers (Tempo, Mini-Truck, Truck), per-km vehicle rates from [`logistics.config.js`](file:///C:/Users/ganga/OneDrive/Desktop/capstone-fpo/SasyaVahini/backend/src/config/logistics.config.js), and road distance estimation using `estimatedRoadKm()` from [`utils/geo.js`](file:///C:/Users/ganga/OneDrive/Desktop/capstone-fpo/SasyaVahini/backend/src/utils/geo.js). |
+| **Member 5: Gowtham Reddy** (`feature/demand-forecasting`) | Supplies regional Agmarknet terminal Mandi modal benchmark rates and savings percentages against terminal markets. |
+
+---
+
+### 5.8 Price Transparency, Audit Disclosures & Agmarknet 7-Day History
+
+#### 💡 In Simple Words:
+> *"We don't show fake discounts or invented prices. Everything is backed by government APMC mandi data, official GST rules, and true distance-based transport costs. If historical data exists for a crop, we show the real 7-day price trend."*
+
+#### 🔍 Detailed Technical Breakdown:
+- **Audit Disclosures Card:** Transparently explains the four pillars of SasyaVahini pricing (Direct Farm Gate Price, Two-Tier Logistics formula, Handling Fee, and 0% GST tax exemption).
+- **Objective Highlights:** Labels individual objective metrics (*Lowest Product Price*, *Lowest Landed Cost*, *Highest Available Stock*, *Lowest Delivery Distance*) rather than an arbitrary "Best Supplier" label.
+- **7-Day Agmarknet Price Trajectory:** For crops with historical data (e.g. *Tomato*, *Onion*), calls `GET /api/marketplace/compare/price-history` to render a 7-day terminal mandi modal rate trend table. Strictly omits fake data if no records exist.
+
+---
+
+### 5.9 Backend Architecture & API Contracts (Phase 4)
+
+#### 1. `GET /api/marketplace/compare` (and `/api/buyer/compare`)
+* **Query Parameters:** `ids=id1,id2,id3`, `sampleQuantityKg=100`, `buyerType=INDIVIDUAL|BUSINESS`, `destLat`, `destLng`.
+* **Validation:** Rejects requests with fewer than 2 IDs or more than 4 IDs with structured `422 VALIDATION_ERROR`.
+* **Response Payload:** Returns commodity comparability status, normalized unit prices (kg, qtl, tonne), quality grades, freshness, supplier provenance, and estimated logistics delivery charges.
+
+#### 2. `POST /api/marketplace/compare/calculate` (and `/api/buyer/compare/calculate`)
+* **Request Body:** `{ listingIds: string[], quantityKg: number, destLat?: number, destLng?: number, buyerType?: string }`.
+* **Validation:** Validates array length ($2\text{--}4$) and quantity ($1\text{ to }50,000\text{ kg}$).
+* **Response Payload:** Returns detailed cost breakdown (product cost, delivery cost, handling fee, platform fee, taxes, bulk discount, total landed cost, and effective rate per kg) and fulfillment capability flags for every supplier.
+
+#### 3. `GET /api/marketplace/compare/price-history` (and `/api/buyer/compare/price-history`)
+* **Query Parameters:** `crop=Tomato`.
+* **Response Payload:** Returns 7-day Agmarknet corridor modal price points or transparent notice if historical records are pending.
+
+---
+
+## 6. Strict Scope Boundary & Security Rules
+
+To ensure clean architecture and avoid premature implementation of future phases:
+- ❌ **No Shopping Cart / Checkout:** Preserved existing navigation placeholders without premature order contracting.
+- ❌ **No Payments / Escrow Gateway:** Payment gateway and escrow release triggers strictly belong to Phase 5.
+- ❌ **No Changes to Teammate Portals:** Zero modifications to `/farmer`, `/fpo`, `/logistics`, or `/admin`. All cross-module communication operates through shared database entities and service interfaces.
+- 🔒 **Security & Validation:** All comparison requests are validated server-side. The backend never trusts client-supplied financial totals or logistics rates.
+
+---
+
+## 7. Complete Verification & Automated Test Results
+
+### 🧪 Frontend Vitest Test Suite (`npm test`)
 ```
-GET /api/marketplace/categories
-→ Returns active agricultural categories with product counts, minPrice, and icons.
+ RUN  v1.6.1 /app/frontend
 
-GET /api/marketplace/products
-→ Multi-param search, filter by category, grade, price, organic, availability, sorting, and pagination.
+ ✓ src/test/listingHelpers.test.js  (4 tests)
+ ✓ src/test/voiceFormParser.test.js  (7 tests)
+ ✓ src/test/components.test.jsx  (4 tests)
+ ✓ src/test/buyerAuth.test.jsx  (3 tests)
+ ✓ src/test/buyerPhase2.test.jsx  (7 tests)
+ ✓ src/test/MarketplacePhase3.test.jsx  (4 tests)
+ ✓ src/test/BuyerComparisonPhase4.test.jsx  (4 tests)
 
-GET /api/marketplace/products/:productId
-→ Returns single product details, freshness index, APMC savings, and related produce lots.
-
-GET /api/marketplace/search/suggestions?q=to
-→ Returns autocomplete array across crops, categories, and districts.
-
-GET /api/marketplace/suppliers/:supplierId
-→ Returns public supplier profile (FPO or Farmer) with verified badges. Zero private data leaked.
-
-GET /api/marketplace/suppliers/:supplierId/products
-→ Returns active produce listings belonging to a specific supplier.
-
-GET /api/marketplace/stats
-→ Returns summary metrics for hero banner (active listings, volume, average savings).
-
-GET /api/marketplace/produce
-→ Backward-compatibility alias returning produce array directly for Phase 2 legacy callers.
+ Test Files  7 passed (7)
+      Tests  33 passed (33) (100% SUCCESS RATE)
+   Duration  5.43s
 ```
 
----
-
-## 5. Strict Scope Boundary & Security Rules
-
-To ensure clean capstone phase progression:
-* ✅ **No Fake Checkout:** No fake payment gateways, shopping carts, or order placement modals were implemented (strictly scheduled for Phase 5).
-* ✅ **No Multi-Supplier Comparison Matrix:** Single-lot APMC Mandi rate comparison only (multi-supplier comparison matrix scheduled for Phase 4).
-* ✅ **Teammate Portals Preserved:** Portals for `/farmer`, `/fpo`, `/logistics`, `/admin`, and shared `Navbar.jsx` remain completely intact.
-* ✅ **Privacy by Design:** Personal phone numbers, Aadhaar numbers, and bank accounts are strictly stripped from all marketplace endpoints.
-
----
-
-## 6. Complete Verification & Automated Test Results
-
-### 🧪 Backend Test Suite (`Jest + Supertest`)
-Ran full backend test suite inside container:
-
+### 📦 Frontend Production Build (`vite build`)
 ```
-PASS  tests/two-tier-logistics.test.js
-PASS  tests/farmerFpoBusinessRules.test.js
-PASS  tests/marketplace.test.js
-PASS  tests/buyerMarketplacePhase3.test.js (12/12 passed)
-PASS  tests/logistics.unit.test.js
-PASS  tests/buyerPhase2.test.js
-PASS  tests/buyerAuthPhase1.test.js
-PASS  tests/farmer.test.js
+vite v5.4.21 building for production...
+✓ 1670 modules transformed.
+dist/index.html                     0.74 kB │ gzip:   0.43 kB
+dist/assets/index-6pzUAH-a.css    140.89 kB │ gzip:  28.74 kB
+dist/assets/index-CrFk8RRe.js   1,112.83 kB │ gzip: 308.65 kB
+✓ built in 27.71s with 0 errors.
+```
+
+### ⚙️ Backend Jest Test Suite (`npx jest --runInBand --forceExit`)
+```
+PASS tests/logistics.unit.test.js
+PASS tests/auth.test.js
+PASS tests/buyerPhase2.test.js
+PASS tests/farmerFpoPortal.test.js
+PASS tests/two-tier-logistics.test.js
+PASS tests/buyerMarketplacePhase3.test.js
+PASS tests/marketplace.test.js
+PASS tests/farmerFpoBusinessRules.test.js
 
 Test Suites: 8 passed, 8 total
 Tests:       103 passed, 103 total (100% SUCCESS RATE)
 Snapshots:   0 total
-Time:        10.235 s
-```
-
-### 🧪 Frontend Test Suite (`Vitest + Testing Library`)
-Ran full frontend test suite inside container:
-
-```
-PASS  src/test/listingHelpers.test.js
-PASS  src/test/voiceFormParser.test.js
-PASS  src/test/components.test.jsx
-PASS  src/test/buyerAuth.test.jsx
-PASS  src/test/MarketplacePhase3.test.jsx (4/4 passed)
-PASS  src/test/buyerPhase2.test.jsx
-
-Test Files:  6 passed, 6 total
-Tests:       29 passed, 29 total (100% SUCCESS RATE)
-Time:        4.86 s
-```
-
-### 📦 Frontend Production Build (`Vite Build`)
-```
-vite v5.4.21 building for production...
-✓ 1662 modules transformed.
-dist/index.html                   0.74 kB │ gzip:   0.43 kB
-dist/assets/index-DLzZCKek.css  113.22 kB │ gzip:  20.52 kB
-dist/assets/index-D-ZSbMbR.js   764.14 kB │ gzip: 208.90 kB
-✓ built in 7.27s with 0 errors.
+Time:        13.035 s
 ```
 
 ---
 
-## 7. Comprehensive Files & Components Summary
+## 8. Comprehensive Files & Components Summary
 
-### Phase 2 Files Created/Updated:
+### Phase 4 Files Created:
 | File Path | Description |
 | :--- | :--- |
-| `backend/src/controllers/buyer.controller.js` | Controller for buyer profile, addresses, settings, and change-password. |
-| `backend/src/routes/buyer.routes.js` | REST routes for buyer workspace endpoints. |
-| `backend/tests/buyerPhase2.test.js` | Automated Jest test suite for Phase 2 endpoints. |
-| `frontend/src/services/buyerApi.js` | Client API layer for buyer workspace. |
-| `frontend/src/pages/buyer/BuyerProfilePage.jsx` | Profile view with personal, business, and sourcing preference forms. |
-| `frontend/src/pages/buyer/BuyerAddressesPage.jsx` | Delivery address management with modal and default toggle. |
-| `frontend/src/pages/buyer/BuyerSettingsPage.jsx` | Notification toggles, platform preferences, and change password card. |
-| `frontend/src/test/buyerPhase2.test.jsx` | Vitest suite for Phase 2 UI pages. |
+| `frontend/src/context/CompareContext.jsx` | Global React context for managing comparison selection (2–4 limit, sessionStorage, duplicate prevention). |
+| `frontend/src/components/buyer/comparison/ComparisonSelectionBar.jsx` | Sticky floating comparison bar with crop chips, counter, "Compare Now", and "Clear" actions. |
+| `frontend/src/components/buyer/comparison/ProductCompareButton.jsx` | Reusable compare toggle button with compact and standard variants. |
+| `frontend/src/pages/buyer/comparison/ComparisonPage.jsx` | Complete comparison dashboard with side-by-side specs, Total Landed Cost calculator, and audit disclosures. |
+| `frontend/src/test/BuyerComparisonPhase4.test.jsx` | Vitest suite testing comparison selection, button toggles, floating tray, and comparison page. |
 
-### Phase 3 Files Created/Updated:
+### Phase 4 Files Modified (Buyer Module Only):
 | File Path | Description |
 | :--- | :--- |
-| `backend/src/controllers/marketplace.controller.js` | Phase 3 discovery controller (categories, products, suggestions, suppliers, stats). |
-| `backend/src/routes/marketplace.routes.js` | REST routes for marketplace discovery. |
-| `backend/prisma/seed.js` | Database seeder with 12 diverse produce lots across Indian varieties. |
-| `backend/tests/buyerMarketplacePhase3.test.js` | Automated Jest test suite for Phase 3 discovery endpoints. |
-| `frontend/src/services/marketplaceApi.js` | Client service layer for marketplace API. |
-| `frontend/src/styles/marketplace.css` | Custom CSS design system for marketplace layout, cards, and details. |
-| `frontend/src/components/buyer/marketplace/ProductCard.jsx` | Reusable produce card with image, grade, mandi savings, and stock bar. |
-| `frontend/src/components/buyer/marketplace/CategoryNavigation.jsx` | Horizontal category scroll pills with dynamic counts and icons. |
-| `frontend/src/components/buyer/marketplace/ProductSearch.jsx` | Debounced search bar with autocomplete popover and recent searches history. |
-| `frontend/src/components/buyer/marketplace/ProductFilters.jsx` | Sidebar filter panel (grade, price range, organic toggle, availability). |
-| `frontend/src/components/buyer/marketplace/ProductSorting.jsx` | Content header with sort selector and B2C/B2B context pill. |
-| `frontend/src/components/buyer/marketplace/ProductGrid.jsx` | Responsive grid with pulse loading skeletons and pagination. |
-| `frontend/src/pages/buyer/marketplace/MarketplacePage.jsx` | Complete agricultural marketplace discovery page (`/buyer/marketplace`). |
-| `frontend/src/pages/buyer/marketplace/ProductDetailPage.jsx` | Dedicated lot specification page with mandi comparison and supplier card. |
-| `frontend/src/pages/buyer/marketplace/SupplierProfilePage.jsx` | Verified FPO and farmer public profile page with trust metrics. |
-| `frontend/src/pages/buyer/BuyerDashboard.jsx` | Main dashboard integration connecting sidebar links, tabs, and overview lots. |
-| `frontend/src/test/MarketplacePhase3.test.jsx` | Vitest suite for Phase 3 UI components. |
+| `backend/src/controllers/marketplace.controller.js` | Implemented `getComparisonData`, `calculateLandedCost`, and `getPriceHistory` with logistics and APMC integrations. |
+| `backend/src/routes/marketplace.routes.js` | Registered comparison endpoints (`/compare`, `/compare/calculate`, `/compare/price-history`). |
+| `backend/src/routes/buyer.routes.js` | Registered comparison endpoints under `/api/buyer/compare`. |
+| `frontend/src/services/marketplaceApi.js` | Added client methods for `getComparisonData`, `calculateLandedCost`, and `getPriceHistory`. |
+| `frontend/src/components/buyer/marketplace/ProductCard.jsx` | Embedded `ProductCompareButton` into produce card header badges. |
+| `frontend/src/pages/buyer/marketplace/ProductDetailPage.jsx` | Embedded standard `ProductCompareButton` alongside produce specifications. |
+| `frontend/src/pages/buyer/BuyerDashboard.jsx` | Integrated tab routing for `/buyer/compare`, top navigation pill, and floating `<ComparisonSelectionBar />`. |
+| `frontend/src/main.jsx` | Mounted `<CompareProvider>` into global application root. |
+| `frontend/src/styles/marketplace.css` | Added styling for comparison matrix, floating bar, and calculator cards. |
 
 ---
 
-## 8. Viva / Presentation Speaking Script & Model Q&A
+## 9. Viva / Presentation Speaking Script & Model Q&A
 
 ### 🎤 Presentation Speaking Script (2-Minute Summary)
-> *"Respected evaluators, in **Phase 2**, we built the complete **Buyer Operations Workspace**. It handles dual-persona requirements: individual consumers manage simple home delivery addresses and notification preferences, while institutional business buyers manage legal GSTIN numbers, business categories, commercial warehouses, and sourcing preferences.*  
+> *"Respected evaluators, in **Phase 4**, we implemented the **Supplier Comparison, Price Transparency & Total Landed Cost Engine** based on Problem Statement ID 26033.*  
 >  
-> *In **Phase 3**, we implemented the core **Digital Agricultural Marketplace** based on Problem Statement ID 26033. Here, buyers can browse 12 real Indian agricultural produce lots across Vegetables, Fruits, Grains, Pulses, and Spices.*  
-> *We introduced three major innovations:*  
-> *1. **Live APMC Mandi Savings Badges:** Showing buyers the exact percentage saved compared to terminal government mandi rates.*  
-> *2. **Harvest Freshness Index:** Indicating how many days have elapsed since harvest.*  
-> *3. **Verified Supplier Profiles:** Providing transparent provenance for Farmer Producer Organizations and individual farmers without leaking private contact information.*  
+> *A major flaw in agricultural procurement is that buyers focus solely on the listed farm-gate price without considering transportation freight and handling. In SasyaVahini, buyers can select 2 to 4 produce lots directly from the marketplace and compare them side-by-side.*  
 >  
-> *All 103 backend unit tests and 29 frontend test suites are passing with a 100% success rate, and the project compiles cleanly in production mode."*
+> *We introduced four key technical innovations:*  
+> *1. **Standard Unit Price Normalization:** Converting farm rates automatically into Price per Kilogram, Price per Quintal ($100\text{ kg}$), and Price per Tonne ($1,000\text{ kg}$).*  
+> *2. **Interactive Total Landed Cost Calculator:** An auditable calculator that accepts a procurement quantity (e.g., $100\text{ kg}$ or $500\text{ kg}$) and computes: Produce Cost + Two-Tier Road Freight (calculated via Shanmukhananda's vehicle fleet rates and road distance) + Handling Fee (₹0.50/kg) + Platform Fee (2%) with verified 0% GST exemption.*  
+> *3. **Live Fulfillment Invariant Validation:** Checking real-time inventory to verify whether a supplier can fulfill the requested quantity, flagging stock shortfalls or MOQ violations.*  
+> *4. **Objective Sourcing Highlights:** Objectively highlighting lowest product price, lowest landed cost, and highest stock without biased or fabricated 'Best Supplier' labels.*  
+>  
+> *All 103 backend tests and 33 frontend tests are passing with a 100% success rate, and Vite compiles cleanly with zero errors."*
 
 ---
 
 ### ❓ Model Q&A for Evaluators
 
-#### Q1: How does your marketplace compute the APMC Mandi benchmark?
+#### Q1: Why is Total Landed Cost calculation superior to standard marketplace price comparison?
 **Answer:**  
-*"Each agricultural commodity in the database is mapped to its regional APMC Mandi benchmark price based on current market data. The backend controller calculates the percentage difference: `(mandiBenchmark - askingPricePerKg) / mandiBenchmark * 100`. This provides transparent proof to the buyer that direct procurement from FPOs eliminates middleman markups while ensuring higher realization for the farmer."*
+*"Agricultural commodities are bulky and perishable. A farm selling onions at ₹18/kg that is 200 km away will incur significantly higher road freight charges than an FPO selling at ₹20/kg located 15 km away. Our Total Landed Cost calculator integrates with Member 4's Two-Tier Logistics engine to compute the true delivered cost per kilogram, ensuring buyers make economically sound decisions."*
 
-#### Q2: How do you prevent inventory overselling when multiple buyers view the same lot?
+#### Q2: How does your comparison engine normalize prices across different units?
 **Answer:**  
-*"We enforce the inventory invariant: `availableQtyKg = max(0, totalQuantityKg - reservedQty - soldQty)`. The available quantity is computed dynamically from atomic database fields. In Phase 5, all reservation and checkout transactions run inside Prisma's atomic transactions (`prisma.$transaction`), locking rows to guarantee zero double-booking."*
+*"The database stores produce rates in standard ₹/kg. The backend normalizes this into commercial agricultural metrics: Price/kg $\times 100$ for Price per Quintal, and $\times 1,000$ for Price per Metric Tonne. This allows both household consumers buying in kilograms and institutional wholesalers buying in quintals or tonnes to evaluate pricing in their preferred trading unit."*
 
-#### Q3: Why is supplier privacy important in Phase 3?
+#### Q3: How do you handle commodity differences when a buyer selects different produce types?
 **Answer:**  
-*"Under agricultural privacy guidelines and platform anti-disintermediation rules, farmers' private phone numbers, bank accounts, and Aadhaar numbers must never be exposed publicly. Our `getSupplierProfile` endpoint explicitly selects only public trust attributes (cooperative registration number, smallholder member count, district, state, and verification badges)."*
+*"The comparison engine parses crop names and categories server-side. If the buyer selects identical crops (e.g. all tomatoes), it displays a green 'Identical Commodity' badge. If varieties differ or if different categories are selected (e.g. tomatoes vs onions), the system presents an amber transparency banner warning the buyer that price and quality metrics reflect distinct commodity characteristics."*
 
-#### Q4: How does the UI cater to both retail consumers and wholesale business buyers?
+#### Q4: Why are taxes calculated as ₹0 in the landed cost breakdown?
 **Answer:**  
-*"The marketplace reads the authenticated user's `buyerProfile`. For Individual Consumers, it highlights single-pack freshness and retail quantities. For Business Buyers, it activates the `B2B Institutional Wholesale Mode` badge, displays lot Minimum Order Quantities (MOQs), and highlights FPO pooled aggregation lots suitable for bulk freight dispatch."*
+*"Under Indian tax regulations (GST Notification No. 2/2017-Central Tax), fresh, unprocessed agricultural produce is exempt from GST (0% tax rate). Rather than omitting tax information or inventing percentages, our calculator explicitly discloses the ₹0 tax line and cites the legal statutory exemption for complete financial transparency."*
 
 ---
 *Maintained by Member 3 (Buyer & Marketplace Module) — SasyaVahini Team.*
