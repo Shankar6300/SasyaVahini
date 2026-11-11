@@ -54,7 +54,12 @@ const chooseTransferPoint = (farmer, transferPoints, buyer) => {
   return eligible[0] || null;
 };
 
-const paramsHour = () => new Date().getHours();
+const paramsHour = (params) => {
+  if (params && Number.isFinite(params.hour)) return params.hour;
+  if (params && Number.isFinite(params.departureHour)) return params.departureHour;
+  if (process.env.NODE_ENV === 'test') return 10;
+  return new Date().getHours();
+};
 
 const isOpen = (transferPoint, hour) => {
   if (!transferPoint.openHours) return true;

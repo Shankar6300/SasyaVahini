@@ -34,7 +34,20 @@ const errorHandler = (err, req, res, _next) => {
 
   // Prisma-specific errors
   if (err.code === 'P2002') {
-    return sendError(res, 'CONFLICT', 'A record with this value already exists.', 409);
+    const target = Array.isArray(err.meta?.target)
+      ? err.meta.target.join(', ')
+      : String(err.meta?.target || '');
+    let friendlyMessage = 'A record with this value already exists.';
+    if (target.includes('vehicleNumber')) {
+      friendlyMessage = 'This vehicle registration number is already registered in the system. Please enter your unique vehicle number.';
+    } else if (target.includes('email')) {
+      friendlyMessage = 'This email address is already registered. Please sign in or use a different email.';
+    } else if (target.includes('phone')) {
+      friendlyMessage = 'This phone number is already registered. Please sign in or use a different phone number.';
+    } else if (target) {
+      friendlyMessage = `A record with this ${target} already exists.`;
+    }
+    return sendError(res, 'CONFLICT', friendlyMessage, 409, { target: err.meta?.target });
   }
   if (err.code === 'P2025') {
     return sendError(res, 'NOT_FOUND', 'The requested record was not found.', 404);

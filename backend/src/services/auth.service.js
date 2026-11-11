@@ -157,6 +157,18 @@ async function register(data) {
     throw new ConflictError('Phone number is already registered');
   }
 
+  if (vehicleNumber && prisma.vehicle) {
+    const existingVehicle = await prisma.vehicle.findUnique({
+      where: { vehicleNumber: vehicleNumber.trim().toUpperCase() },
+      select: { id: true },
+    });
+    if (existingVehicle) {
+      throw new ConflictError(
+        `Vehicle number ${vehicleNumber.trim().toUpperCase()} is already registered in the system. Please enter your unique vehicle number.`
+      );
+    }
+  }
+
   const passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
 
   // Normalize array fields
