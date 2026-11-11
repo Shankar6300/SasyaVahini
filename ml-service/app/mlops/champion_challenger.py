@@ -178,7 +178,7 @@ def run_champion_challenger_cycle(
     is_promotable = (
         test_r2 >= 0.98 and
         test_mae <= 2.50 and
-        crossing_rate_pct <= 2.50
+        crossing_rate_pct <= 0.50
     )
 
     if is_promotable:

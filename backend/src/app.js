@@ -7,8 +7,8 @@
  */
 
 const path = require('path');
-require('dotenv').config({ path: path.resolve(__dirname, '../.env'), override: true });
-require('dotenv').config({ path: path.resolve(__dirname, '../../.env') });
+require('dotenv').config({ path: path.resolve(__dirname, '../.env'), override: false });
+require('dotenv').config({ path: path.resolve(__dirname, '../../.env'), override: false });
 
 const { validateEnv } = require('./utils/validateEnv');
 validateEnv(); // Exit immediately if required env vars are missing
