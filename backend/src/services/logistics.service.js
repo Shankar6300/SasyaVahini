@@ -18,7 +18,7 @@ const sourcingService = require('./sourcing.service');
 const twoTierLogisticsService = require('./twoTierLogistics.service');
 const routingService = require('./routing.service');
 const logisticsEvents = require('../events/logisticsEvents');
-const { NotFoundError, ConflictError, BusinessRuleError } = require('../utils/errors');
+const { NotFoundError, ConflictError, BusinessRuleError, ValidationError } = require('../utils/errors');
 const { generateDeliveryOtp, verifyDeliveryOtp } = require('../utils/cryptoOtp');
 const logger = require('../utils/logger');
 const prisma = require('../lib/prisma');
@@ -209,14 +209,21 @@ class LogisticsService {
       return this.toApiShipment(existing);
     }
 
+    // TODO: Member 1 (Buyer Lead) - buyer delivery coordinates must be populated via BuyerAddress model geocoding rather than logistics fallback
+    if (order.deliveryLatitude == null || order.deliveryLongitude == null) {
+      throw new ValidationError(
+        `Order ${orderId} is missing deliveryLatitude/deliveryLongitude. Accurate geocoded delivery coordinates are required for route planning.`
+      );
+    }
+
     // If no plan provided, run auto-plan with order details
     let plan = chosenPlan;
     if (!plan) {
       const planResult = await sourcingService.planOrder({
         crop: order.cropName || 'Produce',
         qtyKg: order.totalQuantityKg,
-        buyerLat: order.deliveryLatitude || 18.5089,
-        buyerLng: order.deliveryLongitude || 73.9260,
+        buyerLat: order.deliveryLatitude,
+        buyerLng: order.deliveryLongitude,
         buyerAddress: order.deliveryAddress,
       });
 
@@ -263,8 +270,8 @@ class LogisticsService {
       id: `stop_${stops.length + 1}`,
       sequence: stops.length + 1,
       stopName: `Delivery: ${order.buyerName || 'Buyer Hub'}`,
-      latitude: order.deliveryLatitude || 18.5089,
-      longitude: order.deliveryLongitude || 73.9260,
+      latitude: order.deliveryLatitude,
+      longitude: order.deliveryLongitude,
       quantityKg: order.totalQuantityKg,
       status: 'PENDING',
       stopType: 'DELIVERY',

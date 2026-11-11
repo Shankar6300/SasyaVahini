@@ -30,8 +30,9 @@ class PrismaOrderRepo {
         agreedPriceTotal: order.agreedPriceTotal,
         status: order.status,
         deliveryAddress: order.deliveryAddress,
-        deliveryLatitude: order.deliveryLatitude || 18.5089, // Hadapsar fallback
-        deliveryLongitude: order.deliveryLongitude || 73.9260,
+        // TODO: Member 1 (Buyer Lead) - buyer delivery coordinates must be populated via BuyerAddress model geocoding rather than logistics fallback
+        deliveryLatitude: order.deliveryLatitude != null ? order.deliveryLatitude : null,
+        deliveryLongitude: order.deliveryLongitude != null ? order.deliveryLongitude : null,
         scheduledDelivery: order.scheduledDelivery ? order.scheduledDelivery.toISOString() : null,
         createdAt: order.createdAt.toISOString(),
       };
@@ -61,8 +62,9 @@ class PrismaOrderRepo {
         agreedPriceTotal: o.agreedPriceTotal,
         status: o.status,
         deliveryAddress: o.deliveryAddress,
-        deliveryLatitude: o.deliveryLatitude || 18.5089,
-        deliveryLongitude: o.deliveryLongitude || 73.9260,
+        // TODO: Member 1 (Buyer Lead) - buyer delivery coordinates must be populated via BuyerAddress model geocoding rather than logistics fallback
+        deliveryLatitude: o.deliveryLatitude != null ? o.deliveryLatitude : null,
+        deliveryLongitude: o.deliveryLongitude != null ? o.deliveryLongitude : null,
         scheduledDelivery: o.scheduledDelivery ? o.scheduledDelivery.toISOString() : null,
         createdAt: o.createdAt.toISOString(),
       }));
