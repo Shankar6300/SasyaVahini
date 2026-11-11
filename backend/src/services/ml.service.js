@@ -295,6 +295,26 @@ async function rollbackModel() {
   return await res.json();
 }
 
+async function syncLiveData() {
+  const res = await fetch(`${ML_SERVICE_URL}/mlops/sync-live-data`, {
+    method: 'POST',
+    headers: { 'Accept': 'application/json' },
+    signal: AbortSignal.timeout(30000),
+  });
+  if (!res.ok) throw new Error(`Live sync returned ${res.status}`);
+  return await res.json();
+}
+
+async function getLiveState() {
+  const res = await fetch(`${ML_SERVICE_URL}/mlops/live-state`, {
+    method: 'GET',
+    headers: { 'Accept': 'application/json' },
+    signal: AbortSignal.timeout(5000),
+  });
+  if (!res.ok) throw new Error(`Get live state returned ${res.status}`);
+  return await res.json();
+}
+
 module.exports = {
   checkHealth,
   predictDemand,
@@ -303,5 +323,7 @@ module.exports = {
   getMLOpsDrift,
   retrainModel,
   rollbackModel,
+  syncLiveData,
+  getLiveState,
 };
 

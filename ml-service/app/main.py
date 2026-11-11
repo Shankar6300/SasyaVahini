@@ -13,7 +13,8 @@ Endpoints:
 """
 
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, HTTPException
+import asyncio
+from fastapi import FastAPI, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import CORS_ORIGINS, MODEL_VERSION
@@ -31,6 +32,12 @@ from app.mlops.model_registry import (
     get_active_model_metadata,
     rollback_champion,
 )
+from app.mlops.live_sync import (
+    get_live_market_state,
+    live_sync_daemon_loop,
+    run_sync_in_background,
+    sync_live_agmarknet_data,
+)
 from app.schemas import (
     DemandForecastRequest,
     DemandForecastResponse,
@@ -42,14 +49,23 @@ from app.schemas import (
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Load ML models on startup."""
+    """Load ML models on startup and initiate autonomous live mandi sync daemon."""
     print("[ML Service] Starting up — loading advanced quantile models...")
     loaded = load_models()
     if not loaded:
         print("[ML Service] Models not found — endpoints will use microeconomic fallback")
         print("[ML Service] Run 'python -m app.training.train' to train models")
+
+    # Start background live mandi sync daemon (runs every 6 hours)
+    sync_task = asyncio.create_task(live_sync_daemon_loop(interval_hours=6.0))
     yield
-    print("[ML Service] Shutting down")
+    print("[ML Service] Shutting down — cancelling live sync daemon")
+    sync_task.cancel()
+    try:
+        await sync_task
+    except asyncio.CancelledError:
+        pass
+    print("[ML Service] Shutdown complete")
 
 
 app = FastAPI(
@@ -112,6 +128,7 @@ def predict_demand_endpoint(req: DemandForecastRequest):
             previous_demand_kg=req.previous_demand_kg,
             current_supply_kg=req.current_supply_kg,
             temperature_celsius=req.temperature_celsius,
+            current_price_per_kg=req.current_price_per_kg,
         )
         return DemandForecastResponse(**result)
     except Exception as e:
@@ -135,6 +152,7 @@ def recommend_price_endpoint(req: PriceRecommendRequest):
             current_supply_kg=req.current_supply_kg,
             predicted_demand_kg=req.predicted_demand_kg,
             historical_price_per_kg=req.historical_price_per_kg,
+            current_price_per_kg=req.current_price_per_kg,
             transit_days=req.transit_days or 1.5,
         )
         return PriceRecommendResponse(**result)
@@ -201,4 +219,24 @@ def mlops_rollback():
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Rollback failed: {str(e)}")
+
+
+@app.post("/mlops/sync-live-data")
+async def mlops_sync_live(background_tasks: BackgroundTasks):
+    """
+    Triggers an immediate live data synchronization from api.data.gov.in (Agmarknet).
+    Updates rolling market state and sends an alert.
+    """
+    try:
+        # Run sync in background or wait for it
+        result = await run_sync_in_background()
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Live sync failed: {str(e)}")
+
+
+@app.get("/mlops/live-state")
+def mlops_get_live_state():
+    """Returns the currently active live market state with all commodity spot rates."""
+    return get_live_market_state()
 

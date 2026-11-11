@@ -100,6 +100,32 @@ async function rollbackModel(req, res, next) {
   }
 }
 
+/**
+ * POST /api/ml/mlops/sync-live-data
+ */
+async function syncLiveData(req, res, next) {
+  try {
+    const result = await mlService.syncLiveData();
+    return sendSuccess(res, result, 'Live Agmarknet market data synchronized');
+  } catch (err) {
+    logger.error('ML Controller syncLiveData error', { error: err.message });
+    return next(err);
+  }
+}
+
+/**
+ * GET /api/ml/mlops/live-state
+ */
+async function getLiveState(req, res, next) {
+  try {
+    const result = await mlService.getLiveState();
+    return sendSuccess(res, result);
+  } catch (err) {
+    logger.error('ML Controller getLiveState error', { error: err.message });
+    return next(err);
+  }
+}
+
 module.exports = {
   getHealth,
   predictDemand,
@@ -108,5 +134,7 @@ module.exports = {
   getMLOpsDrift,
   retrainModel,
   rollbackModel,
+  syncLiveData,
+  getLiveState,
 };
 

@@ -71,6 +71,16 @@ export async function triggerRollback() {
   return res.data?.data || res.data;
 }
 
+export async function syncLiveMandiData() {
+  const res = await api.post('/ml/mlops/sync-live-data');
+  return res.data?.data || res.data;
+}
+
+export async function getLiveMarketState() {
+  const res = await api.get('/ml/mlops/live-state');
+  return res.data?.data || res.data;
+}
+
 export default {
   getDemandForecast,
   getPriceRecommendation,
@@ -79,5 +89,7 @@ export default {
   getMLOpsDrift,
   triggerRetrain,
   triggerRollback,
+  syncLiveMandiData,
+  getLiveMarketState,
 };
 

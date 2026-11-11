@@ -30,6 +30,8 @@ router.get('/mlops/status', mlController.getMLOpsStatus);
 router.get('/mlops/drift', mlController.getMLOpsDrift);
 router.post('/mlops/retrain', mlController.retrainModel);
 router.post('/mlops/rollback', mlController.rollbackModel);
+router.post('/mlops/sync-live-data', mlController.syncLiveData);
+router.get('/mlops/live-state', mlController.getLiveState);
 
 module.exports = router;
 
