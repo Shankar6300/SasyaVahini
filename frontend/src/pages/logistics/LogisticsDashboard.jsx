@@ -66,7 +66,7 @@ export default function LogisticsDashboard() {
 
 function MainOperationsDashboard() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, switchPreviewPersona } = useAuth();
 
   const [activeTab, setActiveTab] = useState('operations'); // 'operations' | 'profile'
   const [profile, setProfile] = useState(null);
@@ -78,6 +78,13 @@ function MainOperationsDashboard() {
   const [activeShipment, setActiveShipment] = useState(null);
   const [planResult, setPlanResult] = useState(null);
   const [selectedPlan, setSelectedPlan] = useState(null);
+
+  const handleSwitchPersona = async (newPersona) => {
+    if (switchPreviewPersona) {
+      switchPreviewPersona(newPersona);
+    }
+    await loadDashboardData();
+  };
 
   // Vehicle Management & Verification Modal States
   const [isAddVehicleOpen, setIsAddVehicleOpen] = useState(false);
@@ -363,6 +370,71 @@ function MainOperationsDashboard() {
 
   return (
     <div className="main-content space-y-6">
+      {/* ─── Transporter Persona Scope Switcher (Individual vs Fleet Organization) ─── */}
+      <div className="p-3.5 rounded-xl bg-gradient-to-r from-slate-900 via-gray-900 to-emerald-950 text-white shadow-md flex flex-col md:flex-row items-start md:items-center justify-between gap-3 border border-emerald-900/40">
+        <div className="flex items-center gap-2.5">
+          <div className="w-9 h-9 rounded-lg bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center text-emerald-400 shrink-0">
+            <Truck size={20} />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] font-bold text-emerald-400 uppercase tracking-wider">Active Transporter View</span>
+              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-white/10 text-gray-200">
+                {profile?.partnerType === 'FLEET_OPERATOR'
+                  ? '🏢 Fleet Organization'
+                  : profile?.partnerType === 'INDIVIDUAL_DRIVER'
+                  ? '🪪 Individual Driver'
+                  : '🚚 Commercial Vehicle Owner'}
+              </span>
+            </div>
+            <p className="text-[11px] text-gray-300">
+              {profile?.partnerType === 'FLEET_OPERATOR'
+                ? `Showing ${vehicles.length} commercial vehicles owned by ${profile?.companyName || 'your enterprise fleet'}.`
+                : `Showing the 1 particular goods vehicle registered to ${profile?.ownerName || user?.name || 'this individual'}.`}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-1.5 bg-black/40 p-1 rounded-lg border border-white/10 shrink-0 flex-wrap">
+          <button
+            type="button"
+            onClick={() => handleSwitchPersona('VEHICLE_OWNER')}
+            className={`px-2.5 py-1.5 rounded text-[11px] font-bold transition flex items-center gap-1 ${
+              (profile?.partnerType || 'VEHICLE_OWNER') === 'VEHICLE_OWNER'
+                ? 'bg-emerald-600 text-white shadow-sm'
+                : 'text-gray-300 hover:text-white hover:bg-white/10'
+            }`}
+            title="Switch to single vehicle owner operator (1 truck)"
+          >
+            🚚 Vehicle Owner (1 Truck)
+          </button>
+          <button
+            type="button"
+            onClick={() => handleSwitchPersona('INDIVIDUAL_DRIVER')}
+            className={`px-2.5 py-1.5 rounded text-[11px] font-bold transition flex items-center gap-1 ${
+              profile?.partnerType === 'INDIVIDUAL_DRIVER'
+                ? 'bg-emerald-600 text-white shadow-sm'
+                : 'text-gray-300 hover:text-white hover:bg-white/10'
+            }`}
+            title="Switch to individual commercial driver (1 vehicle & DL)"
+          >
+            🪪 Individual Driver (1 Truck)
+          </button>
+          <button
+            type="button"
+            onClick={() => handleSwitchPersona('FLEET_OPERATOR')}
+            className={`px-2.5 py-1.5 rounded text-[11px] font-bold transition flex items-center gap-1 ${
+              profile?.partnerType === 'FLEET_OPERATOR'
+                ? 'bg-emerald-600 text-white shadow-sm'
+                : 'text-gray-300 hover:text-white hover:bg-white/10'
+            }`}
+            title="Switch to enterprise fleet organization (multiple vehicles)"
+          >
+            🏢 Fleet Organization
+          </button>
+        </div>
+      </div>
+
       {/* ─── Module Sub-Navigation Bar ───────────────────────────────────────── */}
       <div className="logistics-subnav flex items-center justify-between" style={{ borderColor: 'var(--color-border)' }}>
         <div className="flex items-center gap-1.5 overflow-x-auto">
@@ -832,19 +904,19 @@ function MainOperationsDashboard() {
 
             <div className="space-y-3 text-xs">
               <div className="flex justify-between items-center p-2 rounded bg-gray-50">
-                <span className="text-secondary">Total Registered Fleet:</span>
-                <span className="font-bold text-gray-900">{vehicles.length || 10} Vehicles</span>
+                <span className="text-secondary">Registered Goods Vehicles:</span>
+                <span className="font-bold text-gray-900">{vehicles.length} {vehicles.length === 1 ? 'Vehicle' : 'Vehicles'}</span>
               </div>
               <div className="flex justify-between items-center p-2 rounded bg-emerald-50 text-emerald-800">
                 <span>Available for Dispatch:</span>
                 <span className="font-bold">
-                  {vehicles.filter((v) => v.status === 'AVAILABLE').length || 7} Ready
+                  {vehicles.filter((v) => v.status === 'AVAILABLE').length} Ready
                 </span>
               </div>
               <div className="flex justify-between items-center p-2 rounded bg-purple-50 text-purple-800">
                 <span>Active in Transit:</span>
                 <span className="font-bold">
-                  {vehicles.filter((v) => v.status === 'ASSIGNED' || v.status === 'IN_TRANSIT').length || 3} En Route
+                  {vehicles.filter((v) => v.status === 'ASSIGNED' || v.status === 'IN_TRANSIT').length} En Route
                 </span>
               </div>
             </div>

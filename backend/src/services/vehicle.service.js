@@ -168,8 +168,12 @@ class VehicleService {
           if (profile) {
             whereClause.logisticsId = profile.id;
           } else {
-            if (user.id === 'dev-logistics-preview') {
-              return inMemoryFleet;
+            if (user.id === 'dev-logistics-preview' || user.id?.startsWith('dev-logistics')) {
+              if (user.partnerType === 'FLEET_OPERATOR') {
+                return inMemoryFleet.slice(0, 3);
+              }
+              // For individual driver or vehicle owner, strictly return only 1 particular vehicle
+              return inMemoryFleet.slice(0, 1);
             }
             return [];
           }
@@ -907,47 +911,78 @@ class VehicleService {
   }
 
   async getProfile(userId) {
-    if (!prisma.logisticsProfile) return null;
-
-    const profile = await prisma.logisticsProfile.findUnique({
-      where: { userId },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            phone: true,
-            email: true,
-            role: true,
-            status: true,
-            createdAt: true,
-          },
-        },
-        vehicles: {
+    if (prisma.logisticsProfile) {
+      try {
+        const profile = await prisma.logisticsProfile.findUnique({
+          where: { userId },
           include: {
-            documents: true,
+            user: {
+              select: {
+                id: true,
+                name: true,
+                phone: true,
+                email: true,
+                role: true,
+                status: true,
+                createdAt: true,
+              },
+            },
+            vehicles: {
+              include: {
+                documents: true,
+              },
+              orderBy: { createdAt: 'desc' },
+            },
           },
-          orderBy: { createdAt: 'desc' },
+        });
+
+        if (profile) {
+          const totalVehicles = profile.vehicles.length;
+          const verifiedVehicles = profile.vehicles.filter((v) => v.verificationStatus === 'VERIFIED').length;
+          const pendingVehicles = profile.vehicles.filter((v) => v.verificationStatus === 'PENDING').length;
+          const rejectedVehicles = profile.vehicles.filter((v) => v.verificationStatus === 'REJECTED').length;
+
+          return {
+            ...profile,
+            stats: {
+              totalVehicles,
+              verifiedVehicles,
+              pendingVehicles,
+              rejectedVehicles,
+            },
+          };
+        }
+      } catch (err) {
+        logger.warn('Failed to query DB for logistics profile', { error: err.message });
+      }
+    }
+
+    // Mock fallback when DB is disconnected
+    if (userId?.startsWith('dev-logistics') || process.env.LOGISTICS_DATA_SOURCE === 'mock') {
+      const isDriver = userId?.includes('driver');
+      const isOrg = userId?.includes('org');
+      const mockVehs = isOrg ? inMemoryFleet.slice(0, 3) : inMemoryFleet.slice(0, 1);
+      return {
+        id: `mock_profile_${userId}`,
+        userId,
+        partnerType: isOrg ? 'FLEET_OPERATOR' : isDriver ? 'INDIVIDUAL_DRIVER' : 'VEHICLE_OWNER',
+        companyName: isOrg ? 'Sahyadri Agro Logistics Pvt Ltd' : isDriver ? 'Santosh Gaikwad (Commercial Driver)' : 'Patil Agro Transport',
+        ownerName: isOrg ? null : isDriver ? 'Santosh Gaikwad' : 'Ramesh Patil',
+        phone: isOrg ? '+919822014000' : isDriver ? '+919833001122' : '+919822099881',
+        verificationStatus: 'VERIFIED',
+        licenseVerified: true,
+        driverVerified: true,
+        vehicles: mockVehs,
+        stats: {
+          totalVehicles: mockVehs.length,
+          verifiedVehicles: mockVehs.length,
+          pendingVehicles: 0,
+          rejectedVehicles: 0,
         },
-      },
-    });
+      };
+    }
 
-    if (!profile) return null;
-
-    const totalVehicles = profile.vehicles.length;
-    const verifiedVehicles = profile.vehicles.filter((v) => v.verificationStatus === 'VERIFIED').length;
-    const pendingVehicles = profile.vehicles.filter((v) => v.verificationStatus === 'PENDING').length;
-    const rejectedVehicles = profile.vehicles.filter((v) => v.verificationStatus === 'REJECTED').length;
-
-    return {
-      ...profile,
-      stats: {
-        totalVehicles,
-        verifiedVehicles,
-        pendingVehicles,
-        rejectedVehicles,
-      },
-    };
+    return null;
   }
 
   /**
