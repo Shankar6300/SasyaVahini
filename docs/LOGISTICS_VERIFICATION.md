@@ -371,3 +371,16 @@ The automated end-to-end integration test suite was executed against the running
    - Click **"Approve"** for 1-click verification.
    - Click **"Reject"** to open the rejection modal and record specific compliance failure reasons.
 5. Review the **Driver & Transport Partner KYC** tab to verify commercial driving licences, permitted classes, emergency contacts, and direct bank settlement details.
+
+
+---
+
+### 13.3 Frontend Icon Resolution & Production Build (Hotfix)
+
+- **Issue**: Vite runtime threw `ReferenceError: Plus is not defined` when rendering `LogisticsDashboard.jsx` at `+ Register New Vehicle`.
+- **Root Cause**: The merge from `origin/integration` updated the Lucide icon imports, omitting `Plus`, `XCircle`, `Clock`, `Eye`, and `ShieldCheck` from the module imports of `LogisticsDashboard.jsx`.
+- **Resolution**:
+  1. Updated `frontend/src/pages/logistics/LogisticsDashboard.jsx` to explicitly import `Plus`, `XCircle`, `Clock`, `Eye`, `ShieldCheck` alongside existing icons (`Truck`, `RotateCw`, `Navigation`, `CheckCircle`, `Layers`, `MapPin`, `ExternalLink`, `Thermometer`, `Package`, `Calendar`, `Sliders`).
+  2. Executed a comprehensive AST/regex icon scan across all JSX components in `frontend/src` to ensure zero missing component imports across Buyer, Farmer, FPO, and Logistics dashboards.
+  3. Rebuilt the frontend production bundle (`npm run build --workspace=frontend`) producing `dist/assets/index-bKm2UB3B.js` (1,080.60 kB) cleanly.
+  4. Rebuilt and redeployed `sasyavahini-frontend-1` in Docker; verified HTTP 200 OK responses on `http://localhost:8080/` and verified all 5 microservices remain healthy.

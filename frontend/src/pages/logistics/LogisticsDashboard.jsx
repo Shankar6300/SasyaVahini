@@ -1,17 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
-import {
-  Truck,
-  RotateCw,
-  Navigation,
-  CheckCircle,
-  Layers,
-  MapPin,
-  ExternalLink,
-  Thermometer,
-  Package,
-  Calendar,
-  Sliders,
+import {
+  Truck,
+  RotateCw,
+  Navigation,
+  CheckCircle,
+  Layers,
+  MapPin,
+  ExternalLink,
+  Thermometer,
+  Package,
+  Calendar,
+  Sliders,
+  Plus,
+  XCircle,
+  Clock,
+  Eye,
+  ShieldCheck,
 } from 'lucide-react';
 import logisticsApi from '../../services/logisticsApi';
 import LiveMap from '../../components/logistics/LiveMap';
