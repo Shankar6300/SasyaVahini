@@ -384,3 +384,39 @@ The automated end-to-end integration test suite was executed against the running
   2. Executed a comprehensive AST/regex icon scan across all JSX components in `frontend/src` to ensure zero missing component imports across Buyer, Farmer, FPO, and Logistics dashboards.
   3. Rebuilt the frontend production bundle (`npm run build --workspace=frontend`) producing `dist/assets/index-bKm2UB3B.js` (1,080.60 kB) cleanly.
   4. Rebuilt and redeployed `sasyavahini-frontend-1` in Docker; verified HTTP 200 OK responses on `http://localhost:8080/` and verified all 5 microservices remain healthy.
+
+
+---
+
+## 14. Multi-Tenant Vehicle Scoping, Document Privacy & Logistics Profile Module
+
+### 14.1 Security & Data Isolation Architecture
+
+To prevent data leaks and unauthorized document access between commercial transport partners, strict multi-tenant isolation was enforced across both the API and UI layers:
+
+1. **Role-Based Fleet Scoping (`GET /api/logistics/vehicles`)**:
+   - **Enterprise Fleet Operator (`FLEET_OPERATOR`)**: Scoped strictly to `logisticsId = profile.id`. Displays only vehicles registered under the organization's business profile.
+   - **Individual Driver (`DRIVER` / `INDIVIDUAL_DRIVER`)**: Displays only vehicles assigned to or registered by the driver.
+   - **Vehicle Owner (`VEHICLE_OWNER`)**: Displays only vehicles owned and registered by the individual owner.
+   - **DoCA System Administrator (`ADMIN`)**: Retains full administrative visibility across all registered operators in `/admin`.
+   - **Seed Fleet Suppression**: Global demo vehicles are suppressed for real registered logistics partners to prevent data leakage and confusion.
+
+2. **Cross-Tenant IDOR Protection (`GET /api/logistics/vehicles/:id`)**:
+   - Access to vehicle technical specifications and uploaded statutory certificates (RC, Commercial Insurance, Fitness, Permit, PUC, Road Tax) is guarded by tenant ownership validation.
+   - Any cross-tenant attempt returns `HTTP 403 Forbidden` (`AuthorizationError: Access denied: You do not have permission to view vehicles outside your registered fleet`).
+
+3. **Logistics Profile & KYC Vault API (`/api/logistics/profile`)**:
+   - `GET /api/logistics/profile`: Fetches complete identity credentials, partner classification, uploaded documents, banking payout details, and aggregate fleet statistics (`totalVehicles`, `verifiedVehicles`, `pendingVehicles`, `rejectedVehicles`).
+   - `PUT /api/logistics/profile`: Securely updates company credentials, emergency contacts, operating service corridors, banking details, or document URLs.
+
+4. **Transporter Frontend & Organization Profile View (`LogisticsDashboard.jsx` & `LogisticsProfileView.jsx`)**:
+   - **Subnavigation Tabs**: "Overview & Fleet Operations" vs "🏢 Organization Profile & KYC" (or "🪪 Driver Profile & DL" / "🚚 Owner Profile & Bank").
+   - **Dedicated Profile View (`LogisticsProfileView.jsx`)**:
+     - **Organization View (`FLEET_OPERATOR`)**: Company Name, Business Registration Number (CIN/LLPIN), Ownership Type, PAN, GSTIN, Operating Corridors, Uploaded Business Certificate card (with external view/download link), Direct DBT freight settlement account details.
+     - **Driver View (`DRIVER` / `INDIVIDUAL_DRIVER`)**: Driver Name, Commercial DL Number, Validity Expiry, Permitted Vehicle Classes (`LMV`, `LMV-TR`, `HGMV`, `HTV`), DL Front and Back document preview cards, Emergency Contact.
+     - **Vehicle Owner View (`VEHICLE_OWNER`)**: Owner Name, Contact Phone, Operating Districts, Fleet count, Bank details.
+     - **DoCA Statutory Verification Banner**: Displays current statutory audit status (`VERIFIED` / `PENDING RTO AUDIT` / `REJECTED` with compliance officer remarks).
+     - **Edit Profile Modal**: Allows instant editing of business details, contacts, and bank credentials with live synchronization.
+   - **Tenant-Scoped Vehicle Table**:
+     - Dynamic header based on classification: `"{Company Name} — Corporate Commercial Fleet"` or `"{Owner Name}'s Goods Vehicles"` or `"My Assigned Commercial Vehicle"`.
+     - Zero-vehicle clean empty-state explaining strict tenant privacy and providing a 1-click `+ Register Your Vehicle` CTA.

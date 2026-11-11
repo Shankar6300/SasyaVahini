@@ -14,6 +14,7 @@ const config = require('../config/logistics.config');
 const { haversineKm } = require('../utils/geo');
 const logger = require('../utils/logger');
 const prisma = require('../lib/prisma');
+const { AuthorizationError, NotFoundError } = require('../utils/errors');
 
 // 10 Pune Agricultural Zone Seed Vehicles
 const SEED_VEHICLES = [
@@ -146,7 +147,7 @@ class VehicleService {
   /**
    * Return fleet vehicles (from DB if available, else in-memory seed)
    */
-  async listVehicles(query = {}) {
+  async listVehicles(query = {}, user = null) {
     let dbVehicles = [];
     if (prisma.vehicle) {
       try {
@@ -154,7 +155,26 @@ class VehicleService {
         if (query.status) whereClause.status = query.status;
         if (query.category) whereClause.category = query.category;
         if (query.verificationStatus) whereClause.verificationStatus = query.verificationStatus;
-        if (query.logisticsId) whereClause.logisticsId = query.logisticsId;
+
+        // MULTI-TENANT ISOLATION:
+        // A logged-in transport partner must ONLY see vehicles registered under their own profile/organization.
+        if (user && user.role === 'LOGISTICS') {
+          const profile = await prisma.logisticsProfile.findUnique({
+            where: { userId: user.id },
+            include: { user: { select: { id: true, name: true, phone: true } } },
+          });
+
+          if (profile) {
+            whereClause.logisticsId = profile.id;
+          } else {
+            if (user.id === 'dev-logistics-preview') {
+              return inMemoryFleet;
+            }
+            return [];
+          }
+        } else if (query.logisticsId) {
+          whereClause.logisticsId = query.logisticsId;
+        }
 
         dbVehicles = await prisma.vehicle.findMany({
           where: whereClause,
@@ -166,12 +186,17 @@ class VehicleService {
           },
           orderBy: { createdAt: 'desc' },
         });
+
+        // For logged-in transport partners, NEVER leak inMemoryFleet or other organizations' vehicles
+        if (user && user.role === 'LOGISTICS') {
+          return dbVehicles;
+        }
       } catch (err) {
         logger.warn('Failed to query DB for vehicles, using in-memory fleet', { error: err.message });
       }
     }
 
-    // Merge DB vehicles with non-duplicate seed vehicles so demo scenarios continue working
+    // Merge DB vehicles with non-duplicate seed vehicles only for admin or anonymous optimizer queries
     const dbNumbers = new Set(dbVehicles.map((v) => (v.vehicleNumber || '').toUpperCase()));
     let resultFleet = [...dbVehicles];
 
@@ -197,10 +222,11 @@ class VehicleService {
   /**
    * Find vehicle by ID
    */
-  async findById(vehicleId) {
+  async findById(vehicleId, user = null) {
+    let v = null;
     if (prisma.vehicle) {
       try {
-        const v = await prisma.vehicle.findFirst({
+        v = await prisma.vehicle.findFirst({
           where: {
             OR: [{ id: vehicleId }, { vehicleNumber: vehicleId.toUpperCase() }],
           },
@@ -211,12 +237,29 @@ class VehicleService {
             documents: true,
           },
         });
-        if (v) return v;
       } catch (err) {
         logger.warn('Prisma find vehicle failed, using in-memory', { error: err.message });
       }
     }
-    return inMemoryFleet.find((v) => v.id === vehicleId || v.vehicleNumber === vehicleId) || null;
+    if (!v) {
+      v = inMemoryFleet.find((item) => item.id === vehicleId || item.vehicleNumber === vehicleId) || null;
+    }
+    if (!v) return null;
+
+    // Tenant authorization check
+    if (user && user.role === 'LOGISTICS') {
+      const profile = await prisma.logisticsProfile.findUnique({
+        where: { userId: user.id },
+      });
+      if (!profile) {
+        if (user.id === 'dev-logistics-preview') return v;
+        throw new AuthorizationError('Access denied: You do not have permission to view this vehicle.');
+      }
+      if (v.logisticsId && v.logisticsId !== profile.id) {
+        throw new AuthorizationError('Access denied: You do not have permission to view vehicles outside your registered fleet.');
+      }
+    }
+    return v;
   }
 
   /**
@@ -657,6 +700,129 @@ class VehicleService {
       pendingPartners,
       allPartners,
     };
+  }
+
+  /**
+   * Retrieve logged-in logistics partner's complete profile, classification, documents & fleet metrics
+   */
+  async getProfile(userId) {
+    if (!prisma.logisticsProfile) return null;
+
+    const profile = await prisma.logisticsProfile.findUnique({
+      where: { userId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            phone: true,
+            email: true,
+            role: true,
+            status: true,
+            createdAt: true,
+          },
+        },
+        vehicles: {
+          include: {
+            documents: true,
+          },
+          orderBy: { createdAt: 'desc' },
+        },
+      },
+    });
+
+    if (!profile) return null;
+
+    const totalVehicles = profile.vehicles.length;
+    const verifiedVehicles = profile.vehicles.filter((v) => v.verificationStatus === 'VERIFIED').length;
+    const pendingVehicles = profile.vehicles.filter((v) => v.verificationStatus === 'PENDING').length;
+    const rejectedVehicles = profile.vehicles.filter((v) => v.verificationStatus === 'REJECTED').length;
+
+    return {
+      ...profile,
+      stats: {
+        totalVehicles,
+        verifiedVehicles,
+        pendingVehicles,
+        rejectedVehicles,
+      },
+    };
+  }
+
+  /**
+   * Update logged-in logistics partner's profile & credentials
+   */
+  async updateProfile(userId, updateData = {}) {
+    if (!prisma.logisticsProfile) return null;
+
+    const existing = await prisma.logisticsProfile.findUnique({ where: { userId } });
+    if (!existing) {
+      throw new NotFoundError('Logistics profile');
+    }
+
+    const allowed = [
+      'companyName',
+      'ownerName',
+      'emergencyContact',
+      'serviceStates',
+      'serviceDistricts',
+      'ownershipType',
+      'panNumber',
+      'gstin',
+      'businessRegNo',
+      'businessCertUrl',
+      'profilePhotoUrl',
+      'drivingLicenceNo',
+      'licenceExpiry',
+      'permittedClasses',
+      'licenceFrontUrl',
+      'licenceBackUrl',
+      'accountHolderName',
+      'bankName',
+      'accountNumber',
+      'ifscCode',
+    ];
+
+    const dataToUpdate = {};
+    for (const key of allowed) {
+      if (updateData[key] !== undefined) {
+        if (key === 'licenceExpiry' && updateData[key]) {
+          dataToUpdate[key] = new Date(updateData[key]);
+        } else {
+          dataToUpdate[key] = updateData[key];
+        }
+      }
+    }
+
+    if (updateData.name || updateData.phone) {
+      await prisma.user.update({
+        where: { id: userId },
+        data: {
+          name: updateData.name !== undefined ? updateData.name : undefined,
+          phone: updateData.phone !== undefined ? updateData.phone : undefined,
+        },
+      });
+    }
+
+    return await prisma.logisticsProfile.update({
+      where: { userId },
+      data: dataToUpdate,
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            phone: true,
+            email: true,
+            role: true,
+            status: true,
+          },
+        },
+        vehicles: {
+          include: { documents: true },
+        },
+      },
+    });
   }
 
 }

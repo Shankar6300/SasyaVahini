@@ -177,6 +177,29 @@ router.patch(
   controller.verifyDocument,
 );
 
+// GET /api/logistics/profile (Partner KYC profile, organization credentials & documents)
+router.get(
+  '/profile',
+  authenticate,
+  requireRole(['LOGISTICS', 'ADMIN']),
+  controller.getProfile,
+);
+
+// PUT /api/logistics/profile (Update partner profile / credentials)
+router.put(
+  '/profile',
+  authenticate,
+  requireRole(['LOGISTICS', 'ADMIN']),
+  controller.updateProfile,
+);
+
+router.patch(
+  '/profile',
+  authenticate,
+  requireRole(['LOGISTICS', 'ADMIN']),
+  controller.updateProfile,
+);
+
 router.get(
   '/vehicles',
   authenticate,

@@ -130,7 +130,7 @@ const getShipmentById = async (req, res, next) => {
 
 const listVehicles = async (req, res, next) => {
   try {
-    const vehicles = await vehicleService.listVehicles(req.query);
+    const vehicles = await vehicleService.listVehicles(req.query, req.user);
     return sendSuccess(res, vehicles);
   } catch (err) {
     next(err);
@@ -228,11 +228,35 @@ const createVehicle = async (req, res, next) => {
 
 const getVehicleDetail = async (req, res, next) => {
   try {
-    const vehicle = await vehicleService.findById(req.params.id);
+    const vehicle = await vehicleService.findById(req.params.id, req.user);
     if (!vehicle) {
       return res.status(404).json({ success: false, error: 'Vehicle not found' });
     }
     return sendSuccess(res, vehicle);
+  } catch (err) {
+    next(err);
+  }
+};
+
+const getProfile = async (req, res, next) => {
+  try {
+    const profile = await vehicleService.getProfile(req.user.id);
+    if (!profile) {
+      return res.status(404).json({
+        success: false,
+        error: 'Logistics profile not found. Please register as a transport partner first.',
+      });
+    }
+    return sendSuccess(res, profile);
+  } catch (err) {
+    next(err);
+  }
+};
+
+const updateProfile = async (req, res, next) => {
+  try {
+    const profile = await vehicleService.updateProfile(req.user.id, req.body);
+    return sendSuccess(res, profile);
   } catch (err) {
     next(err);
   }
@@ -312,4 +336,6 @@ module.exports = {
   getOrderMap,
   getSavingsAnalytics,
   streamTracking,
+  getProfile,
+  updateProfile,
 };

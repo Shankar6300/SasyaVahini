@@ -316,6 +316,18 @@ export const logisticsApi = {
     const res = await api.get('/logistics/analytics/savings');
     return res.data.data;
   },
+
+  // Get logged-in transport partner's profile and KYC credentials
+  getProfile: async () => {
+    const res = await api.get('/logistics/profile');
+    return res.data.data;
+  },
+
+  // Update transport partner's profile / organization details
+  updateProfile: async (payload) => {
+    const res = await api.put('/logistics/profile', payload);
+    return res.data.data;
+  },
 };
 
 export default logisticsApi;
