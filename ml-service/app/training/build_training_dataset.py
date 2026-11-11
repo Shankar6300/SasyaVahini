@@ -101,10 +101,11 @@ def load_weather_lookup() -> dict:
     return lookup
 
 
-def build_master_market_dataset(records_per_crop: int = 5000) -> pd.DataFrame:
+def build_master_market_dataset(records_per_crop: int = 13000) -> pd.DataFrame:
     print("\n" + "=" * 70)
-    print("  SasyaVahini ML: Building Master High-Precision Dataset v4.0")
+    print("  SasyaVahini ML: Building Enterprise Multi-Year Master Dataset v5.0")
     print(f"  Target: {len(KNOWN_CROPS)} Commodities x {records_per_crop} = ~{len(KNOWN_CROPS) * records_per_crop:,} rows")
+    print("  Horizon: 2023–2026 (4-Year Longitudinal Historical Baseline + Macro Shocks)")
     print("=" * 70)
 
     rng = np.random.default_rng(seed=42)
@@ -160,7 +161,6 @@ def build_master_market_dataset(records_per_crop: int = 5000) -> pd.DataFrame:
                 prev_supply = float(supplies_kg[i - 1]) if i >= 1 else cur_supply * rng.uniform(0.92, 1.08)
                 supply_lag7 = float(supplies_kg[i - 7]) if i >= 7 else cur_supply * rng.uniform(0.88, 1.12)
 
-                # Economic market-clearing equilibrium centered on calibrated Agmarknet modal price with spatial district factor
                 dist_factor = get_district_price_factor(canonical_district)
                 district_onion_base = base_price_onion * dist_factor
                 supply_shock = (cur_supply - 18500.0) / 18500.0
@@ -170,7 +170,6 @@ def build_master_market_dataset(records_per_crop: int = 5000) -> pd.DataFrame:
                 lag1_price = max(14.0, modal_price * (1.0 + rng.normal(0, 0.025)))
                 lag7_price = max(14.0, modal_price * (1.0 + rng.normal(0, 0.05)))
 
-                # Weather signals
                 w_info = weather_lookup.get((canonical_district.lower(), month), None)
                 if w_info:
                     temp_c = w_info["temp"] + rng.normal(0, 1.0)
@@ -209,15 +208,78 @@ def build_master_market_dataset(records_per_crop: int = 5000) -> pd.DataFrame:
                 feat["_district"] = canonical_district
                 onion_records.append(feat)
 
-        print(f"      -> Ingested {len(onion_records):,} real Onion observations.")
-        if len(onion_records) > records_per_crop:
+        # Synthesize multi-year expanded records for Onion across all 36 mandis to reach target records_per_crop
+        print(f"      -> Ingested {len(onion_records):,} real Onion observations. Scaling to {records_per_crop:,} multi-year records...")
+        needed = records_per_crop - len(onion_records)
+        if needed > 0:
+            for _ in range(needed):
+                district = rng.choice(KNOWN_DISTRICTS)
+                year = int(rng.choice([2023, 2024, 2025, 2026], p=[0.25, 0.25, 0.25, 0.25]))
+                month = int(rng.integers(1, 13))
+                day = int(rng.integers(1, 28))
+                season = detect_season(month)
+                sample_dt = datetime(year, month, day)
+
+                fest_mult, _ = calculate_festival_multiplier(sample_dt, "Onion")
+                fest_flag = fest_mult > 1.08
+
+                dist_factor = get_district_price_factor(district)
+                district_onion_base = base_price_onion * dist_factor
+
+                # 2023 El Niño & export ban shock vs 2024–2026 stabilization
+                macro_shock = 1.35 if (year == 2023 and month >= 8) else (1.15 if year == 2024 and month in (3, 4) else 1.0)
+                cur_supply = 18500.0 * (1.0 + 0.25 * math.sin((month - 1) * math.pi / 6)) * (1.0 / macro_shock) * (1.0 + rng.normal(0, 0.12))
+                cur_supply = max(500.0, float(cur_supply))
+                prev_demand = 18500.0 * (1.0 + rng.normal(0, 0.08))
+                supply_lag7 = cur_supply * rng.uniform(0.90, 1.10)
+
+                supply_gap = (cur_supply - 18500.0) / 18500.0
+                modal_price = district_onion_base * macro_shock * (1.0 - (0.28 * supply_gap) + (fest_mult - 1.0) * 0.40) + rng.normal(0, 2.5)
+                modal_price = max(district_onion_base * 0.5, min(district_onion_base * 2.8, round(float(modal_price), 2)))
+
+                lag1_price = max(14.0, modal_price * (1.0 + rng.normal(0, 0.025)))
+                lag7_price = max(14.0, modal_price * (1.0 + rng.normal(0, 0.05)))
+
+                w_info = weather_lookup.get((district.lower(), month), None)
+                temp_c = w_info["temp"] if w_info else (26.0 + 8.0 * math.sin((month - 4) * math.pi / 6))
+                rain_mm = w_info["rain"] if w_info else (8.0 if season == "Kharif" else 0.5)
+
+                price_gap = (modal_price - base_price_onion) / base_price_onion
+                demand_target = cur_supply * (1.0 - (elasticity_onion * price_gap)) * fest_mult + rng.normal(0, 18500 * 0.03)
+                demand_target = max(600.0, round(float(demand_target), 1))
+
+                feat = build_advanced_feature_row(
+                    crop="Onion",
+                    district=district,
+                    month=month,
+                    day=day,
+                    year=year,
+                    season=season,
+                    festival_period=fest_flag,
+                    previous_demand_kg=prev_demand,
+                    current_supply_kg=cur_supply,
+                    supply_lag7_kg=supply_lag7,
+                    temperature_celsius=temp_c,
+                    humidity_pct=65.0 if season == "Kharif" else 45.0,
+                    rainfall_mm=rain_mm,
+                    modal_price_lag1=float(lag1_price),
+                    modal_price_lag7=float(lag7_price),
+                    export_ban_active=1.0 if (year == 2023 and month >= 8) else 0.0,
+                    climate_anomaly_risk=1.0 if year == 2023 else 0.0,
+                )
+                feat["_target_demand"] = demand_target
+                feat["_target_price"] = modal_price
+                feat["_crop"] = "Onion"
+                feat["_district"] = district
+                onion_records.append(feat)
+        elif len(onion_records) > records_per_crop:
             indices = rng.choice(len(onion_records), size=records_per_crop, replace=False)
             onion_records = [onion_records[idx] for idx in indices]
-            print(f"      -> Balanced Onion records to {len(onion_records):,} samples.")
+
         all_rows.extend(onion_records)
 
-    # ── 3. Synthesize Multi-Crop Corridors with Agronomic Ground Truth ───────
-    print(f"  [3/4] Generating multi-horizon observations across all {len(KNOWN_CROPS)} crops ({records_per_crop} samples/crop)...")
+    # ── 3. Synthesize Multi-Crop Multi-Year Corridors (2023–2026) ─────────────
+    print(f"  [3/4] Generating multi-year longitudinal observations across remaining crops ({records_per_crop} samples/crop)...")
 
     crops_to_generate = [c for c in KNOWN_CROPS if c != "Onion"] if ONION_ARRIVAL_PATH.exists() else KNOWN_CROPS
 
@@ -228,7 +290,6 @@ def build_master_market_dataset(records_per_crop: int = 5000) -> pd.DataFrame:
         elasticity = profile["price_elasticity"]
         msp_floor = profile.get("msp_floor", 0.0)
 
-        # Incorporate Agmarknet real statistics if available
         stats = crop_stats.get(crop, None)
         effective_base_price = stats["mean"] if stats and stats["mean"] > 0 else base_price
         price_sigma = stats["std"] if stats and stats["std"] > 0 else effective_base_price * 0.16
@@ -236,48 +297,48 @@ def build_master_market_dataset(records_per_crop: int = 5000) -> pd.DataFrame:
         crop_records = []
         for _ in range(records_per_crop):
             district = rng.choice(KNOWN_DISTRICTS)
+            year = int(rng.choice([2023, 2024, 2025, 2026], p=[0.25, 0.25, 0.25, 0.25]))
             month = int(rng.integers(1, 13))
             season = detect_season(month)
 
             day = int(rng.integers(1, 28))
-            sample_dt = datetime(2026, month, day)
+            sample_dt = datetime(year, month, day)
 
             fest_mult, fest_name = calculate_festival_multiplier(sample_dt, crop)
             fest_flag = fest_mult > 1.08
 
             # Seasonality harvest curve (crop-specific cycles)
             if crop in ("Tomato", "Brinjal", "Cauliflower", "Cabbage", "Capsicum", "Cucumber"):
-                # Rabi / early summer harvest peaks (Feb-April)
                 season_factor = 1.0 + 0.28 * math.sin((month - 2) * math.pi / 6)
             elif crop in ("Wheat", "Potato", "Garlic", "Lemon"):
-                # Rabi harvest (March-May)
                 season_factor = 1.0 + 0.35 * math.sin((month - 3) * math.pi / 6)
             elif crop in ("Rice", "Cotton", "Soybean", "Maize", "Turmeric"):
-                # Kharif harvest (Sept-Nov)
                 season_factor = 1.0 + 0.32 * math.sin((month - 9) * math.pi / 6)
             elif crop in ("Grapes", "Pomegranate", "Banana", "Papaya"):
-                # Horticultural harvest peaks
                 season_factor = 1.0 + 0.22 * math.sin((month - 1) * math.pi / 6)
             elif crop == "Mango":
-                # Summer Alphonso/Kesar peak (April-June)
                 season_factor = 1.0 + 0.55 * math.sin((month - 5) * math.pi / 3) if 3 <= month <= 7 else 0.45
             elif crop in ("Ginger", "Chilli"):
-                # Winter / early spring peak
                 season_factor = 1.0 + 0.25 * math.sin((month - 12) * math.pi / 6)
             else:
                 season_factor = 1.0 + 0.15 * math.sin((month - 6) * math.pi / 6)
 
-            cur_supply = base_demand * season_factor * (1.0 + rng.normal(0, 0.10))
+            # Macro shock adjustments by year:
+            # 2023 El Niño drought reduced yields; 2024 hailstorms; 2025–2026 normal
+            macro_supply_mult = 0.88 if (year == 2023 and season == "Kharif") else (0.92 if (year == 2024 and month in (2, 3)) else 1.0)
+            cur_supply = base_demand * season_factor * macro_supply_mult * (1.0 + rng.normal(0, 0.10))
             cur_supply = max(350.0, float(cur_supply))
             prev_demand = base_demand * (1.0 + rng.normal(0, 0.08))
             supply_lag7 = cur_supply * rng.uniform(0.90, 1.10)
 
-            # Price formation: inverse supply elasticity + festival pull + MSP floor support + spatial district factor
+            # Spatial price index factor
             dist_factor = get_district_price_factor(district)
             district_effective_base = effective_base_price * dist_factor
             supply_shock = (cur_supply - base_demand) / base_demand
-            modal_price = district_effective_base * (1.0 - (0.38 * supply_shock) + (fest_mult - 1.0) * 0.45) + rng.normal(0, price_sigma * 0.25)
-            # Enforce MSP floor boundary if statutory floor exists
+
+            # Macro inflation & policy shocks
+            macro_price_shock = 1.15 if (year == 2023 and crop in ("Rice", "Wheat", "Tomato")) else (1.08 if year == 2024 else 1.0)
+            modal_price = district_effective_base * macro_price_shock * (1.0 - (0.35 * supply_shock) + (fest_mult - 1.0) * 0.45) + rng.normal(0, price_sigma * 0.22)
             if msp_floor > 0:
                 modal_price = max(msp_floor * 0.95, modal_price)
             modal_price = max(district_effective_base * 0.45, min(district_effective_base * 2.5, round(float(modal_price), 2)))
@@ -296,7 +357,6 @@ def build_master_market_dataset(records_per_crop: int = 5000) -> pd.DataFrame:
 
             humidity_val = 70.0 if season == "Kharif" else 45.0 + rng.normal(0, 5.0)
 
-            # Microeconomically cleared demand target
             price_gap = (modal_price - effective_base_price) / effective_base_price
             demand_target = cur_supply * (1.0 - (elasticity * price_gap)) * fest_mult + rng.normal(0, base_demand * 0.03)
             demand_target = max(300.0, round(float(demand_target), 1))
@@ -306,7 +366,7 @@ def build_master_market_dataset(records_per_crop: int = 5000) -> pd.DataFrame:
                 district=district,
                 month=month,
                 day=day,
-                year=2026,
+                year=year,
                 season=season,
                 festival_period=fest_flag,
                 previous_demand_kg=float(prev_demand),
@@ -317,6 +377,9 @@ def build_master_market_dataset(records_per_crop: int = 5000) -> pd.DataFrame:
                 rainfall_mm=float(rain_mm),
                 modal_price_lag1=float(lag1_price),
                 modal_price_lag7=float(lag7_price),
+                export_ban_active=1.0 if (year in (2023, 2024) and crop in ("Rice", "Onion") and month >= 7) else 0.0,
+                climate_anomaly_risk=1.0 if (year == 2023 and season == "Kharif") else 0.0,
+                macro_buffer_release=1.0 if (modal_price > district_effective_base * 1.35 and crop in ("Onion", "Tomato", "Potato")) else 0.0,
             )
             feat["_target_demand"] = demand_target
             feat["_target_price"] = modal_price
@@ -327,20 +390,19 @@ def build_master_market_dataset(records_per_crop: int = 5000) -> pd.DataFrame:
         all_rows.extend(crop_records)
 
     df_master = pd.DataFrame(all_rows)
-    # Shuffle thoroughly
     df_master = df_master.sample(frac=1.0, random_state=42).reset_index(drop=True)
 
     DATA_LAKE_PATH = Path(r"D:\Projects\Capstone\data_lake\unified_training_dataset.csv")
     DATA_LAKE_PATH.parent.mkdir(parents=True, exist_ok=True)
     df_master.to_csv(DATA_LAKE_PATH, index=False)
 
-    # Save lightweight sample (50 rows per crop = 1,200 rows) for the repository
+    # Save lightweight representative sample (100 rows per crop = 2,400 rows) for the repository
     DATA_DIR.mkdir(parents=True, exist_ok=True)
-    sample_df = df_master.groupby("_crop", group_keys=False).apply(lambda g: g.head(50)).reset_index(drop=True)
+    sample_df = df_master.groupby("_crop", group_keys=False).apply(lambda g: g.head(100)).reset_index(drop=True)
     sample_df.to_csv(OUTPUT_DATASET_PATH, index=False)
 
     print("\n" + "=" * 70)
-    print("  [4/4] MASTER DATASET GENERATED SUCCESSFULLY")
+    print("  [4/4] ENTERPRISE MASTER DATASET GENERATED SUCCESSFULLY")
     print(f"  Total records: {len(df_master):,} across {df_master['_crop'].nunique()} commodities")
     print(f"  Master Data Lake: {DATA_LAKE_PATH}")
     print(f"  Repo Sample:      {OUTPUT_DATASET_PATH} ({len(sample_df)} rows)")
@@ -349,4 +411,4 @@ def build_master_market_dataset(records_per_crop: int = 5000) -> pd.DataFrame:
 
 
 if __name__ == "__main__":
-    build_master_market_dataset(records_per_crop=5000)
+    build_master_market_dataset(records_per_crop=13000)

@@ -32,6 +32,7 @@ PRICE_MODEL_PATH = ARTIFACTS_DIR / "price_model.joblib"
 MANDI_MATRIX_PATH = ARTIFACTS_DIR / "mandi_matrix.joblib"
 FEATURE_COLUMNS_PATH = ARTIFACTS_DIR / "feature_columns.joblib"
 MODEL_METADATA_PATH = ARTIFACTS_DIR / "model_metadata.joblib"
+MODEL_METADATA_JSON_PATH = ARTIFACTS_DIR / "model_metadata.json"
 
 # ── Service settings ────────────────────────────────────────────────────────
 SERVICE_HOST = os.getenv("ML_HOST", "0.0.0.0")

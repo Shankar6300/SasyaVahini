@@ -48,9 +48,65 @@ async function recommendPrice(req, res, next) {
   }
 }
 
+/**
+ * GET /api/ml/mlops/status
+ */
+async function getMLOpsStatus(req, res, next) {
+  try {
+    const status = await mlService.getMLOpsStatus();
+    return sendSuccess(res, status);
+  } catch (err) {
+    logger.error('ML Controller getMLOpsStatus error', { error: err.message });
+    return next(err);
+  }
+}
+
+/**
+ * GET /api/ml/mlops/drift
+ */
+async function getMLOpsDrift(req, res, next) {
+  try {
+    const drift = await mlService.getMLOpsDrift();
+    return sendSuccess(res, drift);
+  } catch (err) {
+    logger.error('ML Controller getMLOpsDrift error', { error: err.message });
+    return next(err);
+  }
+}
+
+/**
+ * POST /api/ml/mlops/retrain
+ */
+async function retrainModel(req, res, next) {
+  try {
+    const result = await mlService.retrainModel();
+    return sendSuccess(res, result, 'Retraining cycle initiated');
+  } catch (err) {
+    logger.error('ML Controller retrainModel error', { error: err.message });
+    return next(err);
+  }
+}
+
+/**
+ * POST /api/ml/mlops/rollback
+ */
+async function rollbackModel(req, res, next) {
+  try {
+    const result = await mlService.rollbackModel();
+    return sendSuccess(res, result, 'Champion rolled back to previous version');
+  } catch (err) {
+    logger.error('ML Controller rollbackModel error', { error: err.message });
+    return next(err);
+  }
+}
+
 module.exports = {
   getHealth,
   predictDemand,
   recommendPrice,
+  getMLOpsStatus,
+  getMLOpsDrift,
+  retrainModel,
+  rollbackModel,
 };
 

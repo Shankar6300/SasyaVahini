@@ -253,13 +253,30 @@ COMMODITY_PROFILES: Dict[str, dict] = {
 
 KNOWN_CROPS = list(COMMODITY_PROFILES.keys())
 
-# 25 Major Regional Production & Terminal APMC Districts
+# 36 Major Regional Production & Terminal APMC Districts
 KNOWN_DISTRICTS = [
+    # Maharashtra (11)
     "Pune", "Nashik", "Ahmednagar", "Solapur", "Nagpur",
-    "Satara", "Kolhapur", "Sangli", "Jalgaon", "Aurangabad",
-    "Mumbai", "Kadapa", "Kurnool", "Guntur", "Hyderabad",
-    "Bengaluru", "Indore", "Bhopal", "Jaipur", "Lucknow",
-    "Delhi", "Ahmedabad", "Surat", "Chandigarh", "Kolkata",
+    "Satara", "Kolhapur", "Sangli", "Jalgaon", "Aurangabad", "Mumbai",
+    # Andhra Pradesh & Telangana (8)
+    "Kadapa", "Kurnool", "Guntur", "Chittoor", "Hyderabad", 
+    "Warangal", "Khammam", "Anantapur",
+    # Karnataka (3)
+    "Bengaluru", "Belagavi", "Hubballi",
+    # Madhya Pradesh (2)
+    "Indore", "Bhopal",
+    # Rajasthan (1)
+    "Jaipur",
+    # Uttar Pradesh (2)
+    "Lucknow", "Varanasi",
+    # Delhi NCT (1)
+    "Delhi",
+    # Gujarat (3)
+    "Ahmedabad", "Surat", "Rajkot",
+    # Punjab & Haryana (2)
+    "Chandigarh", "Ludhiana",
+    # Eastern & Central Belts (3)
+    "Kolkata", "Patna", "Bhubaneswar",
 ]
 
 # Regional Spatial Price Index Multipliers (M_loc)
@@ -277,17 +294,27 @@ DISTRICT_PRICE_FACTORS: Dict[str, float] = {
     "Ahmedabad": 1.11,   # Jamalpur / Vasna (+11%)
     "Surat": 1.10,       # Industrial consumption (+10%)
     "Chandigarh": 1.08,  # Northern regional hub (+8%)
+    "Ludhiana": 1.08,    # Punjab grain and commercial hub (+8%)
     "Nagpur": 1.07,      # Kalamna Market (+7%)
     "Jaipur": 1.06,      # Muhana Mandi (+6%)
     "Indore": 1.05,      # Choithram Mandi (+5%)
     "Lucknow": 1.05,     # Dubagga Mandi (+5%)
+    "Patna": 1.05,       # Eastern distribution (+5%)
     "Bhopal": 1.04,      # Karond Mandi (+4%)
+    "Bhubaneswar": 1.04, # Coastal eastern hub (+4%)
+    "Rajkot": 1.02,      # Saurashtra commercial center (+2%)
 
-    # Semi-Urban Trade Centers
+    # Semi-Urban Trade Centers & Inter-state Gateways
     "Kolhapur": 0.98,
     "Aurangabad": 0.98,
+    "Belagavi": 0.98,
+    "Hubballi": 0.97,
     "Sangli": 0.97,
+    "Varanasi": 0.97,
     "Satara": 0.96,
+    "Warangal": 0.96,
+    "Khammam": 0.95,
+    "Chittoor": 0.95,
 
     # Primary Rural Harvest Belts (Heavy producer surplus, farm-gate wholesale origin)
     "Solapur": 0.95,
@@ -295,6 +322,7 @@ DISTRICT_PRICE_FACTORS: Dict[str, float] = {
     "Nashik": 0.93,      # Lasalgaon / Pimpalgaon harvest basin (-7%)
     "Jalgaon": 0.93,     # Banana & pulse belt (-7%)
     "Kadapa": 0.92,      # Rayalaseema farm belt (-8%)
+    "Anantapur": 0.92,   # Groundnut & horticulture basin (-8%)
     "Kurnool": 0.91,     # Andhra farming hub (-9%)
     "Ahmednagar": 0.91,  # Rural production cluster (-9%)
 }
@@ -480,6 +508,10 @@ def build_advanced_feature_row(
     rainfall_mm: Optional[float] = None,
     modal_price_lag1: Optional[float] = None,
     modal_price_lag7: Optional[float] = None,
+    export_ban_active: Optional[float] = None,
+    diesel_friction_index: Optional[float] = None,
+    climate_anomaly_risk: Optional[float] = None,
+    macro_buffer_release: Optional[float] = None,
 ) -> dict:
     """
     Constructs a multi-dimensional agricultural feature vector aligned with
@@ -584,7 +616,26 @@ def build_advanced_feature_row(
     )
     row["shelf_life_depreciation_factor"] = deprec["decay_fraction"]
 
-    # 6. One-hot categorical encodings across all 24 crops, 25 districts, 3 seasons
+    # 6. Multi-Scale Lagged Price Memory & Volatility
+    price_ema_3d = 0.65 * modal_price_lag1 + 0.35 * modal_price_lag7
+    price_ema_14d = 0.35 * modal_price_lag1 + 0.65 * modal_price_lag7
+    volatility_14d = abs(modal_price_lag1 - modal_price_lag7) / max(0.1, modal_price_lag1)
+    bollinger_bw = round(4.0 * volatility_14d, 4)
+
+    row["price_ema_3d"] = round(float(price_ema_3d), 2)
+    row["price_ema_14d"] = round(float(price_ema_14d), 2)
+    row["price_volatility_14d"] = round(float(volatility_14d), 4)
+    row["bollinger_bandwidth"] = round(float(bollinger_bw), 4)
+    row["arrival_glut_ratio"] = round(float(current_supply_kg) / max(1.0, float(base_demand)), 4)
+
+    # 7. Macroeconomic Shocks, Policy Interventions & Gravity Transit
+    row["export_ban_active"] = float(export_ban_active) if export_ban_active is not None else (1.0 if (crop in ("Onion", "Rice") and year in (2023, 2024) and month in (8, 9, 10, 11, 12, 1, 2)) else 0.0)
+    row["diesel_friction_index"] = float(diesel_friction_index) if diesel_friction_index is not None else round(1.0 + 0.05 * math.sin((year - 2023) * 1.5), 3)
+    row["climate_anomaly_risk"] = float(climate_anomaly_risk) if climate_anomaly_risk is not None else (1.0 if (year == 2023 and season in ("Kharif", "Rabi")) else 0.0)
+    row["macro_buffer_release"] = float(macro_buffer_release) if macro_buffer_release is not None else (1.0 if (crop in ("Onion", "Tomato") and modal_price_lag1 > base_price * 1.35) else 0.0)
+    row["gravity_transit_cost"] = round(dist_factor * 0.88, 4)
+
+    # 8. One-hot categorical encodings across all 24 crops, 36 districts, 3 seasons
     for c in KNOWN_CROPS:
         row[f"crop_{c}"] = 1.0 if c == crop else 0.0
     for d in KNOWN_DISTRICTS:

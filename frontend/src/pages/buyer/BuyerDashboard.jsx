@@ -10,6 +10,7 @@ import {
 import { useAuth } from '@/context/AuthContext';
 import RoleBadge from '@/components/RoleBadge';
 import MarketIntelligenceWidget from '@/components/ml/MarketIntelligenceWidget';
+import BuyerMarketplaceIntelligence from '@/components/buyer/BuyerMarketplaceIntelligence';
 import marketplaceApi from '@/services/marketplaceApi';
 import BuyerProfilePage from './BuyerProfilePage';
 import BuyerAddressesPage from './BuyerAddressesPage';
@@ -494,14 +495,14 @@ export default function BuyerDashboard() {
             <div style={{ marginBottom: 24 }}>
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
-                  <Sparkles size={18} className="text-amber-600" />
+                  <Sparkles size={18} className="text-indigo-600" />
                   <h3 className="font-bold text-[#202820] text-base">
-                    Gowtham's AI Demand Forecasting & Mandi Price Arbitrage
+                    Gowtham's AI Buyer Procurement Optimizer & Landed Cost Intelligence
                   </h3>
                 </div>
-                <span className="text-xs text-[#68736B]">Live Quantile Regression (P10 / P50 / P90)</span>
+                <span className="text-xs text-[#68736B]">102-D Quantile Model (v0.5.0) • Valley Detector</span>
               </div>
-              <MarketIntelligenceWidget initialDistrict="Pune" />
+              <BuyerMarketplaceIntelligence initialDestination="Mumbai" />
             </div>
 
             {/* Quick Actions & Recent Sourcing */}

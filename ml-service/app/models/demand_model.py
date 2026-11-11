@@ -7,6 +7,7 @@ SIH 2026 — Ministry of Consumer Affairs, Food & Public Distribution (DoCA).
 """
 
 from datetime import datetime, timedelta
+import json
 import math
 from typing import Dict, List, Optional
 import joblib
@@ -20,6 +21,7 @@ from app.config import (
     DEMAND_P90_MODEL_PATH,
     FEATURE_COLUMNS_PATH,
     MODEL_METADATA_PATH,
+    MODEL_METADATA_JSON_PATH,
     MODEL_VERSION,
     PRICE_MODEL_PATH,
 )
@@ -62,11 +64,18 @@ def load_models() -> bool:
         _price_model = joblib.load(PRICE_MODEL_PATH)
         _feature_columns = joblib.load(FEATURE_COLUMNS_PATH)
 
-        if MODEL_METADATA_PATH.exists():
+        if MODEL_METADATA_JSON_PATH.exists():
+            try:
+                with open(MODEL_METADATA_JSON_PATH, "r", encoding="utf-8") as f:
+                    _metadata = json.load(f)
+            except Exception:
+                pass
+        elif MODEL_METADATA_PATH.exists():
             _metadata = joblib.load(MODEL_METADATA_PATH)
 
         _models_loaded = True
-        print(f"[ML] Advanced Quantile Models Loaded — Version: {_metadata.get('model_version', MODEL_VERSION)}")
+        active_ver = _metadata.get("version") or _metadata.get("model_version", MODEL_VERSION)
+        print(f"[ML] Advanced Quantile Models Loaded — Version: {active_ver}")
         return True
 
     except Exception as e:
@@ -80,7 +89,7 @@ def are_models_loaded() -> bool:
 
 
 def get_model_version() -> str:
-    return _metadata.get("model_version", MODEL_VERSION)
+    return _metadata.get("version") or _metadata.get("model_version", MODEL_VERSION)
 
 
 def get_model_metadata() -> dict:

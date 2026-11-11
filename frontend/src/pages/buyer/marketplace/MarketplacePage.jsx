@@ -7,7 +7,8 @@ import ProductSearch from '@/components/buyer/marketplace/ProductSearch';
 import ProductFilters from '@/components/buyer/marketplace/ProductFilters';
 import ProductSorting from '@/components/buyer/marketplace/ProductSorting';
 import ProductGrid from '@/components/buyer/marketplace/ProductGrid';
-import { Sparkles, ShieldCheck, Truck, RefreshCw, Leaf } from 'lucide-react';
+import BuyerMarketplaceIntelligence from '@/components/buyer/BuyerMarketplaceIntelligence';
+import { Sparkles, ShieldCheck, Truck, RefreshCw, Leaf, ChevronDown, ChevronUp } from 'lucide-react';
 import '@/styles/marketplace.css';
 
 export default function MarketplacePage() {
@@ -21,6 +22,7 @@ export default function MarketplacePage() {
   const [pagination, setPagination] = useState({ page: 1, totalPages: 1, totalCount: 0 });
   const [stats, setStats] = useState({ activeListings: 0, totalAvailableKg: 0, avgMandiSavingsPercent: 14.5 });
   const [isLoading, setIsLoading] = useState(true);
+  const [showIntelligence, setShowIntelligence] = useState(false);
 
   // Filters state initialized from searchParams
   const [filters, setFilters] = useState({
@@ -168,6 +170,32 @@ export default function MarketplacePage() {
           initialQuery={filters.search}
           onSearch={handleSearch}
         />
+
+        {/* ── AI Procurement Optimizer Toggle ── */}
+        <div style={{ maxWidth: 1200, margin: '16px auto 0', padding: '0 16px' }}>
+          <button
+            type="button"
+            onClick={() => setShowIntelligence(!showIntelligence)}
+            className="w-full flex items-center justify-between p-3.5 bg-gradient-to-r from-slate-900 to-indigo-950 text-white rounded-2xl border border-indigo-500/30 shadow-sm hover:brightness-110 transition-all cursor-pointer"
+          >
+            <div className="flex items-center gap-2.5">
+              <Sparkles className="w-4 h-4 text-amber-300" />
+              <span className="text-xs font-bold">
+                {showIntelligence ? 'Hide AI Procurement Intelligence' : 'Open AI Procurement Intelligence: Wholesale Valley Detector & Volume Elasticity'}
+              </span>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/30 text-indigo-200 border border-indigo-400/30 uppercase font-black">
+                102-D ML Model
+              </span>
+            </div>
+            {showIntelligence ? <ChevronUp className="w-4 h-4 text-indigo-300" /> : <ChevronDown className="w-4 h-4 text-indigo-300" />}
+          </button>
+
+          {showIntelligence && (
+            <div className="mt-3 animate-fade-in">
+              <BuyerMarketplaceIntelligence initialDestination="Mumbai" />
+            </div>
+          )}
+        </div>
       </section>
 
       {/* ── Dynamic Category Navigation ─────────────────────────────── */}

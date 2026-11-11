@@ -37,6 +37,7 @@ ml-service/models/*.joblib
 # ML service — trained artifacts and generated data (not source-controlled)
 ml-service/app/artifacts/*.joblib
 ml-service/app/artifacts/*.pkl
+ml-service/app/artifacts/backup/
 ml-service/app/data/*.csv
 ml-service/app/data/*.parquet
 !ml-service/app/artifacts/.gitkeep

@@ -25,6 +25,12 @@ from app.models.demand_model import (
     predict_demand,
     predict_price,
 )
+from app.mlops.champion_challenger import run_champion_challenger_cycle
+from app.mlops.drift_detector import evaluate_system_drift
+from app.mlops.model_registry import (
+    get_active_model_metadata,
+    rollback_champion,
+)
 from app.schemas import (
     DemandForecastRequest,
     DemandForecastResponse,
@@ -147,3 +153,52 @@ def model_info():
             "message": "No trained model loaded. Run 'python -m app.training.train' first.",
         }
     return get_model_metadata()
+
+
+# ─── MLOps Governance & Drift Engine ─────────────────────────────────────────
+
+@app.get("/mlops/status")
+def mlops_status():
+    """Return model registry status, active champion metrics, and lineage history."""
+    meta = get_active_model_metadata()
+    return {
+        "status": "online",
+        "models_loaded": are_models_loaded(),
+        "active_champion": meta,
+        "feature_count": meta.get("feature_count", 102),
+        "trained_records": meta.get("trained_records", 312000),
+    }
+
+
+@app.get("/mlops/drift")
+def mlops_drift():
+    """Detect Population Stability Index (PSI) and Kolmogorov-Smirnov distribution drift."""
+    try:
+        report = evaluate_system_drift()
+        return report
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Drift evaluation failed: {str(e)}")
+
+
+@app.post("/mlops/retrain")
+def mlops_retrain():
+    """Trigger automated Champion vs. Challenger retraining cycle."""
+    try:
+        result = run_champion_challenger_cycle()
+        if result.get("decision") == "PROMOTED":
+            load_models()
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Retraining cycle failed: {str(e)}")
+
+
+@app.post("/mlops/rollback")
+def mlops_rollback():
+    """Roll back to the previous champion model artifact."""
+    try:
+        result = rollback_champion()
+        load_models()
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Rollback failed: {str(e)}")
+
