@@ -70,7 +70,22 @@ export default function RouteMap() {
   const fetchTracking = async () => {
     try {
       setLoading(true);
-      const data = await logisticsApi.getShipmentTracking(shipmentId);
+      let targetId = shipmentId;
+      if (!queryShipmentId || queryShipmentId === 'shp_demo_101') {
+        try {
+          const listRes = await logisticsApi.getShipments({ limit: 5 });
+          const userShipments = listRes?.shipments || [];
+          const active = userShipments.find((s) => s.status !== 'DELIVERED') || userShipments[0];
+          if (active?.id) {
+            targetId = active.id;
+            setShipmentId(active.id);
+          }
+        } catch {
+          // ignore
+        }
+      }
+
+      const data = await logisticsApi.getShipmentTracking(targetId);
       setTrackingData(data);
 
       if (data.routes && data.routes.length > 0) {

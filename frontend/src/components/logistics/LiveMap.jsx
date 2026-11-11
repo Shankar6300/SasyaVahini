@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { MapPin, Navigation, Truck, Warehouse, Maximize2 } from 'lucide-react';
+import demoCoordinates from '../../assets/demoRouteCoordinates.json';
 
 /**
  * SasyaVahini — Live Logistics Map Component
@@ -94,6 +95,65 @@ export default function LiveMap({
       isMounted = false;
     };
   }, []);
+
+  // Road-snapping: dynamically fetch real turn-by-turn road geometry from OSRM or use corridor highway coordinates
+  const [roadPolyline, setRoadPolyline] = useState(null);
+
+  useEffect(() => {
+    // If multi-routes with road points are already present, use them
+    if (routes && routes.length > 0 && routes[0]?.geometry?.coordinates?.length > 10) {
+      setRoadPolyline(null);
+      return;
+    }
+    // If routeGeometry already has high-density road geometry (> 10 points), use it
+    if (routeGeometry?.coordinates && routeGeometry.coordinates.length > 10) {
+      setRoadPolyline(null);
+      return;
+    }
+
+    const waypoints = [];
+    farmers.forEach((f) => {
+      const c = coordinatesOf(f);
+      if (c.lat && c.lng) waypoints.push([c.lng, c.lat]);
+    });
+    const buyerCoord = coordinatesOf(buyer);
+    if (buyerCoord.lat && buyerCoord.lng) {
+      waypoints.push([buyerCoord.lng, buyerCoord.lat]);
+    }
+
+    if (waypoints.length >= 2) {
+      // 1. Instantly apply high-resolution road coordinates along the Pune highway corridor
+      const isPuneCorridor = waypoints.some(
+        ([lng, lat]) => lat >= 18.2 && lat <= 19.5 && lng >= 73.5 && lng <= 74.6
+      );
+      if (isPuneCorridor && Array.isArray(demoCoordinates) && demoCoordinates.length > 10) {
+        setRoadPolyline(demoCoordinates.map((c) => [c[1], c[0]]));
+      }
+
+      // 2. Fetch live turn-by-turn road geometry from OSRM driving service
+      const osrmQuery = waypoints
+        .slice(0, 6)
+        .map(([lng, lat]) => `${lng.toFixed(5)},${lat.toFixed(5)}`)
+        .join(';');
+
+      let isMounted = true;
+      fetch(`https://router.project-osrm.org/route/v1/driving/${osrmQuery}?overview=full&geometries=geojson`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (isMounted && data?.code === 'Ok' && data.routes?.[0]?.geometry?.coordinates?.length > 10) {
+            const osrmLatLngs = data.routes[0].geometry.coordinates.map((c) => [c[1], c[0]]);
+            setRoadPolyline(osrmLatLngs);
+          }
+        })
+        .catch(() => {
+          // Keep corridor geometry if OSRM is slow or offline
+        });
+
+      return () => {
+        isMounted = false;
+      };
+    }
+  }, [farmers, buyer, routeGeometry, routes]);
 
   // Initialize or update Leaflet map when data changes
   useEffect(() => {
@@ -280,14 +340,21 @@ export default function LiveMap({
             dashArray: '6, 8',
           }).addTo(map);
         }
-        if (routeGeometry?.coordinates && routeGeometry.coordinates.length > 1) {
-          const latLngs = routeGeometry.coordinates.map((c) => [c[1], c[0]]);
-          L.polyline(latLngs, {
+        const activeRoadLatLngs =
+          (routeGeometry?.coordinates && routeGeometry.coordinates.length > 10
+            ? routeGeometry.coordinates.map((c) => [c[1], c[0]])
+            : roadPolyline) ||
+          (routeGeometry?.coordinates && routeGeometry.coordinates.length > 1
+            ? routeGeometry.coordinates.map((c) => [c[1], c[0]])
+            : null);
+
+        if (activeRoadLatLngs && activeRoadLatLngs.length > 1) {
+          L.polyline(activeRoadLatLngs, {
             color: '#07875B',
-            weight: 4,
-            opacity: 0.85,
-            dashArray: activeRouteMode === 'RURAL' ? '4, 6' : undefined,
+            weight: 4.5,
+            opacity: 0.9,
           }).addTo(map);
+          activeRoadLatLngs.forEach((pt) => allPoints.push(pt));
         } else if (allPoints.length > 1) {
           // Fallback straight lines connecting stops in order
           L.polyline(allPoints, {
@@ -331,6 +398,7 @@ export default function LiveMap({
     isEstimated,
     useSvgFallback,
     interactive,
+    roadPolyline,
   ]);
 
   // Fallback interactive SVG canvas when network is offline
