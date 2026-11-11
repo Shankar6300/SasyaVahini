@@ -90,6 +90,29 @@ const selectRouteSchema = z.object({
   deviationReason: z.enum(['ROAD_CLOSED', 'FLOOD', 'ACCIDENT', 'WEIGHT_LIMIT', 'OTHER']).optional(),
 });
 
+const verifyDeliveryOtpSchema = z.object({
+  otp: z.string().length(6, 'Delivery OTP must be exactly 6 digits'),
+});
+
+const legPingSchema = z.object({
+  latitude: z.number().min(-90).max(90),
+  longitude: z.number().min(-180).max(180),
+  speedKmh: z.number().min(0).optional().default(0),
+  temperatureC: z.number().optional(),
+});
+
+const uploadDocumentSchema = z.object({
+  documentType: z.enum(['RC', 'INSURANCE', 'FITNESS', 'PERMIT', 'PUC', 'ROAD_TAX']),
+  documentNumber: z.string().min(1, 'Document number is required'),
+  documentUrl: z.string().url('Document URL must be a valid URL'),
+  validUntil: z.string().refine((val) => !isNaN(Date.parse(val)), { message: 'Invalid expiry date' }),
+});
+
+const adminVerifySchema = z.object({
+  status: z.enum(['VERIFIED', 'REJECTED']),
+  rejectionReason: z.string().optional(),
+});
+
 module.exports = {
   planOrderSchema,
   acceptShipmentSchema,
@@ -101,4 +124,8 @@ module.exports = {
   listShipmentsQuerySchema,
   recordHandoverSchema,
   selectRouteSchema,
+  verifyDeliveryOtpSchema,
+  legPingSchema,
+  uploadDocumentSchema,
+  adminVerifySchema,
 };

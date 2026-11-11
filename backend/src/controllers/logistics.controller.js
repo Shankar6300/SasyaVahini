@@ -107,6 +107,17 @@ const updateMilestone = async (req, res, next) => {
   }
 };
 
+const verifyDeliveryOtp = async (req, res, next) => {
+  try {
+    const shipment = await logisticsService.getShipmentById(req.params.id);
+    await checkShipmentAccess(req.user, shipment, { requireTransporter: true });
+    const result = await logisticsService.verifyDeliveryOtp(req.params.id, req.body.otp, req.user?.id);
+    return sendSuccess(res, result, 'Delivery OTP verified successfully and shipment completed');
+  } catch (err) {
+    next(err);
+  }
+};
+
 const getShipmentTracking = async (req, res, next) => {
   try {
     const shipment = await logisticsService.getShipmentById(req.params.id);
@@ -468,6 +479,7 @@ module.exports = {
   getAvailableShipments,
   acceptShipment,
   updateMilestone,
+  verifyDeliveryOtp,
   getShipmentTracking,
   planOrder,
   createShipment,

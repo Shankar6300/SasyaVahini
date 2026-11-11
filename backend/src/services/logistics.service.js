@@ -659,6 +659,21 @@ class LogisticsService {
   }
 
   /**
+   * Verify buyer delivery OTP and transition shipment to DELIVERED
+   */
+  async verifyDeliveryOtp(shipmentId, otp, userId = 'driver') {
+    return this.updateMilestone(
+      shipmentId,
+      {
+        milestone: 'DELIVERED',
+        deliveryOtp: otp,
+        notes: 'Delivered and verified via Buyer OTP',
+      },
+      userId
+    );
+  }
+
+  /**
    * Real-time tracking data for buyer, farmer, and fleet operators
    */
   async getShipmentTracking(shipmentId) {

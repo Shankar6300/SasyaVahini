@@ -18,9 +18,13 @@ const {
   updateMilestoneSchema,
   createShipmentSchema,
   updateLocationSchema,
+  createVehicleSchema,
   listShipmentsQuerySchema,
   recordHandoverSchema,
   selectRouteSchema,
+  verifyDeliveryOtpSchema,
+  uploadDocumentSchema,
+  adminVerifySchema,
 } = require('../schemas/logistics.schema');
 const controller = require('../controllers/logistics.controller');
 
@@ -54,6 +58,16 @@ router.post(
   requireVerifiedLogistics,
   validate(updateMilestoneSchema),
   controller.updateMilestone,
+);
+
+// POST /api/logistics/shipments/:id/verify-delivery-otp
+router.post(
+  '/shipments/:id/verify-delivery-otp',
+  authenticate,
+  requireRole(['LOGISTICS', 'ADMIN']),
+  requireVerifiedLogistics,
+  validate(verifyDeliveryOtpSchema),
+  controller.verifyDeliveryOtp,
 );
 
 // GET /api/logistics/shipments/:id/tracking
@@ -161,6 +175,7 @@ router.post(
   '/vehicles',
   authenticate,
   requireRole(['LOGISTICS', 'ADMIN']),
+  validate(createVehicleSchema),
   controller.createVehicle,
 );
 
@@ -169,6 +184,7 @@ router.post(
   '/vehicles/:id/documents',
   authenticate,
   requireRole(['LOGISTICS', 'ADMIN']),
+  validate(uploadDocumentSchema),
   controller.uploadVehicleDocument,
 );
 
@@ -192,6 +208,7 @@ router.patch(
   '/admin/vehicles/:id/verify',
   authenticate,
   requireRole(['ADMIN']),
+  validate(adminVerifySchema),
   controller.verifyVehicle,
 );
 
@@ -200,6 +217,7 @@ router.patch(
   '/admin/drivers/:id/verify',
   authenticate,
   requireRole(['ADMIN']),
+  validate(adminVerifySchema),
   controller.verifyDriver,
 );
 
@@ -208,6 +226,7 @@ router.patch(
   '/admin/documents/:id/verify',
   authenticate,
   requireRole(['ADMIN']),
+  validate(adminVerifySchema),
   controller.verifyDocument,
 );
 
