@@ -445,6 +445,17 @@ class VehicleService {
             lastLocationAt: new Date(),
           },
         });
+        if (prisma.locationPing) {
+          await prisma.locationPing.create({
+            data: {
+              vehicleId,
+              latitude,
+              longitude,
+              speedKmh,
+              temperatureC,
+            },
+          });
+        }
       } catch (err) {
         logger.warn('Failed to persist vehicle location in DB', { error: err.message });
       }

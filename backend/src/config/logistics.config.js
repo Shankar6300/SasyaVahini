@@ -128,5 +128,7 @@ module.exports = {
   ],
 
   // Environmental Config
-  dataSource: process.env.LOGISTICS_DATA_SOURCE || 'mock',
+  dataSource: process.env.NODE_ENV === 'test' && !process.env.TEST_DB
+    ? 'mock'
+    : (process.env.LOGISTICS_DATA_SOURCE || 'mock'),
 };

@@ -12,7 +12,7 @@
 
 const { v4: uuidv4 } = require('uuid');
 const config = require('../config/logistics.config');
-const { orderRepo } = require('../adapters');
+const { orderRepo, shipmentRepo } = require('../adapters');
 const vehicleService = require('./vehicle.service');
 const sourcingService = require('./sourcing.service');
 const twoTierLogisticsService = require('./twoTierLogistics.service');
@@ -22,111 +22,8 @@ const { NotFoundError, ConflictError, BusinessRuleError } = require('../utils/er
 const logger = require('../utils/logger');
 const prisma = require('../lib/prisma');
 
-// In-memory shipment store (for Standalone / Mock mode and unit/integration tests)
-const inMemoryShipments = new Map();
-const quoteCache = new Map();
-
-// Seed initial mock shipment for immediate testing
-const initMockShipment = () => {
-  const mockId = 'shp_demo_101';
-  inMemoryShipments.set(mockId, {
-    id: mockId,
-    trackingNumber: 'SV-SHP-2026-0001',
-    orderId: 'ord_demo_101',
-    vehicleId: 'veh_mh12_qx_4012',
-    vehicleNumber: 'MH-12-QX-4012',
-    driverName: 'Shivaji Mane',
-    driverPhone: '+919822014012',
-    status: 'TRANSIT',
-    deliveryOtp: '492810',
-    totalWeightKg: 2500,
-    totalDistanceKm: 78.5,
-    baselineDistanceKm: 142.0,
-    savedDistanceKm: 63.5,
-    estimatedFuelSavedRs: 1508.13,
-    utilizationPercent: 83.3,
-    estimatedMinutes: 110,
-    currentLocation: {
-      latitude: 18.7230,
-      longitude: 73.8910,
-      speedKmh: 44.0,
-      lastPingAt: new Date().toISOString(),
-    },
-    coldChain: {
-      currentTempC: 13.8,
-      status: 'OPTIMAL',
-      minTempC: 10.0,
-      maxTempC: 16.0,
-    },
-    stops: [
-      {
-        id: 'stop_1',
-        sequence: 1,
-        stopName: 'Farmer Ramesh Kulkarni (Manchar)',
-        farmerId: 'farmer_manchar_01',
-        latitude: 18.9880,
-        longitude: 73.9400,
-        quantityKg: 1500,
-        pricePerKg: 22.0,
-        grade: 'GRADE_A',
-        status: 'COMPLETED',
-        stopType: 'PICKUP',
-      },
-      {
-        id: 'stop_2',
-        sequence: 2,
-        stopName: 'Farmer Suresh Bhor (Khed)',
-        farmerId: 'farmer_khed_01',
-        latitude: 18.8470,
-        longitude: 73.9100,
-        quantityKg: 1000,
-        pricePerKg: 23.5,
-        grade: 'GRADE_A',
-        status: 'COMPLETED',
-        stopType: 'PICKUP',
-      },
-      {
-        id: 'stop_3',
-        sequence: 3,
-        stopName: 'FreshBasket Destination (Hadapsar)',
-        latitude: 18.5089,
-        longitude: 73.9260,
-        quantityKg: 2500,
-        status: 'PENDING',
-        stopType: 'DELIVERY',
-      },
-    ],
-    routeGeometry: {
-      type: 'LineString',
-      coordinates: [
-        [73.9400, 18.9880],
-        [73.9100, 18.8470],
-        [73.8636, 18.7606],
-        [73.9260, 18.5089],
-      ],
-    },
-    costBreakdown: {
-      productCost: 56500.0,
-      transportCost: 2840.0,
-      handlingCost: 1250.0,
-      platformFee: 1130.0,
-      aggregationFee: 350.0,
-      riskCost: 1130.0,
-      gst: 0.0,
-      totalCost: 63200.0,
-    },
-    milestoneHistory: [
-      { status: 'ASSIGNED', recordedAt: new Date(Date.now() - 3600000).toISOString(), notes: 'Assigned to Shivaji Mane' },
-      { status: 'PICKUP', recordedAt: new Date(Date.now() - 1800000).toISOString(), notes: 'Loaded at Manchar and Khed' },
-      { status: 'TRANSIT', recordedAt: new Date(Date.now() - 600000).toISOString(), notes: 'En route to Hadapsar' },
-    ],
-    createdAt: new Date(Date.now() - 3600000).toISOString(),
-    updatedAt: new Date().toISOString(),
-  });
-};
-if (config.dataSource === 'mock') {
-  initMockShipment();
-}
+// In-memory & Prisma persistence are unified through shipmentRepo
+// Mock initial state is managed by MockShipmentRepo
 
 class LogisticsService {
   /**
@@ -134,107 +31,62 @@ class LogisticsService {
    * Generates sourcing/logistics plans for an order requirement
    */
   async planOrder(params) {
+    const maxBudget = params.maxBudget === Infinity || params.maxBudget === undefined ? null : params.maxBudget;
     const result = await twoTierLogisticsService.planOrder({
       ...params,
-      maxBudget: params.maxBudget ?? Infinity,
+      maxBudget: maxBudget ?? Infinity,
     });
-    quoteCache.set(result.quoteId, {
-      params: { ...params, maxBudget: params.maxBudget ?? Infinity },
-      quote: result,
-      expiresAt: new Date(result.expiresAt),
+    // Persist plan quote at creation time (not just upon confirmation)
+    await shipmentRepo.savePlanQuote({
+      quoteId: result.quoteId,
+      crop: params.crop,
+      requestedQtyKg: params.qtyKg,
+      maxBudget,
+      radiusUsedKm: result.radiusUsedKm,
+      ringsTried: result.ringsTried,
+      payload: result,
+      explanation: result.explanation,
+      expiresAt: result.expiresAt,
     });
     return result;
   }
 
-  async confirmPlan(quoteId) {
-    const cached = quoteCache.get(quoteId);
-    if (!cached || cached.expiresAt <= new Date()) {
+  async confirmPlan(quoteId, planId = null) {
+    const quote = await shipmentRepo.findPlanQuote(quoteId);
+    if (!quote) {
+      throw new NotFoundError(`Plan quote with ID ${quoteId}`);
+    }
+    if (new Date(quote.expiresAt) <= new Date()) {
       throw new ConflictError('Quote has expired; request a new plan before confirmation');
     }
-    const refreshed = await twoTierLogisticsService.planOrder(cached.params);
-    const plan = refreshed.plans[0];
+
+    if (quote.confirmedAt && quote.priceLocked) {
+      return quote.payload;
+    }
+
+    // Extract exact quoted plan by id, or first plan in quote without re-planning
+    const quotePayload = quote.payload || {};
+    const plans = quotePayload.plans || [];
+    const plan = (planId ? plans.find((p) => p.id === planId) : plans[0]) || plans[0];
+
     if (!plan) {
       throw new BusinessRuleError('The quoted stock is no longer available');
     }
-    if (plan.totalCost > cached.params.maxBudget) {
+
+    if (quote.maxBudget !== null && quote.maxBudget !== undefined && plan.totalCost > quote.maxBudget) {
       throw new BusinessRuleError(
-        `Current fulfillment cost ₹${plan.totalCost.toLocaleString('en-IN')} exceeds the buyer budget by ₹${(plan.totalCost - cached.params.maxBudget).toLocaleString('en-IN')}`,
+        `Current fulfillment cost ₹${plan.totalCost.toLocaleString('en-IN')} exceeds the buyer budget by ₹${(plan.totalCost - quote.maxBudget).toLocaleString('en-IN')}`,
       );
     }
+
     const confirmed = {
       ...plan,
       quoteId,
       confirmedAt: new Date().toISOString(),
       priceLocked: true,
     };
-    if (prisma.planQuote) {
-      if (confirmed.transferPoint) {
-        await prisma.transferPoint.upsert({
-          where: { id: confirmed.transferPoint.id },
-          update: {
-            name: confirmed.transferPoint.name,
-            latitude: confirmed.transferPoint.lat,
-            longitude: confirmed.transferPoint.lng,
-            roadAccess: confirmed.transferPoint.roadAccess || 'MAIN',
-            capacityKg: confirmed.transferPoint.capacityKg || confirmed.totalWeightKg,
-            handlingFeePerKg: confirmed.transferPoint.feePerKg || 0,
-            openHours: confirmed.transferPoint.openHours,
-            zone: confirmed.transferPoint.zone,
-          },
-          create: {
-            id: confirmed.transferPoint.id,
-            name: confirmed.transferPoint.name,
-            latitude: confirmed.transferPoint.lat,
-            longitude: confirmed.transferPoint.lng,
-            roadAccess: confirmed.transferPoint.roadAccess || 'MAIN',
-            capacityKg: confirmed.transferPoint.capacityKg || confirmed.totalWeightKg,
-            handlingFeePerKg: confirmed.transferPoint.feePerKg || 0,
-            openHours: confirmed.transferPoint.openHours,
-            zone: confirmed.transferPoint.zone,
-          },
-        });
-      }
-      await prisma.planQuote.upsert({
-        where: { quoteId },
-        update: {
-          payload: confirmed,
-          explanation: confirmed.explanation,
-          expiresAt: new Date(cached.quote.expiresAt),
-          confirmedAt: new Date(),
-          priceLocked: true,
-          radiusUsedKm: confirmed.radiusUsedKm,
-          ringsTried: cached.quote.ringsTried,
-        },
-        create: {
-          quoteId,
-          crop: cached.params.crop,
-          requestedQtyKg: cached.params.qtyKg,
-          maxBudget: cached.params.maxBudget,
-          radiusUsedKm: confirmed.radiusUsedKm,
-          ringsTried: cached.quote.ringsTried,
-          payload: confirmed,
-          explanation: confirmed.explanation,
-          expiresAt: new Date(cached.quote.expiresAt),
-          confirmedAt: new Date(),
-          priceLocked: true,
-          legs: {
-            create: confirmed.legs.map((leg, index) => ({
-              sequence: index + 1,
-              type: leg.type,
-              vehicleClass: leg.vehicleClass,
-              fromJson: leg.from,
-              toJson: leg.to,
-              km: leg.km,
-              etaMin: leg.etaMin,
-              cost: leg.cost,
-              kg: leg.kg,
-              transferPointId: leg.to?.transferPointId || leg.from?.transferPointId,
-            })),
-          },
-        },
-      });
-    }
-    quoteCache.delete(quoteId);
+
+    await shipmentRepo.confirmPlanQuote(quoteId, confirmed);
     return confirmed;
   }
 
@@ -324,9 +176,9 @@ class LogisticsService {
     }
 
     // Check if shipment already exists for this order
-    const existing = [...inMemoryShipments.values()].find((s) => s.orderId === orderId);
+    const existing = await shipmentRepo.findByOrderId(orderId);
     if (existing) {
-      return existing;
+      return this.toApiShipment(existing);
     }
 
     // If no plan provided, run auto-plan with order details
@@ -350,20 +202,22 @@ class LogisticsService {
     const deliveryOtp = Math.floor(100000 + Math.random() * 900000).toString();
 
     // Assign vehicle based on first pickup and load
-    const firstFarmer = plan.farmers[0];
-    const vehicle = await vehicleService.selectBestVehicle({
-      requiredCapacityKg: order.totalQuantityKg,
-      firstPickupLat: firstFarmer.lat,
-      firstPickupLng: firstFarmer.lng,
-    });
+    const firstFarmer = plan.farmers?.[0];
+    const vehicle = firstFarmer
+      ? await vehicleService.selectBestVehicle({
+          requiredCapacityKg: order.totalQuantityKg,
+          firstPickupLat: firstFarmer.lat,
+          firstPickupLng: firstFarmer.lng,
+        })
+      : null;
 
     const shipmentId = `shp_${uuidv4().slice(0, 8)}`;
     const trackingNumber = `SV-SHP-2026-${Math.floor(1000 + Math.random() * 9000)}`;
 
-    const stops = plan.farmers.map((f, idx) => ({
+    const stops = (plan.farmers || []).map((f, idx) => ({
       id: `stop_${idx + 1}`,
       sequence: idx + 1,
-      stopName: `Pickup: ${f.name} (${f.village})`,
+      stopName: `Pickup: ${f.name} (${f.village || ''})`,
       farmerId: f.farmerId,
       listingId: f.batchId,
       latitude: f.lat,
@@ -379,7 +233,7 @@ class LogisticsService {
     stops.push({
       id: `stop_${stops.length + 1}`,
       sequence: stops.length + 1,
-      stopName: `Delivery: ${order.buyerName}`,
+      stopName: `Delivery: ${order.buyerName || 'Buyer Hub'}`,
       latitude: order.deliveryLatitude || 18.5089,
       longitude: order.deliveryLongitude || 73.9260,
       quantityKg: order.totalQuantityKg,
@@ -387,7 +241,22 @@ class LogisticsService {
       stopType: 'DELIVERY',
     });
 
-    const newShipment = {
+    const legs = (plan.legs || []).map((l, idx) => ({
+      id: `leg_${idx + 1}`,
+      sequence: idx + 1,
+      type: l.type || 'DIRECT',
+      vehicleClass: l.vehicleClass || 'SCV',
+      fromJson: l.from,
+      toJson: l.to,
+      km: l.km,
+      etaMin: l.etaMin,
+      cost: l.cost,
+      kg: l.kg,
+      transferPointId: l.to?.transferPointId || l.from?.transferPointId || null,
+      status: 'PLANNED',
+    }));
+
+    const shipmentData = {
       id: shipmentId,
       trackingNumber,
       orderId: order.id,
@@ -406,125 +275,61 @@ class LogisticsService {
       estimatedMinutes: plan.etaMinutes || 90,
       routeGeometry: plan.routeGeometry || { type: 'LineString', coordinates: [] },
       costBreakdown: plan.costBreakdown || null,
-      currentLocation: vehicle
-        ? {
-            latitude: vehicle.currentLatitude,
-            longitude: vehicle.currentLongitude,
-            speedKmh: 0,
-            lastPingAt: new Date().toISOString(),
-          }
-        : null,
-      coldChain: {
-        currentTempC: 14.0,
-        status: 'OPTIMAL',
-        minTempC: 10.0,
-        maxTempC: 16.0,
-      },
-      stops,
-      milestoneHistory: [
-        {
-          status: vehicle ? 'ASSIGNED' : 'UNASSIGNED',
-          recordedAt: new Date().toISOString(),
-          notes: vehicle ? `Assigned to ${vehicle.vehicleNumber}` : 'Awaiting transporter assignment',
-        },
-      ],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
 
-    inMemoryShipments.set(shipmentId, newShipment);
+    // Atomic persistence of Shipment + ShipmentStop + ShipmentLeg
+    const created = await shipmentRepo.createShipmentWithStopsAndLegs({
+      shipment: shipmentData,
+      stops,
+      legs,
+    });
 
     // Emit event for Member 1 & 2
     logisticsEvents.emit('shipment.created', {
-      shipmentId,
+      shipmentId: created.id,
       orderId: order.id,
-      trackingNumber,
+      trackingNumber: created.trackingNumber,
       vehicleId: vehicle?.id,
       totalWeightKg: order.totalQuantityKg,
     });
 
-    return newShipment;
+    return this.toApiShipment(created);
   }
 
   /**
    * List available shipments for transporter bidding / assignment
    */
   async listAvailableShipments(query = {}) {
-    const list = [...inMemoryShipments.values()].filter(
-      (s) => s.status === 'UNASSIGNED' || !s.vehicleId,
-    );
-    return list;
+    const list = await shipmentRepo.listAvailableShipments(query);
+    return Promise.all(list.map((s) => this.toApiShipment(s)));
   }
 
   /**
    * List all shipments with pagination
    */
-  async listShipments({ page = 1, limit = 20, status = null } = {}) {
-    if (config.dataSource === 'prisma') {
-      const where = status ? { status: status.toUpperCase() } : undefined;
-      const [shipments, total] = await Promise.all([
-        prisma.shipment.findMany({
-          where,
-          include: {
-            stops: { orderBy: { sequence: 'asc' } },
-            locationPings: { orderBy: { recordedAt: 'desc' }, take: 1 },
-          },
-          orderBy: { updatedAt: 'desc' },
-          skip: (page - 1) * limit,
-          take: limit,
-        }),
-        prisma.shipment.count({ where }),
-      ]);
-
-      const items = await Promise.all(shipments.map((shipment) => this.toApiShipment(shipment)));
-      return { items, total, page, limit };
-    }
-
-    let list = [...inMemoryShipments.values()];
-    if (status) {
-      list = list.filter((s) => s.status.toLowerCase() === status.toLowerCase());
-    }
-    const total = list.length;
-    const startIndex = (page - 1) * limit;
-    const items = list.slice(startIndex, startIndex + limit);
-
-    return {
-      items,
-      total,
-      page,
-      limit,
-    };
+  async listShipments({ page = 1, limit = 20, status = null, where = {} } = {}) {
+    const res = await shipmentRepo.listShipments({ page, limit, status, where });
+    const items = await Promise.all(res.items.map((s) => this.toApiShipment(s)));
+    return { ...res, items };
   }
 
   /**
    * Get single shipment detail by ID
    */
   async getShipmentById(shipmentId) {
-    if (config.dataSource === 'prisma') {
-      const shipment = await prisma.shipment.findFirst({
-        where: {
-          OR: [{ id: shipmentId }, { trackingNumber: shipmentId }, { orderId: shipmentId }],
-        },
-        include: {
-          stops: { orderBy: { sequence: 'asc' } },
-          milestoneHistory: { orderBy: { recordedAt: 'asc' } },
-          locationPings: { orderBy: { recordedAt: 'desc' }, take: 1 },
-        },
-      });
-      if (!shipment) throw new NotFoundError(`Shipment with ID ${shipmentId}`);
-      return this.toApiShipment(shipment);
-    }
-
-    const shipment = inMemoryShipments.get(shipmentId) ||
-      [...inMemoryShipments.values()].find((s) => s.trackingNumber === shipmentId || s.orderId === shipmentId);
-
+    const shipment = await shipmentRepo.findById(shipmentId);
     if (!shipment) {
       throw new NotFoundError(`Shipment with ID ${shipmentId}`);
     }
-    return shipment;
+    return this.toApiShipment(shipment);
   }
 
   async toApiShipment(shipment) {
+    if (config.dataSource === 'mock') {
+      return shipment;
+    }
     const vehicle = shipment.vehicleId ? await vehicleService.findById(shipment.vehicleId) : null;
     const latestPing = shipment.locationPings?.[0];
     return {
@@ -551,7 +356,8 @@ class LogisticsService {
    * Accept shipment and assign vehicle
    */
   async acceptShipment(shipmentId, { vehicleId, driverNotes = '' }, userId = 'logistics_operator') {
-    const shipment = await this.getShipmentById(shipmentId);
+    const shipment = await shipmentRepo.findById(shipmentId);
+    if (!shipment) throw new NotFoundError(`Shipment ${shipmentId}`);
 
     if (shipment.status !== 'UNASSIGNED' && shipment.vehicleId) {
       throw new ConflictError('Shipment is already assigned to a vehicle');
@@ -562,37 +368,27 @@ class LogisticsService {
       throw new NotFoundError(`Vehicle ${vehicleId}`);
     }
 
-    shipment.vehicleId = vehicle.id;
-    shipment.vehicleNumber = vehicle.vehicleNumber;
-    shipment.driverName = vehicle.driverName;
-    shipment.driverPhone = vehicle.driverPhone;
-    shipment.status = 'ASSIGNED';
-    shipment.updatedAt = new Date().toISOString();
-
-    shipment.milestoneHistory.push({
-      status: 'ASSIGNED',
-      recordedAt: new Date().toISOString(),
-      notes: driverNotes || `Vehicle ${vehicle.vehicleNumber} assigned by driver ${vehicle.driverName}`,
+    const assigned = await shipmentRepo.assignVehicle(shipment.id, vehicle.id, {
+      vehicleDetails: vehicle,
+      driverNotes,
       recordedBy: userId,
     });
 
-    await vehicleService.updateStatus(vehicle.id, 'ASSIGNED');
-
     logisticsEvents.emit('shipment.milestone', {
-      shipmentId: shipment.id,
-      orderId: shipment.orderId,
+      shipmentId: assigned.id,
+      orderId: assigned.orderId,
       milestone: 'ASSIGNED',
       timestamp: new Date().toISOString(),
     });
 
     return {
-      id: shipment.id,
-      trackingNumber: shipment.trackingNumber,
-      status: shipment.status,
+      id: assigned.id,
+      trackingNumber: assigned.trackingNumber,
+      status: assigned.status,
       vehicleId: vehicle.id,
       vehicleNumber: vehicle.vehicleNumber,
       driverName: vehicle.driverName,
-      assignedAt: shipment.updatedAt,
+      assignedAt: assigned.updatedAt,
     };
   }
 
@@ -601,7 +397,8 @@ class LogisticsService {
    * ASSIGNED -> PICKUP -> TRANSIT -> OUT_FOR_DELIVERY -> DELIVERED
    */
   async updateMilestone(shipmentId, milestoneData, userId = 'driver') {
-    const shipment = await this.getShipmentById(shipmentId);
+    const shipment = await shipmentRepo.findById(shipmentId);
+    if (!shipment) throw new NotFoundError(`Shipment with ID ${shipmentId}`);
     const nextMilestone = milestoneData.milestone;
 
     // Validate legal transitions
@@ -620,88 +417,66 @@ class LogisticsService {
       if (milestoneData.deliveryOtp !== shipment.deliveryOtp) {
         throw new BusinessRuleError('Invalid delivery OTP. Verification failed.');
       }
-      shipment.deliveredAt = new Date().toISOString();
-      if (shipment.vehicleId) {
-        await vehicleService.updateStatus(shipment.vehicleId, 'AVAILABLE');
-      }
     }
 
-    // Update coordinates if provided
+    // Optimistic concurrency locking via updateMany
+    const updated = await shipmentRepo.updateMilestoneWithOptimisticLock({
+      shipmentId: shipment.id,
+      currentStatus: shipment.status,
+      nextStatus: nextMilestone,
+      milestoneData,
+      recordedBy: userId,
+      deliveredAt: nextMilestone === 'DELIVERED' ? new Date().toISOString() : null,
+      vehicleIdToRelease: nextMilestone === 'DELIVERED' ? shipment.vehicleId : null,
+    });
+
+    // Update location ping if provided
     if (milestoneData.latitude && milestoneData.longitude) {
-      shipment.currentLocation = {
+      await shipmentRepo.recordLocationPing({
+        shipmentId: shipment.id,
+        vehicleId: shipment.vehicleId,
         latitude: milestoneData.latitude,
         longitude: milestoneData.longitude,
         speedKmh: nextMilestone === 'TRANSIT' ? 45 : 0,
-        lastPingAt: new Date().toISOString(),
-      };
+        temperatureC: milestoneData.temperatureC,
+      });
+
       if (shipment.vehicleId) {
         await vehicleService.recordLocation(shipment.vehicleId, {
           latitude: milestoneData.latitude,
           longitude: milestoneData.longitude,
-          speedKmh: shipment.currentLocation.speedKmh,
+          speedKmh: nextMilestone === 'TRANSIT' ? 45 : 0,
           temperatureC: milestoneData.temperatureC,
         });
       }
     }
-
-    // If milestone is PICKUP and stopId provided, mark stop completed
-    if (nextMilestone === 'PICKUP') {
-      if (milestoneData.stopId) {
-        const stop = shipment.stops.find((s) => s.id === milestoneData.stopId);
-        if (stop) stop.status = 'COMPLETED';
-      } else {
-        // Mark all pickup stops as completed
-        shipment.stops.forEach((s) => {
-          if (s.stopType === 'PICKUP') s.status = 'COMPLETED';
-        });
-      }
-    }
-
-    if (nextMilestone === 'DELIVERED') {
-      const deliveryStop = shipment.stops.find((s) => s.stopType === 'DELIVERY');
-      if (deliveryStop) deliveryStop.status = 'COMPLETED';
-    }
-
-    shipment.status = nextMilestone;
-    shipment.updatedAt = new Date().toISOString();
-
-    const historyEntry = {
-      status: nextMilestone,
-      milestone: nextMilestone,
-      recordedAt: new Date().toISOString(),
-      latitude: milestoneData.latitude || null,
-      longitude: milestoneData.longitude || null,
-      temperatureC: milestoneData.temperatureC || null,
-      notes: milestoneData.notes || `Milestone reached: ${nextMilestone}`,
-      recordedBy: userId,
-    };
-    shipment.milestoneHistory.push(historyEntry);
 
     // Emit milestone event
     logisticsEvents.emit('shipment.milestone', {
       shipmentId: shipment.id,
       orderId: shipment.orderId,
       milestone: nextMilestone,
-      timestamp: historyEntry.recordedAt,
-      latitude: historyEntry.latitude,
-      longitude: historyEntry.longitude,
+      status: nextMilestone,
+      timestamp: new Date().toISOString(),
+      location: milestoneData.latitude
+        ? { latitude: milestoneData.latitude, longitude: milestoneData.longitude }
+        : null,
     });
 
-    // If DELIVERED, emit delivered event to release payment escrow
     if (nextMilestone === 'DELIVERED') {
       logisticsEvents.emit('shipment.delivered', {
         shipmentId: shipment.id,
         orderId: shipment.orderId,
-        deliveredAt: shipment.deliveredAt,
+        deliveredAt: updated.deliveredAt || new Date().toISOString(),
         verifiedOtp: milestoneData.deliveryOtp,
       });
     }
 
     return {
       shipmentId: shipment.id,
-      currentStatus: shipment.status,
+      currentStatus: nextMilestone,
       milestone: nextMilestone,
-      recordedAt: historyEntry.recordedAt,
+      recordedAt: new Date().toISOString(),
       temperatureC: milestoneData.temperatureC || null,
     };
   }
@@ -791,7 +566,11 @@ class LogisticsService {
    * Map pins and polyline for an active order
    */
   async getOrderMap(orderId) {
-    const shipment = [...inMemoryShipments.values()].find((s) => s.orderId === orderId);
+    const rawShipment = await shipmentRepo.findByOrderId(orderId);
+    if (!rawShipment) {
+      throw new NotFoundError(`No active shipment found for order ${orderId}`);
+    }
+    const shipment = await this.toApiShipment(rawShipment);
     if (!shipment) {
       throw new NotFoundError(`No active shipment found for order ${orderId}`);
     }
@@ -907,7 +686,7 @@ class LogisticsService {
       };
     }
 
-    const allShipments = [...inMemoryShipments.values()];
+    const { items: allShipments } = await shipmentRepo.listShipments({ limit: 1000 });
 
     const totalOptimizedKm = Math.round(
       allShipments.reduce((sum, s) => sum + (s.totalDistanceKm || 0), 0) * 10,

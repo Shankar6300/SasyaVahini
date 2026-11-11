@@ -992,7 +992,7 @@ model PlanQuote {
   quoteId         String   @unique
   crop            String
   requestedQtyKg  Float
-  maxBudget       Float
+  maxBudget       Float?
   radiusUsedKm    Float?
   ringsTried      Json
   payload         Json
