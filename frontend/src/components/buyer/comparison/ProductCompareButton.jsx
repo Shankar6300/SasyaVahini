@@ -9,7 +9,12 @@ import { Scale, Check } from 'lucide-react';
  */
 export default function ProductCompareButton({ product, compact = false, className = '' }) {
   const { isInCompare, toggleCompare } = useCompare();
-  const toast = useToast();
+  let toast;
+  try {
+    toast = useToast();
+  } catch (e) {
+    toast = { success: () => {}, error: () => {}, warning: () => {}, info: () => {} };
+  }
 
   if (!product || !product.id) return null;
 

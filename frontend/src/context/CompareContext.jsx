@@ -147,7 +147,18 @@ export function CompareProvider({ children }) {
 export function useCompare() {
   const context = useContext(CompareContext);
   if (!context) {
-    throw new Error('useCompare must be used within a CompareProvider');
+    return {
+      selectedProducts: [],
+      selectedIds: [],
+      count: 0,
+      canCompare: false,
+      maxLimit: MAX_COMPARISON_LIMIT,
+      isInCompare: () => false,
+      addToCompare: () => ({ success: false }),
+      removeFromCompare: () => ({ success: false }),
+      toggleCompare: () => ({ action: 'NONE' }),
+      clearCompare: () => {},
+    };
   }
   return context;
 }

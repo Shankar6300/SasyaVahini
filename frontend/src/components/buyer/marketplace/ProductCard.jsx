@@ -157,13 +157,16 @@ export default function ProductCard({ product, buyerType = 'INDIVIDUAL' }) {
             )}
           </div>
 
-          <Link
-            to={`/buyer/marketplace/products/${id}`}
-            className="marketplace-card-btn"
-          >
-            <span>View Details</span>
-            <ArrowRight size={13} />
-          </Link>
+          <div className="marketplace-card-actions" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <ProductCompareButton product={product} compact />
+            <Link
+              to={`/buyer/marketplace/products/${id}`}
+              className="marketplace-card-btn"
+            >
+              <span>View Details</span>
+              <ArrowRight size={13} />
+            </Link>
+          </div>
         </div>
       </div>
     </article>
