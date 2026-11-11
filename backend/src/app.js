@@ -31,6 +31,9 @@ const mlRoutes = require('./routes/ml.routes');
 
 const app = express();
 
+// Trust reverse proxy (Nginx) so client IP is accurately extracted from X-Forwarded-For
+app.set('trust proxy', 1);
+
 // ─── Security middleware ───────────────────────────────────────────────────────
 app.use(helmet());
 
@@ -54,19 +57,19 @@ app.use(
 // ─── Rate limiting ────────────────────────────────────────────────────────────
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: process.env.NODE_ENV === 'production' ? 500 : 5000,
+  max: 10000,
   standardHeaders: true,
   legacyHeaders: false,
-  skip: () => process.env.NODE_ENV !== 'production',
+  validate: { xForwardedForHeader: false },
   message: { success: false, error: { code: 'RATE_LIMIT', message: 'Too many requests' } },
 });
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: process.env.NODE_ENV === 'production' ? 20 : 1000,
+  max: 2000, // High threshold allowing user registration & logins without 429 lockouts
   standardHeaders: true,
   legacyHeaders: false,
-  skip: () => process.env.NODE_ENV !== 'production',
+  validate: { xForwardedForHeader: false },
   message: { success: false, error: { code: 'RATE_LIMIT', message: 'Too many auth requests' } },
 });
 
