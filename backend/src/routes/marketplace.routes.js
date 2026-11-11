@@ -11,6 +11,11 @@ const express = require('express');
 const router = express.Router();
 const marketplaceController = require('../controllers/marketplace.controller');
 
+// Phase 4: Supplier Comparison & Total Landed Cost
+router.get('/compare', marketplaceController.getComparisonData);
+router.post('/compare/calculate', marketplaceController.calculateLandedCost);
+router.get('/compare/price-history', marketplaceController.getPriceHistory);
+
 // Categories
 router.get('/categories', marketplaceController.getCategories);
 

@@ -3,6 +3,7 @@ import { useParams, useLocation, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import marketplaceApi from '@/services/marketplaceApi';
 import ProductCard from '@/components/buyer/marketplace/ProductCard';
+import ProductCompareButton from '@/components/buyer/comparison/ProductCompareButton';
 import {
   ChevronLeft, MapPin, Sparkles, Building2, User, CheckCircle,
   Clock, ShieldCheck, Leaf, ArrowRight, Package, Info, AlertTriangle, ExternalLink
@@ -266,6 +267,11 @@ export default function ProductDetailPage({ productId: propProductId }) {
               <span>View Profile</span>
               <ExternalLink size={12} />
             </Link>
+          </div>
+
+          {/* Phase 4: Compare Action */}
+          <div className="mb-4">
+            <ProductCompareButton product={product} />
           </div>
 
           {/* Phase 3 Scope Notice */}

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
+  Scale,
   LayoutDashboard, Search, ShoppingCart, ShoppingBag, ClipboardList, Truck,
   Heart, MapPin, FileText, Bell, Settings,
   Package, TrendingUp, Clock, Leaf, ShieldCheck, CheckCircle,
@@ -17,6 +18,9 @@ import BuyerSettingsPage from './BuyerSettingsPage';
 import MarketplacePage from './marketplace/MarketplacePage';
 import ProductDetailPage from './marketplace/ProductDetailPage';
 import SupplierProfilePage from './marketplace/SupplierProfilePage';
+import ComparisonPage from './comparison/ComparisonPage';
+import ComparisonSelectionBar from '@/components/buyer/comparison/ComparisonSelectionBar';
+import { useCompare } from '@/context/CompareContext';
 import '@/styles/buyer-auth.css';
 import '@/styles/marketplace.css';
 
@@ -102,6 +106,7 @@ const DEMO_PRODUCE_FALLBACK = [
 
 export default function BuyerDashboard() {
   const { user } = useAuth();
+  const { count: compareCount } = useCompare();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -120,6 +125,7 @@ export default function BuyerDashboard() {
     if (p.includes('/marketplace/products/')) setActiveTab('PRODUCT_DETAIL');
     else if (p.includes('/marketplace/suppliers/')) setActiveTab('SUPPLIER_PROFILE');
     else if (p.includes('/marketplace')) setActiveTab('MARKETPLACE');
+    else if (p.includes('/compare')) setActiveTab('COMPARE');
     else if (p.includes('/tracking')) setActiveTab('TRACKING');
     else if (p.includes('/cart')) setActiveTab('CART');
     else if (p.includes('/orders')) setActiveTab('ORDERS');
@@ -373,6 +379,20 @@ export default function BuyerDashboard() {
               <span className="text-[10px] font-bold px-1.5 py-0.2 bg-white/20 rounded">
                 {produceListings.length} Lots
               </span>
+            </button>
+            <button
+              role="tab"
+              aria-selected={activeTab === 'COMPARE'}
+              onClick={() => { setActiveTab('COMPARE'); navigate('/buyer/compare'); }}
+              className={`buyer-nav-tab-btn${activeTab === 'COMPARE' ? ' active' : ''}`}
+            >
+              <Scale size={15} />
+              <span>Compare Produce</span>
+              {compareCount > 0 && (
+                <span className="text-[10px] font-bold px-1.5 py-0.2 bg-[#245C43] text-white rounded-full">
+                  {compareCount}
+                </span>
+              )}
             </button>
             <button
               role="tab"
@@ -637,6 +657,13 @@ export default function BuyerDashboard() {
         {activeTab === 'SUPPLIER_PROFILE' && (
           <div className="buyer-animate-in">
             <SupplierProfilePage supplierId={location.pathname.split('/suppliers/')[1]?.split('?')[0]?.split('/')[0]} />
+          </div>
+        )}
+
+        {/* Phase 4 Dedicated Supplier & Price Comparison Page */}
+        {activeTab === 'COMPARE' && (
+          <div className="buyer-animate-in">
+            <ComparisonPage />
           </div>
         )}
 
@@ -917,6 +944,8 @@ export default function BuyerDashboard() {
             ══════════════════════════════════════════════════════════════ */}
         {activeTab === 'SETTINGS' && <BuyerSettingsPage />}
       </main>
+      {/* Phase 4 Floating Comparison Selection Tray */}
+      <ComparisonSelectionBar />
     </div>
   );
 }

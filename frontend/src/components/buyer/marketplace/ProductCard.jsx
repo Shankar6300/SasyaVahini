@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import ProductCompareButton from '@/components/buyer/comparison/ProductCompareButton';
 import { MapPin, Sparkles, Building2, User, CheckCircle, Clock, ArrowRight, ShieldCheck, Layers } from 'lucide-react';
 
 /**
