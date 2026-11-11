@@ -140,8 +140,8 @@ const SEED_VEHICLES = [
   },
 ];
 
-// In-memory fleet state for mock / test operations
-let inMemoryFleet = [...SEED_VEHICLES];
+// In-memory fleet state for mock / test operations (gated in production)
+let inMemoryFleet = process.env.NODE_ENV === 'production' ? [] : [...SEED_VEHICLES];
 
 class VehicleService {
   /**

@@ -2,6 +2,13 @@ const { AuthorizationError, NotFoundError } = require('../utils/errors');
 const prisma = require('../lib/prisma');
 const { checkShipmentAccess, checkOrderAccess } = require('../utils/logisticsAuth');
 const { shipmentRepo, orderRepo } = require('../adapters');
+const {
+  toBuyerView,
+  toDriverView,
+  toAdminView,
+  toVehicleView,
+  toProfileView,
+} = require('../utils/responseMappers');
 
 const checkLogisticsVerified = async (user) => {
   if (!user || user.role !== 'LOGISTICS') return;
@@ -212,7 +219,14 @@ const getShipmentById = async (req, res, next) => {
   try {
     const shipment = await logisticsService.getShipmentById(req.params.id);
     await checkShipmentAccess(req.user, shipment);
-    return sendSuccess(res, shipment);
+
+    if (req.user?.role === 'ADMIN') {
+      return sendSuccess(res, toAdminView(shipment));
+    }
+    if (req.user?.role === 'LOGISTICS') {
+      return sendSuccess(res, toDriverView(shipment));
+    }
+    return sendSuccess(res, toBuyerView(shipment, req.user?.role === 'BUYER'));
   } catch (err) {
     next(err);
   }
@@ -221,7 +235,8 @@ const getShipmentById = async (req, res, next) => {
 const listVehicles = async (req, res, next) => {
   try {
     const vehicles = await vehicleService.listVehicles(req.query, req.user);
-    return sendSuccess(res, vehicles);
+    const sanitized = vehicles.map((v) => toVehicleView(v, req.user));
+    return sendSuccess(res, sanitized);
   } catch (err) {
     next(err);
   }
@@ -351,7 +366,7 @@ const getVehicleDetail = async (req, res, next) => {
     if (!vehicle) {
       return res.status(404).json({ success: false, error: 'Vehicle not found' });
     }
-    return sendSuccess(res, vehicle);
+    return sendSuccess(res, toVehicleView(vehicle, req.user));
   } catch (err) {
     next(err);
   }
@@ -366,7 +381,7 @@ const getProfile = async (req, res, next) => {
         error: 'Logistics profile not found. Please register as a transport partner first.',
       });
     }
-    return sendSuccess(res, profile);
+    return sendSuccess(res, toProfileView(profile, req.user));
   } catch (err) {
     next(err);
   }

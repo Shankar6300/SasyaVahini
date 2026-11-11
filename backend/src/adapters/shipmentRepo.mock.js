@@ -13,7 +13,9 @@ class MockShipmentRepo {
     this.shipments = new Map();
     this.quotes = new Map();
     this.locationPings = [];
-    this.initDefaultMock();
+    if (process.env.NODE_ENV !== 'production') {
+      this.initDefaultMock();
+    }
   }
 
   initDefaultMock() {
