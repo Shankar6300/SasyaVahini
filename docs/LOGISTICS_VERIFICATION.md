@@ -526,3 +526,84 @@ Passed 7/7 test cases across the full end-to-end lifecycle:
 6. Verified immediate presence of vehicle in DoCA Admin Verification Queue (`GET /api/logistics/admin/verification-queue`).
 7. Partner KYC rejection, re-submission via profile update, and re-entry into DoCA pending queue.
 
+---
+
+## 14. Full Statutory Document Vault (RC, Insurance, PUC, Fitness, Permit, Tax) & Expiration-Gated Allocation (Motor Vehicles Act Compliance)
+
+### Background & Requirement
+Under the Indian Motor Vehicles Act (MVA) 1988 and Central Motor Vehicles Rules (CMVR) 1989, commercial agricultural freight transport requires active, unexpired statutory certificates across 6 distinct categories:
+1. **RC (Registration Certificate - Form 23)**: Proof of commercial carrier registration.
+2. **INSURANCE (Commercial Vehicle Insurance)**: Third-party and comprehensive goods carrier liability.
+3. **PUC (Pollution Under Control - CMVR Form 59)**: Statutory exhaust emission compliance.
+4. **FITNESS (Form 38)**: Mandatory annual mechanical roadworthiness certification.
+5. **PERMIT (Goods Carriage Route Permit - Form 47)**: National or state inter-district carriage authorization.
+6. **ROAD_TAX (Motor Vehicle Tax Token)**: State road transport tax receipt.
+
+Previously, the logistics profile view presented only driver personal KYC (Driving Licence front/back or CIN) and omitted the fleet vehicles' statutory certificates. Transporters could not track statutory expiration dates, and expired vehicles could inadvertently be allocated to shipments.
+
+### Implementation Details
+
+#### 1. Statutory Compliance & Expiration Engine (`frontend/src/utils/complianceHelpers.js`)
+- **`STATUTORY_DOC_TYPES` Specification**:
+  - Full catalog of the 6 MVA statutory document types with standard form labels, sample formats, and legal descriptions.
+- **`getExpiryStatus(expiryDate)`**:
+  - Calculates precise calendar-day differences (`diffDays = Math.round((expDay - today) / (1000 * 60 * 60 * 24))`).
+  - `EXPIRED` (`diffDays < 0`): Emits flashing alert badge (`🚨 EXPIRED (Xd ago)`).
+  - `EXPIRING_SOON` (`0 <= diffDays <= 30`): Emits amber warning badge (`⚠️ EXPIRING (Xd)`).
+  - `VALID` (`diffDays > 30`): Emits green compliance badge (`✓ VALID`).
+  - `NOT_SET`: Emits neutral status badge (`NO EXPIRY DATE`).
+- **`getVehicleComplianceSummary(vehicle)`**:
+  - Evaluates all associated documents.
+  - If **ANY** statutory certificate has `expiryDate < now`:
+    - Sets `canAllocate: false`.
+    - Returns `status: 'EXPIRED'`, `badgeText: '🚨 EXPIRED (N) — ALLOCATION BLOCKED'`, and detailed failure reason.
+  - If vehicle is in `REJECTED` status: sets `canAllocate: false`.
+  - If all documents valid: returns `canAllocate: true`, `status: 'COMPLIANT'`.
+
+#### 2. Backend Gating & CVRP Optimizer Safeguards
+- **`checkVehicleAllocationEligibility(vehicleId)` in `backend/src/controllers/logistics.controller.js`**:
+  - Inspects all documents attached to `vehicleId`.
+  - If any document is expired, immediately throws `AuthorizationError`:
+    `Cannot allocate vehicle [Number]: Statutory document(s) expired [[List]]. Motor Vehicles Act requires renewed certificates. Please re-upload renewed document(s) in the portal before this vehicle can be allocated.`
+  - Blocks both `acceptShipment` (`POST /api/logistics/shipments/:id/accept`) and `acceptOffer` (`POST /api/logistics/offers/:offerId/accept`).
+- **Driver DL Expiration Check in `checkLogisticsVerified`**:
+  - If `profile.licenceExpiry < new Date()`, blocks shipment acceptance with DL renewal requirement.
+- **CVRP Fleet Optimizer Filter in `backend/src/services/vehicle.service.js`**:
+  - In `selectBestVehicle()`, filters out vehicles with any expired statutory documents before solving routes, preventing automated assignment of non-compliant trucks.
+
+#### 3. Frontend Profile View & Fleet Expiration Vault (`LogisticsProfileView.jsx`)
+- **Fleet Metrics Summary Cards**:
+  - Registered Fleet (total isolated trucks).
+  - Allocation Ready (active with all certificates compliant).
+  - Allocation Blocked (Hold on dispatch due to expired docs or audit).
+  - Expiring < 30 Days (upcoming renewal alerts).
+- **Fleet Statutory Documents & Expiration Vault**:
+  - Renders all registered trucks with individual allocation compliance badges.
+  - Displays grid of all 6 statutory certificates for each vehicle with document number, validity countdown, audit state, and direct view links.
+  - Dedicated **Upload Renewed Certificate** / **Update** actions opening the renewal modal.
+- **Renew Certificate Modal**:
+  - Transporter inputs updated document number, validity date as printed on the renewal certificate, and uploads the scanned PDF/image.
+  - Submitting persists to `POST /api/logistics/vehicles/:id/documents`, updates the database, resets audit status to `PENDING`, and unblocks allocation gating once compliant.
+
+#### 4. Fleet Management Dashboard Updates (`LogisticsDashboard.jsx`)
+- **Vehicle Registration Modal**:
+  - Added input sections for all 6 statutory certificates (`RC`, `INSURANCE`, `PUC`, `FITNESS`, `PERMIT`, `ROAD_TAX`) with document numbers, expiration pickers, and file upload fields.
+  - Includes `+ Pre-fill Sample Certificates` button for rapid testing and onboarding.
+- **Fleet Table**:
+  - Replaced generic verification text with live statutory badges (`✓ ALLOCATION ACTIVE` vs `🔒 BLOCKED / Hold on Dispatch`).
+- **Vehicle Inspection Modal**:
+  - Displays top alert banner if allocation is blocked.
+  - Per-document renewal triggers for expired certificates.
+
+---
+
+### Verification Test Suite (`test_statutory_compliance.cjs`)
+Passed end-to-end integration tests:
+1. **Transporter Onboarding & Authentication**: Registered and logged in logistics user via JWT.
+2. **Expired Vehicle Insertion**: Registered vehicle `MH12MVA0388` with expired Pollution Certificate (PUC expired in past).
+3. **Smart Allocation Gating Enforcement**: Verified that attempting to assign the vehicle to a shipment triggers HTTP 403 `AuthorizationError`:
+   `Cannot allocate vehicle MH12MVA0388: Statutory document(s) expired [PUC (expired on 1/1/2023)]. Motor Vehicles Act requires renewed certificates.`
+4. **Renewal Document Upload**: Transporter uploaded renewed PUC certificate (`PUC-RENEWED-MH12MVA0388`) with future expiration date (+1 year). Document successfully stored in PostgreSQL with 200 OK.
+5. **Multi-Tenant Isolation**: Verified that Transporter 2 query returned 0 vehicles belonging to Transporter 1.
+
+

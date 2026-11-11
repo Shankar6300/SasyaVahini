@@ -30,6 +30,11 @@ import NearbyBuyerRadar from '../../components/logistics/NearbyBuyerRadar';
 import SavingsCard from '../../components/logistics/SavingsCard';
 import PlanCards from '../../components/logistics/PlanCards';
 import LogisticsProfileView from '../../components/logistics/LogisticsProfileView';
+import {
+  STATUTORY_DOC_TYPES,
+  getExpiryStatus,
+  getVehicleComplianceSummary,
+} from '../../utils/complianceHelpers';
 import ShipmentList from './ShipmentList';
 import RouteMap from './RouteMap';
 import MilestoneUpdater from './MilestoneUpdater';
@@ -58,15 +63,6 @@ export default function LogisticsDashboard() {
   // Otherwise, render main Logistics Operations Dashboard
   return <MainOperationsDashboard />;
 }
-
-const STATUTORY_DOC_TYPES = [
-  { type: 'RC', label: 'Registration Certificate (RC)', mandatory: true, flagKey: 'rcVerified', sampleNum: 'MH14-AZ-RC-2024' },
-  { type: 'INSURANCE', label: 'Commercial Vehicle Insurance', mandatory: true, flagKey: 'insuranceVerified', sampleNum: 'NIC-COMM-991204' },
-  { type: 'FITNESS', label: 'Vehicle Fitness Certificate (Form 38)', mandatory: true, flagKey: 'fitnessVerified', sampleNum: 'MH-FIT-8891-2024' },
-  { type: 'PERMIT', label: 'Goods Carriage Route Permit (Form 47)', mandatory: true, flagKey: 'permitVerified', sampleNum: 'MH-NP-4491-2024' },
-  { type: 'PUC', label: 'Pollution Under Control (PUC)', mandatory: false, flagKey: 'pucVerified', sampleNum: 'PUC-MH-998811' },
-  { type: 'ROAD_TAX', label: 'Motor Vehicle Road Tax Token', mandatory: false, flagKey: 'taxVerified', sampleNum: 'MV-TAX-2024-25' },
-];
 
 function MainOperationsDashboard() {
   const navigate = useNavigate();
@@ -104,7 +100,17 @@ function MainOperationsDashboard() {
     minTempC: '10',
     maxTempC: '16',
     rcNumber: 'MH-14-AZ-RC99',
+    rcExpiry: '2028-12-31',
     insuranceNumber: 'COMM-INS-44910',
+    insuranceExpiry: '2026-11-30',
+    pucNumber: 'PUC-MH-88129',
+    pucExpiry: '2026-05-15',
+    fitnessNumber: 'FIT-MH-33120',
+    fitnessExpiry: '2027-08-20',
+    permitNumber: 'PERMIT-MH-4491',
+    permitExpiry: '2029-01-10',
+    taxNumber: 'MV-TAX-2026-27',
+    taxExpiry: '2027-03-31',
   });
 
   // Document Re-upload & Inspection State
@@ -192,15 +198,21 @@ function MainOperationsDashboard() {
     e.preventDefault();
     try {
       setAddingVehicle(true);
+      const statutoryDocs = [
+        { docType: 'RC', docNumber: newVehicleForm.rcNumber, expiryDate: newVehicleForm.rcExpiry || null, fileUrl: 'https://storage.sasyavahini.gov.in/docs/sample_rc.pdf' },
+        { docType: 'INSURANCE', docNumber: newVehicleForm.insuranceNumber, expiryDate: newVehicleForm.insuranceExpiry || null, fileUrl: 'https://storage.sasyavahini.gov.in/docs/sample_insurance.pdf' },
+        { docType: 'PUC', docNumber: newVehicleForm.pucNumber, expiryDate: newVehicleForm.pucExpiry || null, fileUrl: 'https://storage.sasyavahini.gov.in/docs/sample_puc.pdf' },
+        { docType: 'FITNESS', docNumber: newVehicleForm.fitnessNumber, expiryDate: newVehicleForm.fitnessExpiry || null, fileUrl: 'https://storage.sasyavahini.gov.in/docs/sample_fitness.pdf' },
+        { docType: 'PERMIT', docNumber: newVehicleForm.permitNumber, expiryDate: newVehicleForm.permitExpiry || null, fileUrl: 'https://storage.sasyavahini.gov.in/docs/sample_permit.pdf' },
+        { docType: 'ROAD_TAX', docNumber: newVehicleForm.taxNumber, expiryDate: newVehicleForm.taxExpiry || null, fileUrl: 'https://storage.sasyavahini.gov.in/docs/sample_tax.pdf' },
+      ].filter((d) => d.docNumber);
+
       await logisticsApi.createVehicle({
         ...newVehicleForm,
         capacityKg: parseFloat(newVehicleForm.capacityKg),
         mileageKmpl: parseFloat(newVehicleForm.mileageKmpl),
         manufacturingYear: parseInt(newVehicleForm.manufacturingYear, 10),
-        documents: [
-          { docType: 'RC', docNumber: newVehicleForm.rcNumber, fileUrl: 'https://storage.sasyavahini.gov.in/docs/sample_rc.pdf' },
-          { docType: 'INSURANCE', docNumber: newVehicleForm.insuranceNumber, fileUrl: 'https://storage.sasyavahini.gov.in/docs/sample_insurance.pdf' },
-        ],
+        documents: statutoryDocs,
       });
       setIsAddVehicleOpen(false);
       setNewVehicleForm({
@@ -220,7 +232,17 @@ function MainOperationsDashboard() {
         minTempC: '10',
         maxTempC: '16',
         rcNumber: '',
+        rcExpiry: '',
         insuranceNumber: '',
+        insuranceExpiry: '',
+        pucNumber: '',
+        pucExpiry: '',
+        fitnessNumber: '',
+        fitnessExpiry: '',
+        permitNumber: '',
+        permitExpiry: '',
+        taxNumber: '',
+        taxExpiry: '',
       });
       await loadDashboardData();
     } catch (err) {
@@ -405,6 +427,9 @@ function MainOperationsDashboard() {
           user={user}
           vehicles={vehicles}
           onProfileUpdated={(updated) => setProfile(updated)}
+          onVehicleUpdated={(updatedVeh) => {
+            setVehicles((prev) => prev.map((v) => (v.id === updatedVeh.id ? updatedVeh : v)));
+          }}
         />
       )}
 
@@ -946,8 +971,49 @@ function MainOperationsDashboard() {
                       <div className="text-[10px] text-secondary">{v.driverPhone}</div>
                     </td>
                     <td className="py-2.5 text-secondary">{v.baseHub || v.hubName || 'Pune Rural Depot'}</td>
-                    <td className="py-2.5">{getVerificationBadge(v)}</td>
-                    <td className="py-2.5">{getStatusChip(v.status)}</td>
+                    <td className="py-2.5">
+                      <div className="flex flex-col gap-1 items-start">
+                        {getVerificationBadge(v)}
+                        {(() => {
+                          const comp = getVehicleComplianceSummary(v);
+                          if (comp.status === 'EXPIRED') {
+                            return (
+                              <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-rose-100 text-rose-800 border border-rose-300 animate-pulse" title={comp.reason}>
+                                🚨 EXPIRED (Hold)
+                              </span>
+                            );
+                          }
+                          if (comp.status === 'EXPIRING_SOON') {
+                            return (
+                              <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-100 text-amber-800 border border-amber-300" title={comp.reason}>
+                                ⚠️ Expiring Soon
+                              </span>
+                            );
+                          }
+                          return (
+                            <span className="px-1.5 py-0.5 rounded text-[9px] font-medium bg-emerald-50 text-emerald-800 border border-emerald-200">
+                              ✓ Active Docs
+                            </span>
+                          );
+                        })()}
+                      </div>
+                    </td>
+                    <td className="py-2.5">
+                      {(() => {
+                        const comp = getVehicleComplianceSummary(v);
+                        if (!comp.canAllocate) {
+                          return (
+                            <div className="flex flex-col gap-0.5">
+                              <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-300">
+                                🔒 BLOCKED
+                              </span>
+                              <span className="text-[9px] text-rose-700 font-semibold">Hold on Dispatch</span>
+                            </div>
+                          );
+                        }
+                        return getStatusChip(v.status);
+                      })()}
+                    </td>
                     <td className="py-2.5 text-right">
                       <button
                         type="button"
@@ -1134,26 +1200,170 @@ function MainOperationsDashboard() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                <div>
-                  <label className="font-semibold block mb-1">RC Certificate No.</label>
-                  <input
-                    type="text"
-                    placeholder="MH14AZ-RC-2024"
-                    value={newVehicleForm.rcNumber}
-                    onChange={(e) => setNewVehicleForm((f) => ({ ...f, rcNumber: e.target.value }))}
-                    className="form-input text-xs w-full"
-                  />
+              {/* Statutory Documents & Validity Expiries */}
+              <div className="p-3.5 bg-gray-50 rounded-xl border border-gray-200 space-y-3">
+                <div className="flex items-center justify-between border-b pb-1.5">
+                  <div>
+                    <h4 className="font-bold text-gray-900 text-xs flex items-center gap-1.5">
+                      <ShieldCheck size={14} className="text-teal-700" />
+                      Statutory Documents & Expiry Dates (MVA Compliance)
+                    </h4>
+                    <p className="text-[10px] text-gray-500">
+                      RC, Insurance, Pollution (PUC), and Fitness are required for shipment allocation.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setNewVehicleForm((f) => ({
+                        ...f,
+                        rcNumber: f.rcNumber || 'MH14-RC-2024-9988',
+                        rcExpiry: '2028-12-31',
+                        insuranceNumber: f.insuranceNumber || 'NIC-COMM-991204',
+                        insuranceExpiry: '2026-12-15',
+                        pucNumber: f.pucNumber || 'PUC-MH-88129',
+                        pucExpiry: '2026-06-30',
+                        fitnessNumber: f.fitnessNumber || 'FIT-MH-33120',
+                        fitnessExpiry: '2027-08-20',
+                        permitNumber: f.permitNumber || 'PERMIT-MH-4491',
+                        permitExpiry: '2029-01-10',
+                        taxNumber: f.taxNumber || 'MV-TAX-2026-27',
+                        taxExpiry: '2027-03-31',
+                      }));
+                    }}
+                    className="text-[10px] font-semibold text-teal-800 hover:underline"
+                  >
+                    + Pre-fill Sample Certificates
+                  </button>
                 </div>
-                <div>
-                  <label className="font-semibold block mb-1">Commercial Insurance No.</label>
-                  <input
-                    type="text"
-                    placeholder="NIC-COMM-9912"
-                    value={newVehicleForm.insuranceNumber}
-                    onChange={(e) => setNewVehicleForm((f) => ({ ...f, insuranceNumber: e.target.value }))}
-                    className="form-input text-xs w-full"
-                  />
+
+                {/* RC & Insurance */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className="font-semibold block text-[11px]">1. Registration Certificate (RC) *</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. MH14AZ-RC-2024"
+                      value={newVehicleForm.rcNumber}
+                      onChange={(e) => setNewVehicleForm((f) => ({ ...f, rcNumber: e.target.value }))}
+                      className="form-input text-xs w-full py-1.5"
+                    />
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[10px] text-gray-500 shrink-0">RC Expiry:</span>
+                      <input
+                        type="date"
+                        value={newVehicleForm.rcExpiry}
+                        onChange={(e) => setNewVehicleForm((f) => ({ ...f, rcExpiry: e.target.value }))}
+                        className="form-input text-xs w-full py-1 px-1.5"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="font-semibold block text-[11px]">2. Commercial Insurance Policy *</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. NIC-COMM-991204"
+                      value={newVehicleForm.insuranceNumber}
+                      onChange={(e) => setNewVehicleForm((f) => ({ ...f, insuranceNumber: e.target.value }))}
+                      className="form-input text-xs w-full py-1.5"
+                    />
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[10px] text-gray-500 shrink-0">Policy Expiry:</span>
+                      <input
+                        type="date"
+                        value={newVehicleForm.insuranceExpiry}
+                        onChange={(e) => setNewVehicleForm((f) => ({ ...f, insuranceExpiry: e.target.value }))}
+                        className="form-input text-xs w-full py-1 px-1.5"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Pollution (PUC) & Fitness */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 border-t border-gray-200">
+                  <div className="space-y-1">
+                    <label className="font-semibold block text-[11px]">3. Pollution Under Control (PUC) *</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. PUC-MH-88129"
+                      value={newVehicleForm.pucNumber}
+                      onChange={(e) => setNewVehicleForm((f) => ({ ...f, pucNumber: e.target.value }))}
+                      className="form-input text-xs w-full py-1.5"
+                    />
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[10px] text-gray-500 shrink-0">PUC Expiry:</span>
+                      <input
+                        type="date"
+                        value={newVehicleForm.pucExpiry}
+                        onChange={(e) => setNewVehicleForm((f) => ({ ...f, pucExpiry: e.target.value }))}
+                        className="form-input text-xs w-full py-1 px-1.5"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="font-semibold block text-[11px]">4. Fitness Certificate (Form 38) *</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. FIT-MH-33120"
+                      value={newVehicleForm.fitnessNumber}
+                      onChange={(e) => setNewVehicleForm((f) => ({ ...f, fitnessNumber: e.target.value }))}
+                      className="form-input text-xs w-full py-1.5"
+                    />
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[10px] text-gray-500 shrink-0">Fitness Expiry:</span>
+                      <input
+                        type="date"
+                        value={newVehicleForm.fitnessExpiry}
+                        onChange={(e) => setNewVehicleForm((f) => ({ ...f, fitnessExpiry: e.target.value }))}
+                        className="form-input text-xs w-full py-1 px-1.5"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Route Permit & Road Tax */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 border-t border-gray-200">
+                  <div className="space-y-1">
+                    <label className="font-semibold block text-[11px]">5. Goods Route Permit (Form 47)</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. PERMIT-MH-4491"
+                      value={newVehicleForm.permitNumber}
+                      onChange={(e) => setNewVehicleForm((f) => ({ ...f, permitNumber: e.target.value }))}
+                      className="form-input text-xs w-full py-1.5"
+                    />
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[10px] text-gray-500 shrink-0">Permit Expiry:</span>
+                      <input
+                        type="date"
+                        value={newVehicleForm.permitExpiry}
+                        onChange={(e) => setNewVehicleForm((f) => ({ ...f, permitExpiry: e.target.value }))}
+                        className="form-input text-xs w-full py-1 px-1.5"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="font-semibold block text-[11px]">6. Road Tax Receipt / Token</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. MV-TAX-2026-27"
+                      value={newVehicleForm.taxNumber}
+                      onChange={(e) => setNewVehicleForm((f) => ({ ...f, taxNumber: e.target.value }))}
+                      className="form-input text-xs w-full py-1.5"
+                    />
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[10px] text-gray-500 shrink-0">Tax Valid Till:</span>
+                      <input
+                        type="date"
+                        value={newVehicleForm.taxExpiry}
+                        onChange={(e) => setNewVehicleForm((f) => ({ ...f, taxExpiry: e.target.value }))}
+                        className="form-input text-xs w-full py-1 px-1.5"
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -1240,6 +1450,27 @@ function MainOperationsDashboard() {
               </div>
             )}
 
+            {/* Expired Documents Allocation Blocked Notice */}
+            {(() => {
+              const comp = getVehicleComplianceSummary(inspectedVehicle);
+              if (!comp.canAllocate && comp.status === 'EXPIRED') {
+                return (
+                  <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-300 text-xs text-rose-950 space-y-1">
+                    <div className="font-bold flex items-center gap-1.5 text-rose-800 text-sm">
+                      <AlertTriangle size={16} /> Statutory Compliance Notice — Vehicle Allocation Blocked
+                    </div>
+                    <p className="text-rose-800">
+                      This vehicle cannot be allocated to farmer shipment runs because the following statutory certificate(s) have expired: <strong>{comp.expiredDocs.map((d) => d.docType).join(', ')}</strong>.
+                    </p>
+                    <p className="text-[11px] text-rose-700">
+                      In accordance with the Motor Vehicles Act and DoCA transit regulations, expired commercial vehicles are paused from allocation. Please click <strong>Upload Renewed Certificate</strong> below to submit renewed documents and restore allocation.
+                    </p>
+                  </div>
+                );
+              }
+              return null;
+            })()}
+
             {/* Success message banner */}
             {reuploadSuccessMsg && (
               <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-300 text-xs text-emerald-900 flex items-center gap-2">
@@ -1297,6 +1528,8 @@ function MainOperationsDashboard() {
                 {STATUTORY_DOC_TYPES.map((docDef) => {
                   const existingDoc = inspectedVehicle.documents?.find((d) => d.docType === docDef.type);
                   const isFlagVerified = inspectedVehicle[docDef.flagKey];
+                  const expiryInfo = getExpiryStatus(existingDoc?.expiryDate);
+                  const isExpired = expiryInfo.isExpired;
                   const docStatus = existingDoc?.verificationStatus || (isFlagVerified ? 'VERIFIED' : 'NOT_UPLOADED');
                   const isRejected = docStatus === 'REJECTED';
                   const isPending = docStatus === 'PENDING';
@@ -1308,7 +1541,9 @@ function MainOperationsDashboard() {
                     <div
                       key={docDef.type}
                       className={`p-3 rounded-xl border transition-all ${
-                        isRejected
+                        isExpired
+                          ? 'bg-rose-50/80 border-rose-400'
+                          : isRejected
                           ? 'bg-rose-50/50 border-rose-300'
                           : isPending
                           ? 'bg-amber-50/40 border-amber-300'
@@ -1320,7 +1555,7 @@ function MainOperationsDashboard() {
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                         <div className="flex items-start gap-2.5">
                           <div className={`p-2 rounded-lg shrink-0 mt-0.5 ${
-                            isRejected
+                            isExpired || isRejected
                               ? 'bg-rose-100 text-rose-800'
                               : isPending
                               ? 'bg-amber-100 text-amber-800'
@@ -1342,8 +1577,12 @@ function MainOperationsDashboard() {
                             </div>
                             <div className="text-[11px] text-secondary flex flex-wrap items-center gap-2 mt-0.5">
                               <span>Doc No: <strong className="font-mono text-gray-800">{existingDoc?.docNumber || '—'}</strong></span>
-                              {existingDoc?.expiryDate && (
-                                <span>• Valid Till: <strong>{new Date(existingDoc.expiryDate).toLocaleDateString()}</strong></span>
+                              {existingDoc?.expiryDate ? (
+                                <span className={`inline-flex items-center gap-1 px-1.5 py-0.2 rounded text-[10px] ${expiryInfo.badgeClass}`}>
+                                  {expiryInfo.label}
+                                </span>
+                              ) : (
+                                <span className="text-[10px] text-gray-400">• No Expiry Set</span>
                               )}
                             </div>
                           </div>
@@ -1351,22 +1590,27 @@ function MainOperationsDashboard() {
 
                         {/* Status badge & action buttons */}
                         <div className="flex items-center gap-2 self-end sm:self-center">
-                          {isVerified && (
+                          {isExpired && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-300 animate-pulse">
+                              <XCircle size={10} /> EXPIRED
+                            </span>
+                          )}
+                          {!isExpired && isVerified && (
                             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
                               <CheckCircle size={10} /> VERIFIED
                             </span>
                           )}
-                          {isPending && (
+                          {!isExpired && isPending && (
                             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
                               <Clock size={10} /> UNDER AUDIT
                             </span>
                           )}
-                          {isRejected && (
+                          {!isExpired && isRejected && (
                             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-300 animate-pulse">
                               <XCircle size={10} /> REJECTED
                             </span>
                           )}
-                          {isMissing && (
+                          {!isExpired && isMissing && (
                             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-600 border border-gray-300">
                               NOT UPLOADED
                             </span>
@@ -1394,7 +1638,7 @@ function MainOperationsDashboard() {
                               }
                             }}
                             className={`px-2.5 py-1 rounded text-[11px] font-bold inline-flex items-center gap-1 shadow-sm transition ${
-                              isRejected
+                              isExpired || isRejected
                                 ? 'bg-rose-700 hover:bg-rose-800 text-white'
                                 : isMissing
                                 ? 'bg-emerald-700 hover:bg-emerald-800 text-white'
@@ -1403,6 +1647,11 @@ function MainOperationsDashboard() {
                           >
                             {isEditingThis ? (
                               'Cancel'
+                            ) : isExpired ? (
+                              <>
+                                <Upload size={11} />
+                                Upload Renewed Certificate
+                              </>
                             ) : isRejected ? (
                               <>
                                 <Upload size={11} />
@@ -1416,12 +1665,23 @@ function MainOperationsDashboard() {
                             ) : (
                               <>
                                 <RotateCw size={11} />
-                                Replace
+                                Replace / Renew
                               </>
                             )}
                           </button>
                         </div>
                       </div>
+
+                      {/* Expired Certificate Warning */}
+                      {isExpired && (
+                        <div className="mt-2 p-2 rounded-lg bg-rose-100 border border-rose-300 text-[11px] text-rose-950 flex items-start gap-1.5">
+                          <AlertTriangle size={13} className="text-rose-700 shrink-0 mt-0.5" />
+                          <div>
+                            <strong>Expired Certificate — Allocation Paused: </strong>
+                            <span>This certificate expired on {new Date(existingDoc.expiryDate).toLocaleDateString()}. Motor Vehicles Act requires valid statutory documents. Please upload the renewed certificate to re-activate vehicle allocation.</span>
+                          </div>
+                        </div>
+                      )}
 
                       {/* Auditor Remarks / Rejection details */}
                       {(existingDoc?.rejectionReason || existingDoc?.adminRemarks) && (

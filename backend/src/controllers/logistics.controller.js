@@ -1,4 +1,5 @@
 const { AuthorizationError } = require('../utils/errors');
+const prisma = require('../lib/prisma');
 
 const checkLogisticsVerified = async (user) => {
   if (!user || user.role !== 'LOGISTICS') return;
@@ -6,9 +7,45 @@ const checkLogisticsVerified = async (user) => {
   const profile = await prisma.logisticsProfile.findUnique({
     where: { userId: user.id },
   });
-  if (profile && profile.verificationStatus !== 'VERIFIED') {
+  if (profile) {
+    if (profile.verificationStatus !== 'VERIFIED') {
+      throw new AuthorizationError(
+        'Verification required: Your account is currently pending statutory compliance verification by DoCA. Please submit your required documents in your profile and await approval before accepting farmer shipments.'
+      );
+    }
+    if (profile.licenceExpiry && new Date(profile.licenceExpiry) < new Date()) {
+      throw new AuthorizationError(
+        `Commercial Driving Licence expired on ${new Date(profile.licenceExpiry).toLocaleDateString()}. Motor Vehicles Act requires valid DL credentials. Please re-upload your renewed Driving Licence in your profile before accepting shipments.`
+      );
+    }
+  }
+};
+
+const checkVehicleAllocationEligibility = async (vehicleId) => {
+  if (!vehicleId || !prisma.vehicle) return;
+  const vehicle = await prisma.vehicle.findUnique({
+    where: { id: vehicleId },
+    include: { documents: true },
+  });
+  if (!vehicle) return;
+
+  const now = new Date();
+  const expiredDocs = (vehicle.documents || []).filter(
+    (d) => d.expiryDate && new Date(d.expiryDate) < now
+  );
+
+  if (expiredDocs.length > 0) {
+    const expiredList = expiredDocs
+      .map((d) => `${d.docType} (expired on ${new Date(d.expiryDate).toLocaleDateString()})`)
+      .join(', ');
     throw new AuthorizationError(
-      'Verification required: Your account is currently pending statutory compliance verification by DoCA. Please submit your required documents in your profile and await approval before accepting farmer shipments.'
+      `Cannot allocate vehicle ${vehicle.vehicleNumber}: Statutory document(s) expired [${expiredList}]. Motor Vehicles Act requires renewed certificates. Please re-upload renewed document(s) in the portal before this vehicle can be allocated.`
+    );
+  }
+
+  if (vehicle.verificationStatus === 'REJECTED') {
+    throw new AuthorizationError(
+      `Cannot allocate vehicle ${vehicle.vehicleNumber}: Vehicle was REJECTED during DoCA compliance audit. Remarks: ${vehicle.adminRemarks || vehicle.rejectionReason || 'Compliance action required'}. Please re-upload required documents to reactivate.`
     );
   }
 };
@@ -24,7 +61,6 @@ const checkLogisticsVerified = async (user) => {
 
 const logisticsService = require('../services/logistics.service');
 const vehicleService = require('../services/vehicle.service');
-const prisma = require('../lib/prisma');
 const { sendSuccess, buildPaginationMeta } = require('../utils/apiResponse');
 
 // ─── Contract Endpoints ────────────────────────────────────────────────────────
@@ -41,6 +77,9 @@ const getAvailableShipments = async (req, res, next) => {
 const acceptShipment = async (req, res, next) => {
   try {
     await checkLogisticsVerified(req.user);
+    if (req.body?.vehicleId) {
+      await checkVehicleAllocationEligibility(req.body.vehicleId);
+    }
     const result = await logisticsService.acceptShipment(req.params.id, req.body, req.user?.id);
     return sendSuccess(res, result);
   } catch (err) {
@@ -110,6 +149,9 @@ const dispatchPlan = async (req, res, next) => {
 const acceptOffer = async (req, res, next) => {
   try {
     await checkLogisticsVerified(req.user);
+    if (req.body?.vehicleId) {
+      await checkVehicleAllocationEligibility(req.body.vehicleId);
+    }
     return sendSuccess(res, await logisticsService.acceptOffer(req.params.offerId, req.body.vehicleId));
   } catch (err) {
     next(err);

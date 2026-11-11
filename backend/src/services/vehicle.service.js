@@ -280,10 +280,18 @@ class VehicleService {
   }) {
     const fleet = availableVehicles || (await this.listVehicles({ status: 'AVAILABLE' }));
 
-    // Only vehicles with status AVAILABLE and enough capacity
-    const eligible = fleet.filter(
-      (v) => (v.status === 'AVAILABLE' || !v.status) && v.capacityKg >= requiredCapacityKg,
-    );
+    const now = new Date();
+    // Only vehicles with status AVAILABLE, adequate capacity, and NO EXPIRED statutory documents
+    const eligible = fleet.filter((v) => {
+      if (v.status && v.status !== 'AVAILABLE') return false;
+      if (v.capacityKg < requiredCapacityKg) return false;
+      if (v.verificationStatus === 'REJECTED') return false;
+      if (v.documents && v.documents.length > 0) {
+        const hasExpired = v.documents.some((d) => d.expiryDate && new Date(d.expiryDate) < now);
+        if (hasExpired) return false;
+      }
+      return true;
+    });
 
     if (eligible.length === 0) {
       return null;
