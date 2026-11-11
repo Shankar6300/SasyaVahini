@@ -9,7 +9,7 @@ import Alert from '../../../components/Alert';
 import LanguageSelector from '../../../components/LanguageSelector';
 
 export default function LogisticsLoginPage() {
-  const { login } = useAuth();
+  const { login, previewLogin } = useAuth();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
@@ -120,6 +120,19 @@ export default function LogisticsLoginPage() {
           >
             Access Operations Center
           </Button>
+
+          {import.meta.env.DEV && (
+            <button
+              type="button"
+              onClick={() => {
+                previewLogin();
+                navigate('/logistics', { replace: true });
+              }}
+              className="w-full mt-2.5 py-2 px-3 rounded-lg text-xs font-bold border border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 transition shadow-sm flex items-center justify-center gap-1.5"
+            >
+              🚀 Instant Demo Preview Mode (1-Click)
+            </button>
+          )}
         </form>
 
         <p style={{ textAlign: 'center', fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', marginTop: 'var(--space-6)' }}>

@@ -87,3 +87,4 @@ const reservation = await reservationPort.reserveStock({
    OSRM road routing provides true road geometries (hundreds of road points). If OSRM is unreachable, the system returns straight-line coordinates marked explicitly with `isEstimated: true` rendered as dashed grey lines, and does not poison the 24-hour route cache.
 4. **Optimistic Concurrency Control:**
    All shipment updates and milestone transitions use optimistic concurrency locking via an integer `version` field to eliminate race conditions between simultaneous driver pings and dispatcher commands.
+
