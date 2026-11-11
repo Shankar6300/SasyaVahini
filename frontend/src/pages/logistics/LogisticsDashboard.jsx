@@ -84,13 +84,6 @@ function MainOperationsDashboard({ initialTab = 'operations' }) {
   const [planResult, setPlanResult] = useState(null);
   const [selectedPlan, setSelectedPlan] = useState(null);
 
-  const handleSwitchPersona = async (newPersona) => {
-    if (switchPreviewPersona) {
-      switchPreviewPersona(newPersona);
-    }
-    await loadDashboardData();
-  };
-
   // Vehicle Management & Verification Modal States
   const [isAddVehicleOpen, setIsAddVehicleOpen] = useState(false);
   const [addingVehicle, setAddingVehicle] = useState(false);
@@ -427,16 +420,6 @@ function MainOperationsDashboard({ initialTab = 'operations' }) {
 
         <div className="flex items-center gap-2.5">
           <NotificationBell />
-          {profile && (
-            <div className="hidden sm:flex items-center gap-2 text-xs">
-              <span className="font-semibold text-gray-700">
-                {profile.companyName || profile.ownerName || user?.name || 'Transporter'}
-              </span>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-100 text-teal-800">
-                {profile.partnerType === 'FLEET_OPERATOR' ? 'ORGANIZATION' : profile.partnerType === 'DRIVER' ? 'DRIVER' : 'OWNER'}
-              </span>
-            </div>
-          )}
         </div>
       </div>
 

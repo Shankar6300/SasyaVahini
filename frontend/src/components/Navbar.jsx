@@ -91,8 +91,8 @@ export default function Navbar() {
 
         {/* Actions */}
         <div className="nav-actions">
-          {/* Notification Bell */}
-          {isAuthenticated && <NotificationBell />}
+          {/* Notification Bell (for non-logistics portals, logistics has it in its operations bar) */}
+          {isAuthenticated && user?.role !== 'LOGISTICS' && <NotificationBell />}
 
           {/* Multilingual Selector */}
           <LanguageSelector />

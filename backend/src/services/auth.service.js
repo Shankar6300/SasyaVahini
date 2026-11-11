@@ -9,6 +9,7 @@
 
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { v4: uuidv4 } = require('uuid');
 const prisma = require('../lib/prisma');
 const logger = require('../utils/logger');
 const {
@@ -32,7 +33,7 @@ function signAccessToken(user) {
 
 function signRefreshToken(user) {
   return jwt.sign(
-    { sub: user.id },
+    { sub: user.id, jti: uuidv4() },
     process.env.JWT_REFRESH_SECRET,
     { expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d' },
   );

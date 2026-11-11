@@ -9,7 +9,7 @@ import Alert from '../../../components/Alert';
 import LanguageSelector from '../../../components/LanguageSelector';
 
 export default function LogisticsLoginPage() {
-  const { login, previewLogin } = useAuth();
+  const { login } = useAuth();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
@@ -45,16 +45,7 @@ export default function LogisticsLoginPage() {
     setLoading(true);
     setApiError('');
     try {
-      let user;
-      try {
-        user = await login(form.email, form.password);
-      } catch (loginErr) {
-        if (import.meta.env.DEV) {
-          user = previewLogin(form.email);
-        } else {
-          throw loginErr;
-        }
-      }
+      const user = await login(form.email, form.password);
       if (user.role !== 'LOGISTICS' && user.role !== 'ADMIN') {
         setApiError('Access restricted: This portal is for Logistics Providers and Fleet Dispatchers.');
         return;
@@ -129,20 +120,6 @@ export default function LogisticsLoginPage() {
           >
             Access Operations Center
           </Button>
-
-          {import.meta.env.DEV && (
-            <button
-              type="button"
-              onClick={() => {
-                const targetEmail = form.email && form.email.includes('@') ? form.email : 'transporter@sasyavahini.in';
-                previewLogin(targetEmail);
-                navigate('/logistics', { replace: true });
-              }}
-              className="w-full mt-3 py-2 px-3 rounded-lg text-xs font-semibold border border-slate-300 bg-slate-50 text-slate-700 hover:bg-slate-100 transition shadow-sm flex items-center justify-center gap-1.5"
-            >
-              🚀 Instant Preview Sign In
-            </button>
-          )}
         </form>
 
         <p style={{ textAlign: 'center', fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', marginTop: 'var(--space-6)' }}>

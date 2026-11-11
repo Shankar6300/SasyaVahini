@@ -30,8 +30,8 @@ class ValidationError extends AppError {
 }
 
 class AuthenticationError extends AppError {
-  constructor(message = 'Authentication required') {
-    super(message, 401, 'AUTHENTICATION_ERROR');
+  constructor(message = 'Authentication required', code = 'AUTHENTICATION_ERROR') {
+    super(message, 401, code);
     this.name = 'AuthenticationError';
   }
 }

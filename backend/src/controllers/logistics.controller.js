@@ -16,17 +16,20 @@ const checkLogisticsVerified = async (user) => {
   const profile = await prisma.logisticsProfile.findUnique({
     where: { userId: user.id },
   });
-  if (profile) {
-    if (profile.verificationStatus !== 'VERIFIED') {
-      throw new AuthorizationError(
-        'Verification required: Your account is currently pending statutory compliance verification by DoCA. Please submit your required documents in your profile and await approval before accepting farmer shipments.'
-      );
-    }
-    if (profile.licenceExpiry && new Date(profile.licenceExpiry) < new Date()) {
-      throw new AuthorizationError(
-        `Commercial Driving Licence expired on ${new Date(profile.licenceExpiry).toLocaleDateString()}. Motor Vehicles Act requires valid DL credentials. Please re-upload your renewed Driving Licence in your profile before accepting shipments.`
-      );
-    }
+  if (!profile) {
+    throw new AuthorizationError(
+      'Logistics profile not found. Please complete transport partner registration first.'
+    );
+  }
+  if (profile.verificationStatus !== 'VERIFIED') {
+    throw new AuthorizationError(
+      'Verification required: Your account is currently pending statutory compliance verification by DoCA. Please submit your required documents in your profile and await approval before accepting farmer shipments.'
+    );
+  }
+  if (profile.licenceExpiry && new Date(profile.licenceExpiry) < new Date()) {
+    throw new AuthorizationError(
+      `Commercial Driving Licence expired on ${new Date(profile.licenceExpiry).toLocaleDateString()}. Motor Vehicles Act requires valid DL credentials. Please re-upload your renewed Driving Licence in your profile before accepting shipments.`
+    );
   }
 };
 

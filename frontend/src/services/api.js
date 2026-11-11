@@ -52,13 +52,29 @@ api.interceptors.response.use(
                            originalRequest?.url?.includes('/auth/register') ||
                            originalRequest?.url?.includes('/auth/refresh');
 
-    if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
+    const errCode = error.response?.data?.error?.code;
+    const errMsg = String(error.response?.data?.error?.message || '');
+    const hasRefreshToken = Boolean(localStorage.getItem('sv_refresh_token'));
+
+    // Strictly detect if the HTTP 401 was caused by token expiration
+    const isTokenExpired =
+      errCode === 'TOKEN_EXPIRED' ||
+      errMsg.toLowerCase().includes('token expired') ||
+      errMsg.toLowerCase().includes('jwt expired') ||
+      errMsg.toLowerCase().includes('access token expired');
+
+    if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint && hasRefreshToken && isTokenExpired) {
       if (isRefreshing) {
-        // Queue this request until token refresh completes
+        // Queue this request until the ongoing token refresh completes (prevent concurrent refresh requests)
         return new Promise((resolve, reject) => {
           pendingRequests.push({ resolve, reject });
         }).then((token) => {
-          originalRequest.headers.Authorization = `Bearer ${token}`;
+          originalRequest._retry = true;
+          if (originalRequest.headers?.set) {
+            originalRequest.headers.set('Authorization', `Bearer ${token}`);
+          } else {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+          }
           return api(originalRequest);
         });
       }
@@ -68,22 +84,26 @@ api.interceptors.response.use(
 
       try {
         const refreshToken = localStorage.getItem('sv_refresh_token');
-        if (!refreshToken) throw new Error('No refresh token');
+        if (!refreshToken) throw new Error('No refresh token available');
 
         const { data } = await axios.post(`${BASE_URL}/auth/refresh`, { refreshToken });
         const { accessToken, refreshToken: newRefresh } = data.data;
 
         setTokens(accessToken, newRefresh);
 
-        // Resolve all pending requests
+        // Resolve all pending concurrent requests with the new access token
         pendingRequests.forEach(({ resolve }) => resolve(accessToken));
         pendingRequests = [];
 
-        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+        if (originalRequest.headers?.set) {
+          originalRequest.headers.set('Authorization', `Bearer ${accessToken}`);
+        } else {
+          originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+        }
         return api(originalRequest);
-      } catch {
+      } catch (refreshErr) {
         // Refresh failed — clear session and redirect only if on a protected route
-        pendingRequests.forEach(({ reject }) => reject(new Error('Session expired')));
+        pendingRequests.forEach(({ reject }) => reject(new Error('Session expired. Please log in again.')));
         pendingRequests = [];
         clearSession();
 
@@ -104,7 +124,7 @@ api.interceptors.response.use(
             window.location.href = '/login';
           }
         }
-        return Promise.reject(normalizeError(error));
+        return Promise.reject(normalizeError(refreshErr || error));
       } finally {
         isRefreshing = false;
       }

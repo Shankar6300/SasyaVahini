@@ -150,7 +150,10 @@ class VehicleService {
    */
   async listVehicles(query = {}, user = null) {
     let dbVehicles = [];
-    if (prisma.vehicle) {
+    const isMock = ((process.env.JEST_WORKER_ID !== undefined || process.env.NODE_ENV === 'test') && !process.env.TEST_DB) ||
+      process.env.LOGISTICS_DATA_SOURCE === 'mock';
+
+    if (!isMock && prisma.vehicle) {
       try {
         const whereClause = {};
         if (query.status) whereClause.status = query.status;
@@ -827,7 +830,13 @@ class VehicleService {
       }
     }
 
-    const { docType, docNumber, fileUrl, frontUrl, backUrl, issueDate, expiryDate } = docData;
+    const docType = docData.docType || docData.documentType;
+    const docNumber = docData.docNumber !== undefined ? docData.docNumber : docData.documentNumber;
+    const fileUrl = docData.fileUrl || docData.documentUrl || docData.frontUrl;
+    const frontUrl = docData.frontUrl;
+    const backUrl = docData.backUrl;
+    const issueDate = docData.issueDate;
+    const expiryDate = docData.expiryDate || docData.validUntil;
     if (!docType || (!fileUrl && !frontUrl)) {
       throw new ValidationError('Document type and file are required.');
     }

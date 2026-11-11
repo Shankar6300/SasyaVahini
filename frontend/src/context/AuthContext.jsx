@@ -29,7 +29,7 @@ const initialState = {
   error: null,
 };
 
-export const PERSONA_USERS = {
+const PERSONA_USERS = {
   VEHICLE_OWNER: {
     id: 'dev-logistics-owner',
     name: 'Ramesh Patil',

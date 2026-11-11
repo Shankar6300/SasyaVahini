@@ -25,6 +25,11 @@ const requireVerifiedLogistics = async (req, _res, next) => {
     }
 
     if (user.status && user.status !== 'ACTIVE') {
+      if (user.role === 'LOGISTICS' && user.status === 'PENDING_VERIFICATION') {
+        throw new AuthorizationError(
+          'Verification required: Your account is currently pending statutory compliance verification by DoCA. Please submit required documents in your profile and await approval before accepting or operating shipments.'
+        );
+      }
       throw new AuthorizationError(`Account is not active (current status: ${user.status}). Please contact support.`);
     }
 

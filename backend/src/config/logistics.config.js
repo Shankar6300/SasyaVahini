@@ -128,7 +128,7 @@ module.exports = {
   ],
 
   // Environmental Config
-  dataSource: process.env.NODE_ENV === 'test' && !process.env.TEST_DB
+  dataSource: ((process.env.JEST_WORKER_ID !== undefined || process.env.NODE_ENV === 'test') && !process.env.TEST_DB)
     ? 'mock'
     : (process.env.LOGISTICS_DATA_SOURCE || 'mock'),
 };

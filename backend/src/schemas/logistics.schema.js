@@ -102,11 +102,18 @@ const legPingSchema = z.object({
 });
 
 const uploadDocumentSchema = z.object({
-  documentType: z.enum(['RC', 'INSURANCE', 'FITNESS', 'PERMIT', 'PUC', 'ROAD_TAX']),
-  documentNumber: z.string().min(1, 'Document number is required'),
-  documentUrl: z.string().url('Document URL must be a valid URL'),
-  validUntil: z.string().refine((val) => !isNaN(Date.parse(val)), { message: 'Invalid expiry date' }),
-});
+  documentType: z.enum(['RC', 'INSURANCE', 'FITNESS', 'PERMIT', 'PUC', 'ROAD_TAX']).optional(),
+  docType: z.enum(['RC', 'INSURANCE', 'FITNESS', 'PERMIT', 'PUC', 'ROAD_TAX']).optional(),
+  documentNumber: z.string().optional(),
+  docNumber: z.string().optional(),
+  documentUrl: z.string().url('Document URL must be a valid URL').optional(),
+  fileUrl: z.string().url('File URL must be a valid URL').optional(),
+  validUntil: z.string().optional(),
+  expiryDate: z.string().optional(),
+}).refine(
+  (data) => (data.documentType || data.docType) && (data.documentUrl || data.fileUrl),
+  { message: 'Document type and URL are required' }
+);
 
 const adminVerifySchema = z.object({
   status: z.enum(['VERIFIED', 'REJECTED']),
