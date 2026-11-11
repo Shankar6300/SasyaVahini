@@ -409,10 +409,144 @@ Aggregated CVRP optimization impact metrics: total baseline km vs optimized km, 
 
 ---
 
-## 3. Data Source Adapters & Fallback Strategy
+### 2.9 `GET /api/logistics/legs/:id/route-options`
+Fetches up to 3 real comparative road routes for a specific shipment leg calculated via OSRM (`alternatives=true`), including road hierarchy breakdowns, diesel economics, toll fees, and net driver earnings.
+- **Roles:** `LOGISTICS`, `ADMIN`, `BUYER`
+- **Rate Limit:** 60 req/min
+- **Response `200`:**
+  ```json
+  {
+    "success": true,
+    "data": {
+      "legId": "leg_101",
+      "selectedRouteIndex": 0,
+      "isLocked": false,
+      "legPayoutRs": 4500.0,
+      "routes": [
+        {
+          "routeIndex": 0,
+          "label": "Route 1 – Highway Corridor (NH-60)",
+          "distanceKm": 96.0,
+          "etaMin": 110,
+          "fuelLitres": 23.4,
+          "fuelCostRs": 2223.0,
+          "tollsRs": 120.0,
+          "driverNetEarningsRs": 2157.0,
+          "roadBreakdown": { "highwayKm": 72, "stateHighwayKm": 18, "ruralKm": 6 },
+          "spoilageRisk": "LOW",
+          "isRecommended": true,
+          "isEstimated": false,
+          "googleMapsUrl": "https://www.google.com/maps/dir/?api=1&origin=18.9880,73.9400&destination=18.5089,73.9260&travelmode=driving",
+          "geometry": { "type": "LineString", "coordinates": [[73.94, 18.988], ...] }
+        },
+        {
+          "routeIndex": 1,
+          "label": "Route 2 – Main Roads (SH-54)",
+          "distanceKm": 88.4,
+          "etaMin": 135,
+          "fuelLitres": 25.1,
+          "fuelCostRs": 2385.0,
+          "tollsRs": 0.0,
+          "driverNetEarningsRs": 2115.0,
+          "roadBreakdown": { "highwayKm": 22, "stateHighwayKm": 52, "ruralKm": 14.4 },
+          "spoilageRisk": "MODERATE",
+          "isRecommended": false,
+          "isEstimated": false,
+          "googleMapsUrl": "https://www.google.com/maps/dir/?api=1&origin=18.9880,73.9400&destination=18.5089,73.9260&travelmode=driving",
+          "geometry": { "type": "LineString", "coordinates": [...] }
+        },
+        {
+          "routeIndex": 2,
+          "label": "Route 3 – Rural Direct",
+          "distanceKm": 82.5,
+          "etaMin": 185,
+          "fuelLitres": 29.8,
+          "fuelCostRs": 2831.0,
+          "tollsRs": 0.0,
+          "driverNetEarningsRs": 1669.0,
+          "roadBreakdown": { "highwayKm": 8, "stateHighwayKm": 28, "ruralKm": 46.5 },
+          "spoilageRisk": "ELEVATED",
+          "isRecommended": false,
+          "isEstimated": false,
+          "googleMapsUrl": "https://www.google.com/maps/dir/?api=1&origin=18.9880,73.9400&destination=18.5089,73.9260&travelmode=driving",
+          "geometry": { "type": "LineString", "coordinates": [...] }
+        }
+      ]
+    }
+  }
+  ```
+
+---
+
+### 2.10 `POST /api/logistics/legs/:id/select-route`
+Locks the driver's chosen route server-side. Once locked, switching routes requires logging an operational deviation reason.
+- **Roles:** `LOGISTICS`, `ADMIN` (requires verified profile)
+- **Body:**
+  ```json
+  {
+    "selectedRouteIndex": 1,
+    "deviationReason": "ROAD_CLOSED"
+  }
+  ```
+- **Allowed Deviation Reasons:** `ROAD_CLOSED`, `FLOOD`, `ACCIDENT`, `WEIGHT_LIMIT`, `OTHER`
+- **Invariants:** Driver leg payout (`legPayoutRs`) is guaranteed; buyer price is fixed and immutable.
+
+---
+
+### 2.11 `POST /api/logistics/shipments/:id/verify-delivery-otp`
+Constant-time cryptographic verification of the 6-digit delivery OTP at the final delivery stop. Successfully transitions the shipment to `DELIVERED` and emits the escrow disbursement signal.
+- **Roles:** `LOGISTICS`, `ADMIN` (requires verified profile)
+- **Rate Limit:** 15 attempts per 15 minutes; lockout after 5 consecutive incorrect attempts
+- **Body:**
+  ```json
+  {
+    "otp": "482910"
+  }
+  ```
+- **Response `200`:** `{ "success": true, "data": { "currentStatus": "DELIVERED", "deliveredAt": "2026-11-11T18:00:00.000Z" } }`
+
+---
+
+### 2.12 Statutory Fleet Compliance & DoCA Verification Endpoints
+
+- `POST /api/logistics/vehicles/:id/documents`: Upload statutory vehicle documents (`RC`, `INSURANCE`, `FITNESS`, `PERMIT`, `PUC`, `ROAD_TAX`).
+- `GET /api/logistics/admin/verification-queue`: DoCA officers view pending partner profiles, vehicles, and statutory certificates.
+- `PATCH /api/logistics/admin/vehicles/:id/verify`: Approve or reject commercial vehicle (`VERIFIED` / `REJECTED`).
+- `PATCH /api/logistics/admin/drivers/:id/verify`: Approve or reject transporter/driver KYC profile.
+- `PATCH /api/logistics/admin/documents/:id/verify`: Verify statutory certificate validity and expiration date.
+
+---
+
+## 3. Telemetry, Geofencing & Deviation Guardrails
+
+1. **200m Stop Geofence:**
+   Transitions to `PICKUP` or `DELIVERED` verify driver GPS coordinates are within 200 meters of the stop coordinate via Haversine calculation. If > 200m, request fails with 422 unless a valid `geofenceOverrideReason` is supplied:
+   - `GPS_INACCURATE`
+   - `ACCESS_ROAD_BLOCKED`
+   - `SECURITY_GATE_DELIVERY`
+   - `OTHER`
+
+2. **Cross-Track Corridor Deviation Detection (> 300m):**
+   Incoming telemetry pings on `POST /vehicles/:id/location` compute the cross-track distance against the active route polyline using segment projection. If the vehicle deviates by > 300 meters:
+   - Emits `logistics.route_deviation`
+   - Dynamically recalculates remaining ETA
+   - Flags telemetry response with `isDeviated: true` and `deviationMeters`
+
+---
+
+## 4. Transactional Outbox Event Bus
+
+All lifecycle events are recorded atomically in the database `OutboxEvent` table and dispatched asynchronously with exponential backoff:
+- `shipment.created`: `{ shipmentId, orderId, trackingNumber, vehicleId, totalWeightKg }`
+- `shipment.milestone`: `{ shipmentId, orderId, milestone, timestamp, location }`
+- `shipment.delivered`: `{ shipmentId, orderId, deliveredAt, verifiedOtp }` (Escrow release)
+- `shipment.route_locked`: `{ legId, shipmentId, selectedRouteIndex, lockedAt }`
+- `logistics.route_deviation`: `{ vehicleId, shipmentId, deviationMeters, timestamp }`
+
+---
+
+## 5. Data Source Adapters & Fallback Strategy
 
 When running in Standalone Mode (`LOGISTICS_DATA_SOURCE=mock`), the module operates without dependencies on unmerged database tables:
-- **Missing / Derived Fields Handling:**
-  - `grade`: Defaults to `GRADE_A` or uses `qualityGrade` from `ProduceListing`.
-  - `reliability`: Computed from farmer historical delivery count or default baseline `0.85`.
-  - `lat/lng`: When a profile lacks explicit coordinates, geocoded district centroid fallbacks (Pune district hubs: Chakan `18.7606, 73.8636`, Manchar `18.9880, 73.9400`, Khed `18.8470, 73.9100`, etc.) are applied automatically.
+- **Strict Coordinate Validation (Task 6):** Silent fallbacks to Hadapsar/Chakan have been eliminated; coordinates must be provided or geocoded explicitly.
+- **OSRM Geometry & 24h Route Cache:** Multi-route geometry is cached for 24 hours. Fallback straight lines are never cached and are marked `isEstimated: true`.

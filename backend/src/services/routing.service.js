@@ -471,6 +471,7 @@ class RoutingService {
           fuelCostRs,
           tollsRs,
           driverNetEarning,
+          driverNetEarningsRs: driverNetEarning,
           legPayoutRs: basePayout,
           roadBreakdown: {
             highwayKm: Math.round(distanceKm * cfg.highwayRatio * 10) / 10,
@@ -516,6 +517,7 @@ class RoutingService {
         fuelCostRs: Math.round(((dist / 4.4) * 95) * 100) / 100,
         tollsRs: 60,
         driverNetEarning: Math.round((basePayout - (dist / 4.4) * 95 - 60) * 100) / 100,
+        driverNetEarningsRs: Math.round((basePayout - (dist / 4.4) * 95 - 60) * 100) / 100,
         legPayoutRs: basePayout,
         roadBreakdown: { highwayKm: Math.round(dist * 0.7), stateHighwayKm: Math.round(dist * 0.2), ruralKm: Math.round(dist * 0.1) },
         truckSuitable: true,
