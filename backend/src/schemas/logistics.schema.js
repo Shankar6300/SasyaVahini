@@ -38,6 +38,7 @@ const updateMilestoneSchema = z.object({
 
 const createShipmentSchema = z.object({
   orderId: z.string().min(1, 'Order ID is required'),
+  quoteId: z.string().optional(),
   planId: z.string().optional(),
   planData: z.record(z.any()).optional(),
 });
@@ -73,6 +74,16 @@ const listShipmentsQuerySchema = z.object({
   status: z.string().optional(),
 });
 
+const recordHandoverSchema = z.object({
+  shipmentId: z.string().min(1, 'Shipment ID is required'),
+  feederDriverId: z.string().min(1, 'Feeder driver ID is required'),
+  linehaulDriverId: z.string().min(1, 'Linehaul driver ID is required'),
+  feederKg: z.number().positive('Feeder weight in kg must be positive'),
+  linehaulKg: z.number().positive('Linehaul weight in kg must be positive'),
+  feederOtp: z.string().length(6, 'Feeder OTP must be 6 digits'),
+  linehaulOtp: z.string().length(6, 'Linehaul OTP must be 6 digits'),
+});
+
 module.exports = {
   planOrderSchema,
   acceptShipmentSchema,
@@ -82,4 +93,5 @@ module.exports = {
   createVehicleSchema,
   patchVehicleSchema,
   listShipmentsQuerySchema,
+  recordHandoverSchema,
 };

@@ -18,6 +18,7 @@ const {
   createShipmentSchema,
   updateLocationSchema,
   listShipmentsQuerySchema,
+  recordHandoverSchema,
 } = require('../schemas/logistics.schema');
 const controller = require('../controllers/logistics.controller');
 
@@ -101,6 +102,7 @@ router.post(
   '/transfers/:transferPointId/handover',
   authenticate,
   requireRole(['LOGISTICS', 'ADMIN']),
+  validate(recordHandoverSchema),
   controller.recordHandover,
 );
 

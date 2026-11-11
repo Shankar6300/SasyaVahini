@@ -19,6 +19,7 @@ const twoTierLogisticsService = require('./twoTierLogistics.service');
 const routingService = require('./routing.service');
 const logisticsEvents = require('../events/logisticsEvents');
 const { NotFoundError, ConflictError, BusinessRuleError } = require('../utils/errors');
+const { generateDeliveryOtp, verifyDeliveryOtp } = require('../utils/cryptoOtp');
 const logger = require('../utils/logger');
 const prisma = require('../lib/prisma');
 
@@ -198,8 +199,9 @@ class LogisticsService {
       plan = planResult.plans[0];
     }
 
-    // Generate random 6-digit delivery OTP
-    const deliveryOtp = Math.floor(100000 + Math.random() * 900000).toString();
+    // Generate cryptographically secure 6-digit delivery OTP
+    const { rawOtp, hashedOtp, expiresAt } = generateDeliveryOtp();
+    const deliveryOtp = config.dataSource === 'mock' ? rawOtp : hashedOtp;
 
     // Assign vehicle based on first pickup and load
     const firstFarmer = plan.farmers?.[0];
@@ -409,14 +411,17 @@ class LogisticsService {
       );
     }
 
-    // If transitioning to DELIVERED, verify delivery OTP
+    // If transitioning to DELIVERED, verify delivery OTP using constant-time check & attempt limits
     if (nextMilestone === 'DELIVERED') {
       if (!milestoneData.deliveryOtp) {
         throw new BusinessRuleError('deliveryOtp is required to mark shipment as DELIVERED');
       }
-      if (milestoneData.deliveryOtp !== shipment.deliveryOtp) {
-        throw new BusinessRuleError('Invalid delivery OTP. Verification failed.');
-      }
+      verifyDeliveryOtp(
+        shipment.id,
+        milestoneData.deliveryOtp,
+        shipment.deliveryOtp,
+        shipment.deliveryOtpExpiresAt
+      );
     }
 
     // Optimistic concurrency locking via updateMany
