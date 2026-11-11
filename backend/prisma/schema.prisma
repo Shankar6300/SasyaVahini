@@ -1027,6 +1027,15 @@ model ShipmentLeg {
   cost             Float
   kg               Float
   status           String          @default("PLANNED")
+  routeOptionsJson Json?
+  selectedRouteIndex Int?
+  routeLockedAt    DateTime?
+  plannedCostRs    Float?
+  plannedFuelLitres Float?
+  plannedEtaMin    Int?
+  legPayoutRs      Float?
+  deviationReason  String?
+  actualCostRs     Float?
   createdAt        DateTime        @default(now())
   updatedAt        DateTime        @updatedAt
 

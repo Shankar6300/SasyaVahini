@@ -84,6 +84,11 @@ const recordHandoverSchema = z.object({
   linehaulOtp: z.string().length(6, 'Linehaul OTP must be 6 digits'),
 });
 
+const selectRouteSchema = z.object({
+  selectedRouteIndex: z.number().int().min(0).max(2, 'Route index must be 0, 1, or 2'),
+  deviationReason: z.enum(['ROAD_CLOSED', 'FLOOD', 'ACCIDENT', 'WEIGHT_LIMIT', 'OTHER']).optional(),
+});
+
 module.exports = {
   planOrderSchema,
   acceptShipmentSchema,
@@ -94,4 +99,5 @@ module.exports = {
   patchVehicleSchema,
   listShipmentsQuerySchema,
   recordHandoverSchema,
+  selectRouteSchema,
 };

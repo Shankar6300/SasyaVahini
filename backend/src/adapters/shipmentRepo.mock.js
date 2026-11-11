@@ -24,6 +24,7 @@ class MockShipmentRepo {
   constructor() {
     this.shipments = new Map();
     this.quotes = new Map();
+    this.legs = new Map();
     this.locationPings = [];
     if (process.env.NODE_ENV !== 'production') {
       this.initDefaultMock();
@@ -123,6 +124,32 @@ class MockShipmentRepo {
       createdAt: new Date(Date.now() - 3600000).toISOString(),
       updatedAt: new Date().toISOString(),
     });
+
+    const demoLeg = {
+      id: 'leg_demo_101',
+      shipmentId: mockId,
+      sequence: 1,
+      type: 'DIRECT',
+      vehicleClass: 'SCV',
+      fromJson: { lat: 18.9880, lng: 73.9400, name: 'Manchar Pickup' },
+      toJson: { lat: 18.5089, lng: 73.9260, name: 'Hadapsar Delivery' },
+      km: 78.5,
+      etaMin: 110,
+      cost: 2840.0,
+      kg: 2500,
+      status: 'ASSIGNED',
+      selectedRouteIndex: null,
+      routeLockedAt: null,
+      plannedCostRs: 2840.0,
+      plannedFuelLitres: 19.5,
+      plannedEtaMin: 110,
+      legPayoutRs: 3400.0,
+      deviationReason: null,
+      actualCostRs: null,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    this.legs.set(demoLeg.id, demoLeg);
   }
 
   async createShipmentWithStopsAndLegs({ shipment, stops = [], legs = [] }) {
@@ -179,6 +206,7 @@ class MockShipmentRepo {
     };
 
     this.shipments.set(shipment.id, createdShipment);
+    createdShipment.legs.forEach((l) => this.legs.set(l.id, l));
     logger.info('MockShipmentRepo: created shipment', { shipmentId: shipment.id, trackingNumber: shipment.trackingNumber });
     return createdShipment;
   }
@@ -380,6 +408,41 @@ class MockShipmentRepo {
     quote.payload = { ...quote.payload, ...confirmedData, confirmedAt: quote.confirmedAt, priceLocked: true };
     quote.updatedAt = new Date().toISOString();
     return quote;
+  }
+
+  async findLegById(id) {
+    if (!id) return null;
+    return this.legs.get(id) || null;
+  }
+
+  async lockLegRoute(legId, { selectedRouteIndex, routeData = {}, deviationReason = null, lockedBy = 'driver' }) {
+    const leg = this.legs.get(legId);
+    if (!leg) throw new NotFoundError(`Shipment leg ${legId}`);
+
+    const isAlreadyLocked = leg.routeLockedAt != null;
+    if (isAlreadyLocked) {
+      if (!deviationReason) {
+        throw new ConflictError(
+          'Route is already locked. Route change requires a verified deviationReason (ROAD_CLOSED, FLOOD, ACCIDENT, WEIGHT_LIMIT, OTHER).'
+        );
+      }
+      const validReasons = ['ROAD_CLOSED', 'FLOOD', 'ACCIDENT', 'WEIGHT_LIMIT', 'OTHER'];
+      if (!validReasons.includes(deviationReason)) {
+        throw new ConflictError(`Invalid deviation reason '${deviationReason}'. Allowed: ${validReasons.join(', ')}`);
+      }
+      leg.deviationReason = deviationReason;
+    }
+
+    leg.selectedRouteIndex = selectedRouteIndex;
+    leg.routeLockedAt = new Date().toISOString();
+    leg.plannedCostRs = routeData.fuelCostRs != null ? routeData.fuelCostRs : leg.plannedCostRs;
+    leg.plannedFuelLitres = routeData.fuelLitres != null ? routeData.fuelLitres : leg.plannedFuelLitres;
+    leg.plannedEtaMin = routeData.etaMin != null ? routeData.etaMin : leg.plannedEtaMin;
+    leg.routeOptionsJson = routeData.routeOptions || leg.routeOptionsJson;
+    leg.status = 'LOCKED';
+    leg.updatedAt = new Date().toISOString();
+
+    return leg;
   }
 }
 

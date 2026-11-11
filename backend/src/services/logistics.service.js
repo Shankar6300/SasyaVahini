@@ -160,6 +160,86 @@ class LogisticsService {
     });
   }
 
+  /**
+   * Get 3 comparative route options for a shipment leg
+   */
+  async getLegRouteOptions(legId) {
+    const leg = await shipmentRepo.findLegById(legId);
+    if (!leg) throw new NotFoundError(`Shipment leg ${legId}`);
+
+    const from = typeof leg.fromJson === 'string' ? JSON.parse(leg.fromJson) : leg.fromJson;
+    const to = typeof leg.toJson === 'string' ? JSON.parse(leg.toJson) : leg.toJson;
+
+    const fromLat = from?.lat || from?.latitude;
+    const fromLng = from?.lng || from?.longitude;
+    const toLat = to?.lat || to?.latitude;
+    const toLng = to?.lng || to?.longitude;
+
+    const waypoints = [
+      { lat: fromLat, lng: fromLng, name: from?.name || 'Leg Origin' },
+      { lat: toLat, lng: toLng, name: to?.name || 'Leg Destination' },
+    ];
+
+    const basePayout = leg.legPayoutRs || leg.cost || 2500.0;
+    const routeData = await routingService.getRouteOptions(waypoints, { legPayoutRs: basePayout });
+
+    return {
+      legId: leg.id,
+      sequence: leg.sequence,
+      type: leg.type,
+      vehicleClass: leg.vehicleClass,
+      currentStatus: leg.status,
+      selectedRouteIndex: leg.selectedRouteIndex,
+      isLocked: leg.routeLockedAt != null,
+      routeLockedAt: leg.routeLockedAt,
+      legPayoutRs: basePayout,
+      deviationReason: leg.deviationReason,
+      ...routeData,
+    };
+  }
+
+  /**
+   * Lock selected route on a shipment leg server-side.
+   * If already locked, requires a verified deviationReason.
+   * Invariant: never modifies buyer price.
+   */
+  async selectLegRoute(legId, { selectedRouteIndex, deviationReason = null }, userId = 'driver') {
+    if (selectedRouteIndex == null || selectedRouteIndex < 0 || selectedRouteIndex > 2) {
+      throw new ValidationError('selectedRouteIndex must be 0 (Route 1), 1 (Route 2), or 2 (Route 3)');
+    }
+
+    const options = await this.getLegRouteOptions(legId);
+    const chosenRoute = options.routes[selectedRouteIndex] || options.routes[0];
+
+    const lockedLeg = await shipmentRepo.lockLegRoute(legId, {
+      selectedRouteIndex,
+      routeData: {
+        fuelCostRs: chosenRoute.fuelCostRs,
+        fuelLitres: chosenRoute.fuelLitres,
+        etaMin: chosenRoute.etaMin,
+        routeOptions: options.routes,
+      },
+      deviationReason,
+      lockedBy: userId,
+    });
+
+    logisticsEvents.emit('shipment.route_locked', {
+      legId,
+      shipmentId: lockedLeg.shipmentId,
+      selectedRouteIndex,
+      deviationReason,
+      plannedFuelLitres: lockedLeg.plannedFuelLitres,
+      plannedCostRs: lockedLeg.plannedCostRs,
+      lockedAt: lockedLeg.routeLockedAt,
+    });
+
+    return {
+      ...lockedLeg,
+      selectedRoute: chosenRoute,
+      googleMapsUrl: options.googleMapsUrl,
+    };
+  }
+
   async recordHandover({ transferPointId, shipmentId, feederDriverId, linehaulDriverId, feederKg, linehaulKg, feederOtp, linehaulOtp }) {
     const toleranceKg = Math.max(feederKg, linehaulKg) * config.twoTier.kgTolerancePct;
     const mismatchKg = Math.abs(feederKg - linehaulKg);

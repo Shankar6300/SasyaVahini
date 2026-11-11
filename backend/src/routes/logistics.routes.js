@@ -20,6 +20,7 @@ const {
   updateLocationSchema,
   listShipmentsQuerySchema,
   recordHandoverSchema,
+  selectRouteSchema,
 } = require('../schemas/logistics.schema');
 const controller = require('../controllers/logistics.controller');
 
@@ -109,6 +110,24 @@ router.post(
   requireRole(['LOGISTICS', 'ADMIN']),
   validate(recordHandoverSchema),
   controller.recordHandover,
+);
+
+// GET /api/logistics/legs/:id/route-options
+router.get(
+  '/legs/:id/route-options',
+  authenticate,
+  requireRole(['LOGISTICS', 'ADMIN', 'BUYER']),
+  controller.getLegRouteOptions,
+);
+
+// POST /api/logistics/legs/:id/select-route
+router.post(
+  '/legs/:id/select-route',
+  authenticate,
+  requireRole(['LOGISTICS', 'ADMIN']),
+  requireVerifiedLogistics,
+  validate(selectRouteSchema),
+  controller.selectLegRoute,
 );
 
 // POST /api/logistics/shipments (Create shipment from confirmed order)

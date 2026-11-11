@@ -453,6 +453,52 @@ class PrismaShipmentRepo {
       });
     });
   }
+
+  async findLegById(id) {
+    if (!id) return null;
+    return prisma.shipmentLeg.findUnique({
+      where: { id },
+      include: {
+        shipment: true,
+        transferPoint: true,
+      },
+    });
+  }
+
+  async lockLegRoute(legId, { selectedRouteIndex, routeData = {}, deviationReason = null, lockedBy = 'driver' }) {
+    return prisma.$transaction(async (tx) => {
+      const leg = await tx.shipmentLeg.findUnique({ where: { id: legId } });
+      if (!leg) throw new NotFoundError(`Shipment leg ${legId}`);
+
+      if (leg.routeLockedAt != null) {
+        if (!deviationReason) {
+          throw new ConflictError(
+            'Route is already locked. Route change requires a verified deviationReason (ROAD_CLOSED, FLOOD, ACCIDENT, WEIGHT_LIMIT, OTHER).'
+          );
+        }
+        const validReasons = ['ROAD_CLOSED', 'FLOOD', 'ACCIDENT', 'WEIGHT_LIMIT', 'OTHER'];
+        if (!validReasons.includes(deviationReason)) {
+          throw new ConflictError(`Invalid deviation reason '${deviationReason}'. Allowed: ${validReasons.join(', ')}`);
+        }
+      }
+
+      const updateData = {
+        selectedRouteIndex,
+        routeLockedAt: new Date(),
+        status: 'LOCKED',
+      };
+      if (routeData.fuelCostRs != null) updateData.plannedCostRs = routeData.fuelCostRs;
+      if (routeData.fuelLitres != null) updateData.plannedFuelLitres = routeData.fuelLitres;
+      if (routeData.etaMin != null) updateData.plannedEtaMin = routeData.etaMin;
+      if (routeData.routeOptions) updateData.routeOptionsJson = routeData.routeOptions;
+      if (deviationReason) updateData.deviationReason = deviationReason;
+
+      return tx.shipmentLeg.update({
+        where: { id: legId },
+        data: updateData,
+      });
+    });
+  }
 }
 
 module.exports = new PrismaShipmentRepo();

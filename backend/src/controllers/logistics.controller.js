@@ -446,6 +446,24 @@ const verifyDocument = async (req, res, next) => {
     next(err);
   }
 };
+const getLegRouteOptions = async (req, res, next) => {
+  try {
+    const result = await logisticsService.getLegRouteOptions(req.params.id);
+    return sendSuccess(res, result);
+  } catch (err) {
+    next(err);
+  }
+};
+
+const selectLegRoute = async (req, res, next) => {
+  try {
+    const result = await logisticsService.selectLegRoute(req.params.id, req.body, req.user?.id);
+    return sendSuccess(res, result);
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   getAvailableShipments,
   acceptShipment,
@@ -457,6 +475,8 @@ module.exports = {
   dispatchPlan,
   acceptOffer,
   recordHandover,
+  getLegRouteOptions,
+  selectLegRoute,
   listShipments,
   getShipmentById,
   listVehicles,
