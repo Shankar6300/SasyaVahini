@@ -28,10 +28,13 @@ const shipmentRepo = isMock
   ? require('./shipmentRepo.mock')
   : require('./shipmentRepo.prisma');
 
+const reservationPort = require('./reservationPort');
+
 module.exports = {
   batchRepo,
   orderRepo,
   farmerRepo,
   shipmentRepo,
+  reservationPort,
   isMock,
 };

@@ -12,7 +12,7 @@
 
 const { v4: uuidv4 } = require('uuid');
 const config = require('../config/logistics.config');
-const { orderRepo, shipmentRepo } = require('../adapters');
+const { orderRepo, shipmentRepo, reservationPort } = require('../adapters');
 const vehicleService = require('./vehicle.service');
 const sourcingService = require('./sourcing.service');
 const twoTierLogisticsService = require('./twoTierLogistics.service');

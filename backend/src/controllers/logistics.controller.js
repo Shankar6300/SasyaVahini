@@ -1,7 +1,7 @@
-const { AuthorizationError, NotFoundError } = require('../utils/errors');
+const { AuthorizationError, NotFoundError, ConflictError } = require('../utils/errors');
 const prisma = require('../lib/prisma');
 const { checkShipmentAccess, checkOrderAccess } = require('../utils/logisticsAuth');
-const { shipmentRepo, orderRepo } = require('../adapters');
+const { shipmentRepo, orderRepo, reservationPort } = require('../adapters');
 const {
   toBuyerView,
   toDriverView,
@@ -153,14 +153,19 @@ const createShipment = async (req, res, next) => {
     let verifiedPlan = null;
     if (quoteId) {
       const quote = await shipmentRepo.findPlanQuote(quoteId);
-      if (quote && quote.payload) {
-        const payload = quote.payload;
-        if (planId && Array.isArray(payload.plans)) {
-          verifiedPlan = payload.plans.find((p) => p.planId === planId);
-        } else if (Array.isArray(payload.plans) && payload.plans.length > 0) {
-          verifiedPlan = payload.plans[0];
-        } else if (payload.farmers) {
-          verifiedPlan = payload;
+      if (quote) {
+        if (quote.expiresAt && reservationPort.isExpired(quote.expiresAt)) {
+          throw new ConflictError('The logistics plan quote has expired. Please generate a fresh plan.');
+        }
+        if (quote.payload) {
+          const payload = quote.payload;
+          if (planId && Array.isArray(payload.plans)) {
+            verifiedPlan = payload.plans.find((p) => p.planId === planId);
+          } else if (Array.isArray(payload.plans) && payload.plans.length > 0) {
+            verifiedPlan = payload.plans[0];
+          } else if (payload.farmers) {
+            verifiedPlan = payload;
+          }
         }
       }
     }
