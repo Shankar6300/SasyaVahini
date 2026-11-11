@@ -18,6 +18,7 @@ const sourcingService = require('./sourcing.service');
 const twoTierLogisticsService = require('./twoTierLogistics.service');
 const routingService = require('./routing.service');
 const logisticsEvents = require('../events/logisticsEvents');
+const { recordOutboxEvent } = require('../events/outboxDispatcher');
 const { NotFoundError, ConflictError, BusinessRuleError, ValidationError } = require('../utils/errors');
 const { generateDeliveryOtp, verifyDeliveryOtp } = require('../utils/cryptoOtp');
 const { haversineKm } = require('../utils/geo');
@@ -234,6 +235,21 @@ class LogisticsService {
       lockedAt: lockedLeg.routeLockedAt,
     });
 
+    recordOutboxEvent({
+      aggregateType: 'LEG',
+      aggregateId: legId,
+      eventType: 'shipment.route_locked',
+      payload: {
+        legId,
+        shipmentId: lockedLeg.shipmentId,
+        selectedRouteIndex,
+        deviationReason,
+        plannedFuelLitres: lockedLeg.plannedFuelLitres,
+        plannedCostRs: lockedLeg.plannedCostRs,
+        lockedAt: lockedLeg.routeLockedAt,
+      },
+    }).catch(() => {});
+
     return {
       ...lockedLeg,
       selectedRoute: chosenRoute,
@@ -411,6 +427,19 @@ class LogisticsService {
       vehicleId: vehicle?.id,
       totalWeightKg: order.totalQuantityKg,
     });
+
+    recordOutboxEvent({
+      aggregateType: 'SHIPMENT',
+      aggregateId: created.id,
+      eventType: 'shipment.created',
+      payload: {
+        shipmentId: created.id,
+        orderId: order.id,
+        trackingNumber: created.trackingNumber,
+        vehicleId: vehicle?.id,
+        totalWeightKg: order.totalQuantityKg,
+      },
+    }).catch(() => {});
 
     return this.toApiShipment(created);
   }
@@ -640,6 +669,22 @@ class LogisticsService {
         : null,
     });
 
+    recordOutboxEvent({
+      aggregateType: 'SHIPMENT',
+      aggregateId: shipment.id,
+      eventType: 'shipment.milestone',
+      payload: {
+        shipmentId: shipment.id,
+        orderId: shipment.orderId,
+        milestone: nextMilestone,
+        status: nextMilestone,
+        timestamp: new Date().toISOString(),
+        location: milestoneData.latitude
+          ? { latitude: milestoneData.latitude, longitude: milestoneData.longitude }
+          : null,
+      },
+    }).catch(() => {});
+
     if (nextMilestone === 'DELIVERED') {
       logisticsEvents.emit('shipment.delivered', {
         shipmentId: shipment.id,
@@ -647,6 +692,18 @@ class LogisticsService {
         deliveredAt: updated.deliveredAt || new Date().toISOString(),
         verifiedOtp: milestoneData.deliveryOtp,
       });
+
+      recordOutboxEvent({
+        aggregateType: 'SHIPMENT',
+        aggregateId: shipment.id,
+        eventType: 'shipment.delivered',
+        payload: {
+          shipmentId: shipment.id,
+          orderId: shipment.orderId,
+          deliveredAt: updated.deliveredAt || new Date().toISOString(),
+          verifiedOtp: milestoneData.deliveryOtp,
+        },
+      }).catch(() => {});
     }
 
     return {

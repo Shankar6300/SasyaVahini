@@ -1164,3 +1164,27 @@ model LocationPing {
   @@index([shipmentId])
   @@index([recordedAt])
 }
+
+// =============================================================================
+// TRANSACTIONAL OUTBOX (TASK 12)
+// =============================================================================
+
+model OutboxEvent {
+  id            String    @id @default(uuid())
+  aggregateType String    // "SHIPMENT" | "VEHICLE" | "LEG" | "OFFER"
+  aggregateId   String
+  eventType     String    // "shipment.created", "shipment.milestone", "shipment.delivered", etc.
+  payload       Json
+  status        String    @default("PENDING") // "PENDING" | "PROCESSING" | "SENT" | "FAILED"
+  retryCount    Int       @default(0)
+  maxRetries    Int       @default(5)
+  lastError     String?
+  scheduledFor  DateTime  @default(now())
+  processedAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([status, scheduledFor])
+  @@index([aggregateType, aggregateId])
+  @@index([createdAt])
+}
