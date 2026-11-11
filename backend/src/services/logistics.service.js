@@ -20,6 +20,7 @@ const routingService = require('./routing.service');
 const logisticsEvents = require('../events/logisticsEvents');
 const { NotFoundError, ConflictError, BusinessRuleError, ValidationError } = require('../utils/errors');
 const { generateDeliveryOtp, verifyDeliveryOtp } = require('../utils/cryptoOtp');
+const { haversineKm } = require('../utils/geo');
 const logger = require('../utils/logger');
 const prisma = require('../lib/prisma');
 
@@ -542,6 +543,57 @@ class LogisticsService {
         shipment.deliveryOtp,
         shipment.deliveryOtpExpiresAt
       );
+    }
+
+    // 200 m Geofence check: When marking PICKUP or DELIVERED, verify driver GPS is within 200 m of target stop
+    if (
+      (nextMilestone === 'PICKUP' || nextMilestone === 'DELIVERED') &&
+      milestoneData.latitude != null &&
+      milestoneData.longitude != null
+    ) {
+      let targetStop = null;
+      if (nextMilestone === 'PICKUP') {
+        targetStop = milestoneData.stopId
+          ? (shipment.stops || []).find((s) => s.id === milestoneData.stopId)
+          : (shipment.stops || []).find((s) => s.stopType === 'PICKUP' && s.status !== 'COMPLETED');
+      } else {
+        targetStop = (shipment.stops || []).find((s) => s.stopType === 'DELIVERY');
+      }
+
+      if (targetStop && targetStop.latitude != null && targetStop.longitude != null) {
+        const distMeters =
+          haversineKm(
+            milestoneData.latitude,
+            milestoneData.longitude,
+            targetStop.latitude,
+            targetStop.longitude
+          ) * 1000;
+
+        if (distMeters > 200) {
+          if (!milestoneData.geofenceOverrideReason) {
+            throw new ValidationError(
+              `Vehicle is ${Math.round(distMeters)} meters away from stop '${targetStop.stopName}' (exceeds 200 m geofence). A valid geofenceOverrideReason (GPS_INACCURATE, ACCESS_ROAD_BLOCKED, SECURITY_GATE_DELIVERY, OTHER) is required to proceed.`
+            );
+          }
+          const validOverrides = [
+            'GPS_INACCURATE',
+            'ACCESS_ROAD_BLOCKED',
+            'SECURITY_GATE_DELIVERY',
+            'OTHER',
+          ];
+          if (!validOverrides.includes(milestoneData.geofenceOverrideReason)) {
+            throw new ValidationError(
+              `Invalid geofence override reason. Allowed: ${validOverrides.join(', ')}`
+            );
+          }
+          logger.warn('Geofence boundary override accepted', {
+            shipmentId,
+            stopId: targetStop.id,
+            distMeters,
+            overrideReason: milestoneData.geofenceOverrideReason,
+          });
+        }
+      }
     }
 
     // Optimistic concurrency locking via updateMany

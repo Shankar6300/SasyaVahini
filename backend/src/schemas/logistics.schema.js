@@ -34,6 +34,7 @@ const updateMilestoneSchema = z.object({
   temperatureC: z.number().optional(),
   notes: z.string().optional(),
   deliveryOtp: z.string().length(6, 'Delivery OTP must be exactly 6 digits').optional(),
+  geofenceOverrideReason: z.enum(['GPS_INACCURATE', 'ACCESS_ROAD_BLOCKED', 'SECURITY_GATE_DELIVERY', 'OTHER']).optional(),
 });
 
 const createShipmentSchema = z.object({

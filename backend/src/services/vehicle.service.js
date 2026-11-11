@@ -11,7 +11,8 @@
  */
 
 const config = require('../config/logistics.config');
-const { haversineKm } = require('../utils/geo');
+const { haversineKm, distanceToPolylineMeters } = require('../utils/geo');
+const logisticsEvents = require('../events/logisticsEvents');
 const logger = require('../utils/logger');
 const prisma = require('../lib/prisma');
 const { AuthorizationError, NotFoundError, ValidationError } = require('../utils/errors');
@@ -461,12 +462,48 @@ class VehicleService {
       }
     }
 
+    let isDeviated = false;
+    let deviationMeters = 0;
+
+    // Check deviation if vehicle is on active shipment
+    try {
+      const { shipmentRepo } = require('../adapters');
+      const activeShipment = (await shipmentRepo.listShipments({ limit: 10, where: { vehicleId } }))?.items?.find(
+        (s) => s.status === 'TRANSIT' || s.status === 'PICKUP' || s.status === 'OUT_FOR_DELIVERY'
+      );
+
+      const polylineCoords = activeShipment?.routeGeometry?.coordinates || activeShipment?.routeGeometryJson?.coordinates;
+      if (Array.isArray(polylineCoords) && polylineCoords.length >= 2) {
+        deviationMeters = distanceToPolylineMeters({ lat: latitude, lng: longitude }, polylineCoords);
+        if (deviationMeters > 300) {
+          isDeviated = true;
+          logisticsEvents.emit('logistics.route_deviation', {
+            vehicleId,
+            shipmentId: activeShipment.id,
+            deviationMeters,
+            currentLat: latitude,
+            currentLng: longitude,
+            timestamp: new Date().toISOString(),
+          });
+          logger.warn('Vehicle deviated from locked route corridor', {
+            vehicleId,
+            shipmentId: activeShipment.id,
+            deviationMeters,
+          });
+        }
+      }
+    } catch {
+      // Non-blocking deviation check
+    }
+
     return {
       vehicleId,
       latitude,
       longitude,
       speedKmh,
       temperatureC,
+      isDeviated,
+      deviationMeters,
       timestamp: new Date().toISOString(),
     };
   }
