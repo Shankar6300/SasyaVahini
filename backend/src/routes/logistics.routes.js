@@ -9,6 +9,7 @@
  */
 
 const { Router } = require('express');
+const rateLimit = require('express-rate-limit');
 const { authenticate, requireRole } = require('../middleware/auth');
 const { requireVerifiedLogistics } = require('../middleware/requireVerifiedLogistics');
 const { validate } = require('../middleware/validate');
@@ -27,6 +28,40 @@ const {
   adminVerifySchema,
 } = require('../schemas/logistics.schema');
 const controller = require('../controllers/logistics.controller');
+
+// Logistics endpoint rate limiters
+const gpsTelemetryLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 120,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    error: { code: 'RATE_LIMIT_EXCEEDED', message: 'Too many GPS telemetry pings. Limit: 120 pings/min.' },
+  },
+});
+
+const routeCalculationLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 60,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    error: { code: 'RATE_LIMIT_EXCEEDED', message: 'Too many route optimization requests. Limit: 60/min.' },
+  },
+});
+
+const deliveryOtpLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 15,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    error: { code: 'RATE_LIMIT_EXCEEDED', message: 'Too many OTP verification attempts. Please wait.' },
+  },
+});
 
 const router = Router();
 
@@ -63,6 +98,7 @@ router.post(
 // POST /api/logistics/shipments/:id/verify-delivery-otp
 router.post(
   '/shipments/:id/verify-delivery-otp',
+  deliveryOtpLimiter,
   authenticate,
   requireRole(['LOGISTICS', 'ADMIN']),
   requireVerifiedLogistics,
@@ -89,6 +125,7 @@ router.get(
 // POST /api/logistics/plan (Sourcing & Logistics optimization)
 router.post(
   '/plan',
+  routeCalculationLimiter,
   authenticate,
   requireRole(['BUYER', 'FPO', 'ADMIN', 'LOGISTICS']),
   validate(planOrderSchema),
@@ -129,6 +166,7 @@ router.post(
 // GET /api/logistics/legs/:id/route-options
 router.get(
   '/legs/:id/route-options',
+  routeCalculationLimiter,
   authenticate,
   requireRole(['LOGISTICS', 'ADMIN', 'BUYER']),
   controller.getLegRouteOptions,
@@ -263,6 +301,7 @@ router.get(
 // POST /api/logistics/vehicles/:id/location (GPS Telemetry ping)
 router.post(
   '/vehicles/:id/location',
+  gpsTelemetryLimiter,
   authenticate,
   requireRole(['LOGISTICS', 'ADMIN']),
   requireVerifiedLogistics,

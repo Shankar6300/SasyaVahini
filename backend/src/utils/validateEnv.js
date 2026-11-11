@@ -22,6 +22,10 @@ const OPTIONAL_WITH_DEFAULTS = {
   ML_SERVICE_TIMEOUT_MS: '5000',
   ENABLE_REAL_OTP: 'false',
   OTP_EXPIRY_SECONDS: '300',
+  LOGISTICS_DATA_SOURCE: 'mock',
+  OSRM_BASE_URL: 'https://router.project-osrm.org',
+  ROUTING_TIMEOUT_MS: '3500',
+  DELIVERY_OTP_SALT: 'sasyavahini_dev_delivery_salt_2026',
 };
 
 function validateEnv() {
