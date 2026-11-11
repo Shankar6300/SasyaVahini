@@ -51,15 +51,37 @@ const updateLocationSchema = z.object({
   temperatureC: z.number().optional(),
 });
 
-const createVehicleSchema = z.object({
-  vehicleNumber: z.string().min(3),
-  vehicleType: z.string().min(2),
-  capacityKg: z.number().positive(),
-  driverName: z.string().min(2),
-  driverPhone: z.string().regex(/^\+?[0-9]{10,15}$/, 'Invalid phone number'),
-  currentLatitude: z.number().optional(),
-  currentLongitude: z.number().optional(),
-});
+const createVehicleSchema = z
+  .object({
+    vehicleNumber: z.string().min(3, 'Vehicle number must be at least 3 characters'),
+    vehicleType: z.string().optional(),
+    category: z.string().optional(),
+    make: z.string().optional(),
+    model: z.string().optional(),
+    fuelType: z.string().optional(),
+    capacityKg: z.coerce.number().positive('Capacity must be a positive number'),
+    mileageKmpl: z.coerce.number().optional(),
+    manufacturingYear: z.coerce.number().optional(),
+    dimensions: z.string().optional(),
+    driverName: z.string().optional(),
+    driverPhone: z
+      .string()
+      .optional()
+      .transform((val) => (val ? val.replace(/[\s-]/g, '') : val))
+      .refine(
+        (val) => !val || /^\+?[0-9]{10,15}$/.test(val),
+        'Invalid phone number (must be 10-15 digits)'
+      ),
+    currentLatitude: z.coerce.number().optional(),
+    currentLongitude: z.coerce.number().optional(),
+    isRefrigerated: z.boolean().optional(),
+    minTempC: z.coerce.number().optional(),
+    maxTempC: z.coerce.number().optional(),
+    baseHub: z.string().optional(),
+    operatingDistricts: z.union([z.array(z.string()), z.string()]).optional(),
+    documents: z.array(z.any()).optional(),
+  })
+  .passthrough();
 
 const patchVehicleSchema = z.object({
   status: z.enum(['AVAILABLE', 'ASSIGNED', 'IN_TRANSIT', 'MAINTENANCE']).optional(),

@@ -213,13 +213,24 @@ function MainOperationsDashboard({ initialTab = 'operations' }) {
         { docType: 'ROAD_TAX', docNumber: newVehicleForm.taxNumber, expiryDate: newVehicleForm.taxExpiry || null, fileUrl: 'https://storage.sasyavahini.gov.in/docs/sample_tax.pdf' },
       ].filter((d) => d.docNumber);
 
-      await logisticsApi.createVehicle({
+      const payload = {
         ...newVehicleForm,
-        capacityKg: parseFloat(newVehicleForm.capacityKg),
-        mileageKmpl: parseFloat(newVehicleForm.mileageKmpl),
-        manufacturingYear: parseInt(newVehicleForm.manufacturingYear, 10),
+        vehicleType:
+          newVehicleForm.vehicleType ||
+          (newVehicleForm.category === 'HCV'
+            ? 'Truck'
+            : newVehicleForm.category === 'SCV'
+            ? 'Tempo'
+            : 'Mini-Truck'),
+        capacityKg: parseFloat(newVehicleForm.capacityKg) || 1500,
+        mileageKmpl: parseFloat(newVehicleForm.mileageKmpl) || 14.5,
+        manufacturingYear: parseInt(newVehicleForm.manufacturingYear, 10) || 2023,
+        driverName: newVehicleForm.driverName?.trim() || user?.name || 'Designated Driver',
+        driverPhone: newVehicleForm.driverPhone?.trim() || user?.phone || '+919800000000',
         documents: statutoryDocs,
-      });
+      };
+
+      await logisticsApi.createVehicle(payload);
       setIsAddVehicleOpen(false);
       setNewVehicleForm({
         vehicleNumber: '',
@@ -253,7 +264,10 @@ function MainOperationsDashboard({ initialTab = 'operations' }) {
       await loadDashboardData();
     } catch (err) {
       console.error('Failed to register vehicle', err);
-      alert(err.message || 'Failed to register vehicle');
+      const detailMsg = Array.isArray(err.details)
+        ? err.details.map((d) => `${d.field}: ${d.message}`).join(', ')
+        : err.message || 'Failed to register vehicle';
+      alert(`Registration error: ${detailMsg}`);
     } finally {
       setAddingVehicle(false);
     }
