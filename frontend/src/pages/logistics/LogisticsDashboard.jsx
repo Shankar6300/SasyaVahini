@@ -30,6 +30,8 @@ import NearbyBuyerRadar from '../../components/logistics/NearbyBuyerRadar';
 import SavingsCard from '../../components/logistics/SavingsCard';
 import PlanCards from '../../components/logistics/PlanCards';
 import LogisticsProfileView from '../../components/logistics/LogisticsProfileView';
+import LogisticsPaymentsView from '../../components/logistics/LogisticsPaymentsView';
+import NotificationBell from '../../components/NotificationBell';
 import {
   STATUTORY_DOC_TYPES,
   getExpiryStatus,
@@ -50,6 +52,9 @@ export default function LogisticsDashboard() {
 
   // Child view routing based on pathname
   const path = location.pathname;
+  if (path.includes('/payments')) {
+    return <MainOperationsDashboard initialTab="payments" />;
+  }
   if (path.includes('/shipments')) {
     return <ShipmentList />;
   }
@@ -64,11 +69,11 @@ export default function LogisticsDashboard() {
   return <MainOperationsDashboard />;
 }
 
-function MainOperationsDashboard() {
+function MainOperationsDashboard({ initialTab = 'operations' }) {
   const navigate = useNavigate();
-  const { user, switchPreviewPersona } = useAuth();
+  const { user } = useAuth();
 
-  const [activeTab, setActiveTab] = useState('operations'); // 'operations' | 'profile'
+  const [activeTab, setActiveTab] = useState(initialTab); // 'operations' | 'profile' | 'payments'
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [optimizing, setOptimizing] = useState(false);
@@ -370,71 +375,6 @@ function MainOperationsDashboard() {
 
   return (
     <div className="main-content space-y-6">
-      {/* ─── Transporter Persona Scope Switcher (Individual vs Fleet Organization) ─── */}
-      <div className="p-3.5 rounded-xl bg-gradient-to-r from-slate-900 via-gray-900 to-emerald-950 text-white shadow-md flex flex-col md:flex-row items-start md:items-center justify-between gap-3 border border-emerald-900/40">
-        <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-lg bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center text-emerald-400 shrink-0">
-            <Truck size={20} />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-[11px] font-bold text-emerald-400 uppercase tracking-wider">Active Transporter View</span>
-              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-white/10 text-gray-200">
-                {profile?.partnerType === 'FLEET_OPERATOR'
-                  ? '🏢 Fleet Organization'
-                  : profile?.partnerType === 'INDIVIDUAL_DRIVER'
-                  ? '🪪 Individual Driver'
-                  : '🚚 Commercial Vehicle Owner'}
-              </span>
-            </div>
-            <p className="text-[11px] text-gray-300">
-              {profile?.partnerType === 'FLEET_OPERATOR'
-                ? `Showing ${vehicles.length} commercial vehicles owned by ${profile?.companyName || 'your enterprise fleet'}.`
-                : `Showing the 1 particular goods vehicle registered to ${profile?.ownerName || user?.name || 'this individual'}.`}
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-1.5 bg-black/40 p-1 rounded-lg border border-white/10 shrink-0 flex-wrap">
-          <button
-            type="button"
-            onClick={() => handleSwitchPersona('VEHICLE_OWNER')}
-            className={`px-2.5 py-1.5 rounded text-[11px] font-bold transition flex items-center gap-1 ${
-              (profile?.partnerType || 'VEHICLE_OWNER') === 'VEHICLE_OWNER'
-                ? 'bg-emerald-600 text-white shadow-sm'
-                : 'text-gray-300 hover:text-white hover:bg-white/10'
-            }`}
-            title="Switch to single vehicle owner operator (1 truck)"
-          >
-            🚚 Vehicle Owner (1 Truck)
-          </button>
-          <button
-            type="button"
-            onClick={() => handleSwitchPersona('INDIVIDUAL_DRIVER')}
-            className={`px-2.5 py-1.5 rounded text-[11px] font-bold transition flex items-center gap-1 ${
-              profile?.partnerType === 'INDIVIDUAL_DRIVER'
-                ? 'bg-emerald-600 text-white shadow-sm'
-                : 'text-gray-300 hover:text-white hover:bg-white/10'
-            }`}
-            title="Switch to individual commercial driver (1 vehicle & DL)"
-          >
-            🪪 Individual Driver (1 Truck)
-          </button>
-          <button
-            type="button"
-            onClick={() => handleSwitchPersona('FLEET_OPERATOR')}
-            className={`px-2.5 py-1.5 rounded text-[11px] font-bold transition flex items-center gap-1 ${
-              profile?.partnerType === 'FLEET_OPERATOR'
-                ? 'bg-emerald-600 text-white shadow-sm'
-                : 'text-gray-300 hover:text-white hover:bg-white/10'
-            }`}
-            title="Switch to enterprise fleet organization (multiple vehicles)"
-          >
-            🏢 Fleet Organization
-          </button>
-        </div>
-      </div>
-
       {/* ─── Module Sub-Navigation Bar ───────────────────────────────────────── */}
       <div className="logistics-subnav flex items-center justify-between" style={{ borderColor: 'var(--color-border)' }}>
         <div className="flex items-center gap-1.5 overflow-x-auto">
@@ -461,12 +401,16 @@ function MainOperationsDashboard() {
               ? '🪪 Driver Profile & DL'
               : '🚚 Owner Profile & Bank'}
           </button>
-          <Link
-            to="/logistics/shipments"
-            className="px-3 py-1.5 rounded-md text-xs font-medium text-gray-700 hover:bg-gray-100"
+          <button
+            type="button"
+            onClick={() => setActiveTab('payments')}
+            className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all flex items-center gap-1.5 ${
+              activeTab === 'payments' ? 'bg-emerald-600 text-white shadow-sm' : 'text-gray-700 hover:bg-gray-100'
+            }`}
           >
-            Shipments Dispatch
-          </Link>
+            <CreditCard size={13} />
+            💳 Payments & Earnings
+          </button>
           <Link
             to="/logistics/map"
             className="px-3 py-1.5 rounded-md text-xs font-medium text-gray-700 hover:bg-gray-100"
@@ -481,16 +425,19 @@ function MainOperationsDashboard() {
           </Link>
         </div>
 
-        {profile && (
-          <div className="hidden sm:flex items-center gap-2 text-xs">
-            <span className="font-semibold text-gray-700">
-              {profile.partnerType === 'FLEET_OPERATOR' ? profile.companyName : (profile.ownerName || user?.name)}
-            </span>
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-100 text-teal-800">
-              {profile.partnerType === 'FLEET_OPERATOR' ? 'ORGANIZATION' : profile.partnerType === 'DRIVER' ? 'DRIVER' : 'OWNER'}
-            </span>
-          </div>
-        )}
+        <div className="flex items-center gap-2.5">
+          <NotificationBell />
+          {profile && (
+            <div className="hidden sm:flex items-center gap-2 text-xs">
+              <span className="font-semibold text-gray-700">
+                {profile.companyName || profile.ownerName || user?.name || 'Transporter'}
+              </span>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-100 text-teal-800">
+                {profile.partnerType === 'FLEET_OPERATOR' ? 'ORGANIZATION' : profile.partnerType === 'DRIVER' ? 'DRIVER' : 'OWNER'}
+              </span>
+            </div>
+          )}
+        </div>
       </div>
 
       {activeTab === 'profile' && (
@@ -502,6 +449,13 @@ function MainOperationsDashboard() {
           onVehicleUpdated={(updatedVeh) => {
             setVehicles((prev) => prev.map((v) => (v.id === updatedVeh.id ? updatedVeh : v)));
           }}
+        />
+      )}
+
+      {activeTab === 'payments' && (
+        <LogisticsPaymentsView
+          profile={profile}
+          user={user}
         />
       )}
 
@@ -749,9 +703,13 @@ function MainOperationsDashboard() {
           <Link to={`/logistics/map?shipmentId=${activeShipment?.trackingNumber || 'SV-DATASET-S2-001'}`} className="btn btn-primary btn-sm">
             View live map
           </Link>
-          <Link to="/logistics/shipments" className="btn btn-secondary btn-sm">
-            View shipments
-          </Link>
+          <button
+            type="button"
+            onClick={() => setActiveTab('payments')}
+            className="btn btn-secondary btn-sm"
+          >
+            💳 View payments
+          </button>
           <Link to={`/logistics/milestones?shipmentId=${activeShipment?.trackingNumber || 'SV-DATASET-S2-001'}`} className="btn btn-secondary btn-sm">
             Update status
           </Link>
@@ -1110,7 +1068,7 @@ function MainOperationsDashboard() {
 
       {/* ─── Modal: Register New Commercial Vehicle ─── */}
       {isAddVehicleOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white rounded-2xl max-w-xl w-full max-h-[90vh] overflow-y-auto p-6 space-y-4 shadow-2xl">
             <div className="flex items-center justify-between border-b pb-3">
               <div className="flex items-center gap-2">
@@ -1462,7 +1420,7 @@ function MainOperationsDashboard() {
 
       {/* ─── Modal: Inspect Vehicle Specs & Statutory Document Management ─── */}
       {inspectedVehicle && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto">
           <div className="bg-white rounded-2xl max-w-2xl w-full p-6 space-y-4 shadow-2xl my-8 max-h-[90vh] overflow-y-auto">
             {/* Header */}
             <div className="flex items-center justify-between border-b pb-3">

@@ -7,7 +7,7 @@
  */
 
 import api from './api';
-import { isPreviewSession, getPreviewPersona } from './auth.storage';
+import { isPreviewSession, getPreviewPersona, getStoredUser } from './auth.storage';
 import demoCoordinates from '../assets/demoRouteCoordinates.json';
 
 const makeStatutoryDocs = (vehicleNumber, category = 'SCV') => [
@@ -807,9 +807,15 @@ export const logisticsApi = {
   getProfile: async () => {
     const preview = previewCall(() => {
       const activeData = getActiveData();
+      const storedUser = getStoredUser();
       const vList = activeData.vehicles;
+      const userName = storedUser?.name || activeData.profile.ownerName || 'Transporter Partner';
+      const userEmail = storedUser?.email || activeData.profile.email;
       return {
         ...activeData.profile,
+        ownerName: userName,
+        companyName: activeData.profile.partnerType === 'FLEET_OPERATOR' ? (activeData.profile.companyName || `${userName} Logistics`) : `${userName} Logistics`,
+        email: userEmail,
         vehicles: [...vList],
         stats: {
           totalVehicles: vList.length,

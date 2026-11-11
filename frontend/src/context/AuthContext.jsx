@@ -128,12 +128,29 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
-  const previewLogin = useCallback((persona = 'VEHICLE_OWNER') => {
+  const previewLogin = useCallback((input = 'transporter@sasyavahini.in', customName = null) => {
     if (!import.meta.env.DEV) {
       throw new Error('Logistics preview is only available in development.');
     }
-    const personaUser = PERSONA_USERS[persona] || PERSONA_USERS.VEHICLE_OWNER;
-    setPreviewSession(persona);
+    let personaUser;
+    if (typeof input === 'string' && input.includes('@')) {
+      const emailPrefix = input.split('@')[0].replace(/[._-]/g, ' ');
+      const cleanName = customName || (emailPrefix.charAt(0).toUpperCase() + emailPrefix.slice(1));
+      personaUser = {
+        id: `usr_preview_${input.replace(/[^a-zA-Z0-9]/g, '_')}`,
+        name: cleanName,
+        email: input,
+        role: 'LOGISTICS',
+        partnerType: 'VEHICLE_OWNER',
+      };
+      setPreviewSession('VEHICLE_OWNER');
+    } else {
+      const persona = input || 'VEHICLE_OWNER';
+      personaUser = PERSONA_USERS[persona] || PERSONA_USERS.VEHICLE_OWNER;
+      setPreviewSession(persona);
+    }
+    setTokens('preview_access_token_dev', 'preview_refresh_token_dev');
+    setStoredUser(personaUser);
     dispatch({ type: AUTH_ACTIONS.LOGIN_SUCCESS, payload: personaUser });
     return personaUser;
   }, []);

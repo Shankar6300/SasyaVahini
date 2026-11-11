@@ -45,7 +45,16 @@ export default function LogisticsLoginPage() {
     setLoading(true);
     setApiError('');
     try {
-      const user = await login(form.email, form.password);
+      let user;
+      try {
+        user = await login(form.email, form.password);
+      } catch (loginErr) {
+        if (import.meta.env.DEV) {
+          user = previewLogin(form.email);
+        } else {
+          throw loginErr;
+        }
+      }
       if (user.role !== 'LOGISTICS' && user.role !== 'ADMIN') {
         setApiError('Access restricted: This portal is for Logistics Providers and Fleet Dispatchers.');
         return;
@@ -122,41 +131,17 @@ export default function LogisticsLoginPage() {
           </Button>
 
           {import.meta.env.DEV && (
-            <div className="mt-3.5 space-y-1.5">
-              <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider text-center mb-1">
-                Select Transporter Account Mode (1-Click)
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  previewLogin('VEHICLE_OWNER');
-                  navigate('/logistics', { replace: true });
-                }}
-                className="w-full py-2 px-3 rounded-lg text-xs font-bold border border-emerald-300 bg-emerald-50 text-emerald-900 hover:bg-emerald-100 transition shadow-sm flex items-center justify-center gap-1.5"
-              >
-                🚚 Vehicle Owner (1 Particular Truck — Ramesh Patil)
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  previewLogin('INDIVIDUAL_DRIVER');
-                  navigate('/logistics', { replace: true });
-                }}
-                className="w-full py-2 px-3 rounded-lg text-xs font-bold border border-teal-300 bg-teal-50 text-teal-900 hover:bg-teal-100 transition shadow-sm flex items-center justify-center gap-1.5"
-              >
-                🪪 Individual Driver (1 Vehicle & Commercial DL)
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  previewLogin('FLEET_OPERATOR');
-                  navigate('/logistics', { replace: true });
-                }}
-                className="w-full py-2 px-3 rounded-lg text-xs font-bold border border-blue-300 bg-blue-50 text-blue-900 hover:bg-blue-100 transition shadow-sm flex items-center justify-center gap-1.5"
-              >
-                🏢 Fleet Organization (Corporate Fleet — Sahyadri Agro)
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => {
+                const targetEmail = form.email && form.email.includes('@') ? form.email : 'transporter@sasyavahini.in';
+                previewLogin(targetEmail);
+                navigate('/logistics', { replace: true });
+              }}
+              className="w-full mt-3 py-2 px-3 rounded-lg text-xs font-semibold border border-slate-300 bg-slate-50 text-slate-700 hover:bg-slate-100 transition shadow-sm flex items-center justify-center gap-1.5"
+            >
+              🚀 Instant Preview Sign In
+            </button>
           )}
         </form>
 

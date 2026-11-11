@@ -399,7 +399,7 @@ export default function LiveMap({
   }
 
   return (
-    <div className="relative rounded-lg overflow-hidden border shadow-sm" style={{ height, borderColor: 'var(--color-border)' }}>
+    <div className="relative z-0 rounded-lg overflow-hidden border shadow-sm" style={{ height, borderColor: 'var(--color-border)', isolation: 'isolate' }}>
       {/* Map Legend Overlay */}
       <div
         className="absolute top-2 right-2 z-[1000] bg-white/95 backdrop-blur px-2.5 py-1.5 rounded-md border text-xs shadow-sm flex flex-wrap items-center gap-3"

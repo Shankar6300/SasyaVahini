@@ -856,7 +856,7 @@ export default function LogisticsProfileView({
 
       {/* ─── Modal: Edit Profile / Organization Details ─────────────────────── */}
       {isEditOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white rounded-2xl max-w-xl w-full max-h-[90vh] overflow-y-auto p-6 space-y-4 shadow-2xl">
             <div className="flex items-center justify-between border-b pb-3">
               <div className="flex items-center gap-2">
@@ -1180,7 +1180,7 @@ export default function LogisticsProfileView({
 
       {/* ─── Modal: Re-upload / Renew Vehicle Statutory Certificate ──────────── */}
       {activeVehReupload && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl border animate-in fade-in duration-150">
             <div className="flex items-center justify-between border-b pb-3">
               <div className="flex items-center gap-2">

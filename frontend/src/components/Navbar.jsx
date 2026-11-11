@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import RoleBadge from './RoleBadge';
 import LanguageSelector from './LanguageSelector';
+import NotificationBell from './NotificationBell';
 import { useState } from 'react';
 
 export default function Navbar() {
@@ -30,7 +31,7 @@ export default function Navbar() {
     ],
     LOGISTICS: [
       { label: t('nav.dashboard', 'Operations Center'), to: '/logistics' },
-      { label: 'Shipments Dispatch', to: '/logistics/shipments' },
+      { label: '💳 Payments & Settlements', to: '/logistics/payments' },
       { label: 'Live Fleet Map', to: '/logistics/map' },
       { label: 'Milestone Control', to: '/logistics/milestones' },
     ],
@@ -90,6 +91,9 @@ export default function Navbar() {
 
         {/* Actions */}
         <div className="nav-actions">
+          {/* Notification Bell */}
+          {isAuthenticated && <NotificationBell />}
+
           {/* Multilingual Selector */}
           <LanguageSelector />
 
