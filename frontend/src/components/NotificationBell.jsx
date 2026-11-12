@@ -90,11 +90,11 @@ export default function NotificationBell() {
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className="relative p-2 rounded-full text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition focus:outline-none"
+        className="notification-bell-button relative inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full p-2 text-slate-800 hover:text-slate-900 hover:bg-slate-100 transition focus:outline-none"
         aria-label="Notifications"
         title="View requests and updates"
       >
-        <Bell size={20} />
+        <Bell size={20} strokeWidth={2.25} aria-hidden="true" />
         {unreadCount > 0 && (
           <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[10px] font-bold text-white shadow">
             {unreadCount}

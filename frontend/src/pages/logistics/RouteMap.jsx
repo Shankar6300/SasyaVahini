@@ -22,6 +22,7 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import logisticsApi from '../../services/logisticsApi';
 import LiveMap from '../../components/logistics/LiveMap';
+import LogisticsSubnav from '../../components/logistics/LogisticsSubnav';
 
 const DEVIATION_REASONS = [
   { value: 'ROAD_CLOSED', label: 'Road Closed / Construction' },
@@ -47,8 +48,11 @@ export default function RouteMap() {
 
   const [loading, setLoading] = useState(true);
   const [trackingData, setTrackingData] = useState(null);
-  const [shipmentId, setShipmentId] = useState(queryShipmentId || 'shp_demo_101');
+  const [shipmentId, setShipmentId] = useState(queryShipmentId || '');
   const [legId, setLegId] = useState(queryLegId || 'leg_demo_101');
+  const [gpsTracking, setGpsTracking] = useState(false);
+  const [gpsError, setGpsError] = useState('');
+  const gpsWatchIdRef = React.useRef(null);
 
   // Multi-route state
   const [routes, setRoutes] = useState([]);
@@ -71,7 +75,7 @@ export default function RouteMap() {
     try {
       setLoading(true);
       let targetId = shipmentId;
-      if (!queryShipmentId || queryShipmentId === 'shp_demo_101') {
+      if (!queryShipmentId) {
         try {
           const listRes = await logisticsApi.getShipments({ limit: 5 });
           const userShipments = listRes?.shipments || [];
@@ -87,6 +91,9 @@ export default function RouteMap() {
 
       const data = await logisticsApi.getShipmentTracking(targetId);
       setTrackingData(data);
+      if (data.shipmentId && data.shipmentId !== shipmentId) {
+        setShipmentId(data.shipmentId);
+      }
 
       if (data.routes && data.routes.length > 0) {
         setRoutes(data.routes);
@@ -126,6 +133,81 @@ export default function RouteMap() {
 
     return () => clearInterval(interval);
   }, [shipmentId]);
+
+  useEffect(() => () => {
+    if (gpsWatchIdRef.current !== null) {
+      navigator.geolocation?.clearWatch(gpsWatchIdRef.current);
+    }
+  }, []);
+
+  const stopGpsTracking = () => {
+    if (gpsWatchIdRef.current !== null) {
+      navigator.geolocation?.clearWatch(gpsWatchIdRef.current);
+      gpsWatchIdRef.current = null;
+    }
+    setGpsTracking(false);
+  };
+
+  const startGpsTracking = () => {
+    if (!navigator.geolocation) {
+      setGpsError('This phone or browser does not support GPS location.');
+      return;
+    }
+
+    const vehicleId = trackingData?.vehicle?.vehicleId;
+    if (!vehicleId) {
+      setGpsError('This shipment has no assigned vehicle yet.');
+      return;
+    }
+
+    setGpsError('');
+    if (gpsWatchIdRef.current !== null) {
+      navigator.geolocation.clearWatch(gpsWatchIdRef.current);
+    }
+
+    gpsWatchIdRef.current = navigator.geolocation.watchPosition(
+      async (position) => {
+        const { latitude, longitude, accuracy, speed } = position.coords;
+        const speedKmh = Number.isFinite(speed) && speed >= 0 ? speed * 3.6 : 0;
+
+        setTrackingData((previous) => previous ? {
+          ...previous,
+          currentLocation: {
+            ...(previous.currentLocation || {}),
+            latitude,
+            longitude,
+            speedKmh,
+            accuracyMeters: accuracy,
+            lastPingAt: new Date().toISOString(),
+          },
+        } : previous);
+
+        try {
+          await logisticsApi.updateVehicleLocation(vehicleId, {
+            latitude,
+            longitude,
+            speedKmh,
+          });
+        } catch (error) {
+          setGpsError(error.response?.data?.message || 'Unable to send the latest GPS position.');
+        }
+      },
+      (error) => {
+        setGpsTracking(false);
+        setGpsError(
+          error.code === error.PERMISSION_DENIED
+            ? 'GPS permission is required. Enable location access and try again.'
+            : 'Unable to read the phone GPS position.',
+        );
+      },
+      {
+        enableHighAccuracy: true,
+        maximumAge: 5000,
+        timeout: 15000,
+      },
+    );
+    setGpsTracking(true);
+  };
 
   // Handle route selection attempt
   const handleSelectRoute = (index) => {
@@ -200,6 +282,7 @@ export default function RouteMap() {
 
   return (
     <div className="main-content space-y-6">
+      <LogisticsSubnav activePage="map" />
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -226,8 +309,8 @@ export default function RouteMap() {
         </div>
       </div>
 
-      {/* Buyer Delivery OTP Banner (Visible to buyer) */}
-      {(isBuyer || trackingData?.deliveryOtp) && (
+      {/* Buyer Delivery OTP Banner (Visible to buyer only) */}
+      {isBuyer && (
         <div className="card p-4 rounded-xl bg-gradient-to-r from-emerald-50 via-teal-50 to-blue-50 border border-emerald-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-start gap-3">
             <div className="p-2.5 rounded-full bg-emerald-600 text-white shadow-sm mt-0.5">
@@ -249,7 +332,7 @@ export default function RouteMap() {
           <div className="flex items-center gap-3 bg-white px-4 py-2.5 rounded-lg border border-emerald-300 shadow-sm self-start md:self-auto">
             <span className="text-xs text-secondary font-medium">Delivery OTP:</span>
             <span className="font-mono text-xl font-extrabold tracking-widest text-emerald-700">
-              {trackingData?.deliveryOtp || '482910'}
+              {trackingData?.deliveryOtp || 'Not generated'}
             </span>
           </div>
         </div>
@@ -453,6 +536,24 @@ export default function RouteMap() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Live Map (2 Cols) */}
         <div className="lg:col-span-2 card p-4 rounded-xl bg-white border" style={{ borderColor: 'var(--color-border)' }}>
+          {isDriverOrAdmin && (
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-lg bg-slate-50 p-3">
+              <div>
+                <p className="text-sm font-bold text-slate-900">Live phone GPS</p>
+                <p className="text-xs text-slate-500">
+                  {gpsTracking ? 'Your phone location is moving the vehicle marker.' : 'Start GPS when the phone is inside the vehicle.'}
+                </p>
+                {gpsError && <p className="mt-1 text-xs font-semibold text-rose-600">{gpsError}</p>}
+              </div>
+              <button
+                type="button"
+                onClick={gpsTracking ? stopGpsTracking : startGpsTracking}
+                className={`rounded-lg px-3 py-2 text-xs font-bold text-white ${gpsTracking ? 'bg-rose-600 hover:bg-rose-700' : 'bg-emerald-700 hover:bg-emerald-800'}`}
+              >
+                {gpsTracking ? 'Stop GPS' : 'Start GPS'}
+              </button>
+            </div>
+          )}
           <LiveMap
             farmers={trackingData?.stops?.filter((s) => s.stopType === 'PICKUP') || []}
             buyer={trackingData?.stops?.find((s) => s.stopType === 'DELIVERY') || { lat: 18.5089, lng: 73.9260, name: 'Hadapsar Destination' }}

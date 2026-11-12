@@ -8,17 +8,12 @@
 const { ConflictError, NotFoundError } = require('../utils/errors');
 const logger = require('../utils/logger');
 
-let demoCoordinates = [
+const demoCoordinates = [
   [73.9400, 18.9880],
   [73.9100, 18.8470],
   [73.8636, 18.7606],
   [73.9260, 18.5089],
 ];
-try {
-  demoCoordinates = require('../utils/demoRouteCoordinates.json');
-} catch {
-  // fallback if file not loaded
-}
 
 class MockShipmentRepo {
   constructor() {

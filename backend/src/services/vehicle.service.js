@@ -153,6 +153,15 @@ class VehicleService {
     const isMock = ((process.env.JEST_WORKER_ID !== undefined || process.env.NODE_ENV === 'test') && !process.env.TEST_DB) ||
       process.env.LOGISTICS_DATA_SOURCE === 'mock';
 
+    if (isMock && user && user.role === 'LOGISTICS') {
+      if (user.id === 'dev-logistics-preview' || user.id?.startsWith('dev-logistics')) {
+        return user.partnerType === 'FLEET_OPERATOR'
+          ? inMemoryFleet.slice(0, 3)
+          : inMemoryFleet.slice(0, 1);
+      }
+      return [];
+    }
+
     if (!isMock && prisma.vehicle) {
       try {
         const whereClause = {};
@@ -200,7 +209,10 @@ class VehicleService {
           return dbVehicles;
         }
       } catch (err) {
-        logger.warn('Failed to query DB for vehicles, using in-memory fleet', { error: err.message });
+        logger.warn('Failed to query DB for vehicles', { error: err.message });
+        if (user && user.role === 'LOGISTICS') {
+          throw err;
+        }
       }
     }
 

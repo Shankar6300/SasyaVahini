@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Sliders, CheckCircle2, Users, User, Clock, Star, Shield, Sparkles } from 'lucide-react';
+import React from 'react';
+import { CheckCircle2, Users, User, Clock, Star, Shield } from 'lucide-react';
 import CostBreakdown from './CostBreakdown';
 
 /**
@@ -15,20 +15,8 @@ export default function PlanCards({
   plans = [],
   selectedPlanId,
   onSelectPlan,
-  priority = 0.5,
-  onPriorityChange,
   isLoading = false,
 }) {
-  const [localPriority, setLocalPriority] = useState(priority);
-
-  const handleSliderChange = (e) => {
-    const val = parseFloat(e.target.value);
-    setLocalPriority(val);
-    if (onPriorityChange) {
-      onPriorityChange(val);
-    }
-  };
-
   const getBadgeStyle = (label) => {
     switch (label) {
       case 'BEST_VALUE':
@@ -44,46 +32,14 @@ export default function PlanCards({
 
   return (
     <div className="space-y-4">
-      {/* Priority Slider Header */}
-      <div
-        className="card p-3 rounded-lg border flex flex-col md:flex-row items-center justify-between gap-3 bg-white"
-        style={{ borderColor: 'var(--color-border)' }}
-      >
-        <div className="flex items-center gap-2">
-          <Sliders size={18} style={{ color: 'var(--color-primary)' }} />
-          <div>
-            <span className="font-semibold text-sm">Procurement Priority Balancing</span>
-            <div className="text-xs text-secondary">
-              {localPriority < 0.35
-                ? 'Strict Cost Optimization (Lowest Landed Price)'
-                : localPriority > 0.65
-                ? 'Premium Grade & Maximum Supplier Reliability'
-                : 'Balanced Cost, Quality & Multi-Farmer Realization'}
-            </div>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3 w-full md:w-64">
-          <span className="text-xs font-medium text-secondary">Lowest Price</span>
-          <input
-            type="range"
-            min="0"
-            max="1"
-            step="0.1"
-            value={localPriority}
-            onChange={handleSliderChange}
-            className="w-full cursor-pointer accent-[#07875B]"
-          />
-          <span className="text-xs font-medium text-secondary">Top Quality</span>
-        </div>
-      </div>
-
       {/* Plan Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {plans.map((plan) => {
           const isSelected = selectedPlanId === plan.planId;
           const badge = getBadgeStyle(plan.label);
           const farmerCount = plan.farmers.length;
+          const etaMinutes = Number(plan.etaMinutes);
+          const routeKm = Number(plan.routeKm);
 
           return (
             <div
@@ -158,7 +114,10 @@ export default function PlanCards({
                     Estimated Transit ETA:
                   </span>
                   <span className="font-semibold text-gray-800">
-                    {Math.floor(plan.etaMinutes / 60)}h {plan.etaMinutes % 60}m ({plan.routeKm} km)
+                    {Number.isFinite(etaMinutes)
+                      ? `${Math.floor(etaMinutes / 60)}h ${etaMinutes % 60}m`
+                      : 'Not available'}
+                    {Number.isFinite(routeKm) ? ` (${routeKm} km)` : ''}
                   </span>
                 </div>
               </div>

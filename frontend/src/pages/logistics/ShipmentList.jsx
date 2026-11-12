@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Package, Truck, ArrowRight, CheckCircle2, RotateCw, Filter } from 'lucide-react';
+import { Package, Truck, CheckCircle2, RotateCw, Filter } from 'lucide-react';
 import logisticsApi from '../../services/logisticsApi';
 
 /**
@@ -42,8 +42,6 @@ export default function ShipmentList() {
         return <span className="badge badge-warning">PICKUP</span>;
       case 'TRANSIT':
         return <span className="badge" style={{ backgroundColor: '#7C3AED', color: '#fff' }}>IN TRANSIT</span>;
-      case 'OUT_FOR_DELIVERY':
-        return <span className="badge badge-warning">OUT FOR DELIVERY</span>;
       case 'DELIVERED':
         return <span className="badge badge-success">DELIVERED</span>;
       default:
@@ -75,7 +73,7 @@ export default function ShipmentList() {
 
       {/* Filter Tabs */}
       <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b" style={{ borderColor: 'var(--color-border)' }}>
-        {['ALL', 'UNASSIGNED', 'ASSIGNED', 'PICKUP', 'TRANSIT', 'OUT_FOR_DELIVERY', 'DELIVERED'].map((st) => (
+        {['ALL', 'UNASSIGNED', 'ASSIGNED', 'PICKUP', 'TRANSIT', 'DELIVERED'].map((st) => (
           <button
             key={st}
             type="button"
@@ -156,13 +154,6 @@ export default function ShipmentList() {
                   className="btn btn-secondary text-xs"
                 >
                   Live Map
-                </button>
-                <button
-                  type="button"
-                  onClick={() => navigate(`/logistics/milestones?shipmentId=${s.id}`)}
-                  className="btn btn-primary text-xs flex items-center gap-1"
-                >
-                  Advance Status <ArrowRight size={13} />
                 </button>
               </div>
             </div>

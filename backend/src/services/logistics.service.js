@@ -546,7 +546,7 @@ class LogisticsService {
 
   /**
    * Advance milestone along Finite State Machine:
-   * ASSIGNED -> PICKUP -> TRANSIT -> OUT_FOR_DELIVERY -> DELIVERED
+   * ASSIGNED -> PICKUP -> TRANSIT -> DELIVERED
    */
   async updateMilestone(shipmentId, milestoneData, userId = 'driver') {
     const shipment = await shipmentRepo.findById(shipmentId);

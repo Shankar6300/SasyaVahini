@@ -92,7 +92,7 @@ services:
       ML_SERVICE_TIMEOUT_MS: "5000"
       ROUTING_SERVICE_URL: "http://routing-service:8001"
       LOGISTICS_SERVICE_URL: "http://routing-service:8001"
-      LOGISTICS_DATA_SOURCE: "mock"
+      LOGISTICS_DATA_SOURCE: "prisma"
       OSRM_URL: "https://router.project-osrm.org"
       CORS_ORIGIN: "http://localhost:5173,http://localhost:3000"
     ports:

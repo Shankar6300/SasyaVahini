@@ -7,8 +7,8 @@
  */
 
 import api from './api';
-import { isPreviewSession, getPreviewPersona, getStoredUser } from './auth.storage';
-import demoCoordinates from '../assets/demoRouteCoordinates.json';
+import { getPreviewPersona, getStoredUser } from './auth.storage';
+const demoCoordinates = [];
 
 const makeStatutoryDocs = (vehicleNumber, category = 'SCV') => [
   {
@@ -447,10 +447,8 @@ const getSavingsForActiveData = () => {
   };
 };
 
-const previewCall = (fnOrVal) => {
-  if (!isPreviewSession()) return null;
-  const val = typeof fnOrVal === 'function' ? fnOrVal() : fnOrVal;
-  return Promise.resolve(val);
+const previewCall = () => {
+  return null;
 };
 
 export const logisticsApi = {
@@ -473,7 +471,7 @@ export const logisticsApi = {
     return res.data.data;
   },
 
-  // Post milestone update (ASSIGNED -> PICKUP -> TRANSIT -> OUT_FOR_DELIVERY -> DELIVERED)
+  // Post milestone update (ASSIGNED -> PICKUP -> TRANSIT -> DELIVERED)
   updateMilestone: async (shipmentId, milestonePayload) => {
     const preview = previewCall(() => ({ success: true, shipmentId, ...milestonePayload }));
     if (preview) return preview;
@@ -525,22 +523,18 @@ export const logisticsApi = {
     if (preview) return preview;
 
     // Try live backend API for assigned shipments
-    if (shipmentId && shipmentId !== 'shp_demo_101') {
+    if (shipmentId) {
       try {
         const res = await api.get(`/logistics/shipments/${shipmentId}/tracking`);
         if (res.data?.data) {
-          const d = res.data.data;
-          if (!d.routes || d.routes.length === 0) {
-            d.routes = PREVIEW_ROUTES;
-          }
-          return d;
+          return res.data.data;
         }
       } catch (err) {
-        console.warn('Real tracking query failed or not assigned, using corridor tracking view:', err?.message);
+        console.warn('Real tracking query failed or shipment is not assigned:', err?.message);
       }
     }
 
-    return buildFallbackTracking();
+    throw new Error('No live tracking data is available for this shipment.');
   },
 
   // Sourcing & Logistics optimization planning
@@ -580,6 +574,36 @@ export const logisticsApi = {
     if (preview) return preview;
     const res = await api.get(`/logistics/shipments/${shipmentId}`);
     return res.data.data;
+  },
+
+  resolveShipmentId: async (requestedId) => {
+    const preview = previewCall(() => getActiveShipment());
+    if (preview) return preview.id || preview.trackingNumber;
+
+    if (requestedId) {
+      try {
+        await logisticsApi.getShipmentById(requestedId);
+        return requestedId;
+      } catch (err) {
+        if (err.response?.status !== 404) throw err;
+      }
+    }
+
+    const result = await logisticsApi.getShipments({ limit: 50 });
+    const shipments = result?.shipments || [];
+    const matching = shipments.find(
+      (shipment) => shipment.id === requestedId || shipment.trackingNumber === requestedId,
+    );
+    const active = matching || shipments.find((shipment) => shipment.status !== 'DELIVERED') || shipments[0];
+    if (!active?.id && !active?.trackingNumber) {
+      throw new Error('No shipment is available for logistics tracking');
+    }
+    return active.id || active.trackingNumber;
+  },
+
+  getShipmentDetailsForNavigation: async (shipmentId) => {
+    const resolvedId = await logisticsApi.resolveShipmentId(shipmentId);
+    return logisticsApi.getShipmentById(resolvedId);
   },
 
   // List fleet vehicles — strictly scoped to the active partner/organization persona

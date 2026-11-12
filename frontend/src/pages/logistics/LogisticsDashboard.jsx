@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate, Link } from 'react-router-dom';
+import { useLocation, useNavigate, Link, Navigate } from 'react-router-dom';
 import {
   Lock,
   Truck,
@@ -26,13 +26,12 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import logisticsApi from '../../services/logisticsApi';
-import LiveMap from '../../components/logistics/LiveMap';
 import NearbyBuyerRadar from '../../components/logistics/NearbyBuyerRadar';
 import SavingsCard from '../../components/logistics/SavingsCard';
 import PlanCards from '../../components/logistics/PlanCards';
 import LogisticsProfileView from '../../components/logistics/LogisticsProfileView';
 import LogisticsPaymentsView from '../../components/logistics/LogisticsPaymentsView';
-import NotificationBell from '../../components/NotificationBell';
+import LogisticsSubnav from '../../components/logistics/LogisticsSubnav';
 import {
   STATUTORY_DOC_TYPES,
   getExpiryStatus,
@@ -40,7 +39,6 @@ import {
 } from '../../utils/complianceHelpers';
 import ShipmentList from './ShipmentList';
 import RouteMap from './RouteMap';
-import MilestoneUpdater from './MilestoneUpdater';
 
 /**
  * SasyaVahini — Logistics Operations Center & Sub-Router
@@ -63,11 +61,12 @@ export default function LogisticsDashboard() {
     return <RouteMap />;
   }
   if (path.includes('/milestones')) {
-    return <MilestoneUpdater />;
+    return <Navigate to={`/logistics/map${location.search}`} replace />;
   }
 
   // Otherwise, render main Logistics Operations Dashboard
-  return <MainOperationsDashboard />;
+  const tab = new URLSearchParams(location.search).get('tab');
+  return <MainOperationsDashboard initialTab={['operations', 'profile', 'payments'].includes(tab) ? tab : 'operations'} />;
 }
 
 function MainOperationsDashboard({ initialTab = 'operations' }) {
@@ -84,6 +83,10 @@ function MainOperationsDashboard({ initialTab = 'operations' }) {
   const [activeShipment, setActiveShipment] = useState(null);
   const [planResult, setPlanResult] = useState(null);
   const [selectedPlan, setSelectedPlan] = useState(null);
+
+  useEffect(() => {
+    setActiveTab(initialTab);
+  }, [initialTab]);
 
   // Vehicle Management & Verification Modal States
   const [isAddVehicleOpen, setIsAddVehicleOpen] = useState(false);
@@ -372,8 +375,6 @@ function MainOperationsDashboard({ initialTab = 'operations' }) {
         return <span className="badge badge-warning">PICKUP</span>;
       case 'TRANSIT':
         return <span className="badge" style={{ backgroundColor: '#7C3AED', color: '#fff' }}>IN TRANSIT</span>;
-      case 'OUT_FOR_DELIVERY':
-        return <span className="badge badge-warning">OUT FOR DELIVERY</span>;
       case 'DELIVERED':
         return <span className="badge badge-success">DELIVERED</span>;
       default:
@@ -383,60 +384,7 @@ function MainOperationsDashboard({ initialTab = 'operations' }) {
 
   return (
     <div className="main-content space-y-6">
-      {/* ─── Module Sub-Navigation Bar ───────────────────────────────────────── */}
-      <div className="logistics-subnav flex items-center justify-between" style={{ borderColor: 'var(--color-border)' }}>
-        <div className="flex items-center gap-1.5 overflow-x-auto">
-          <button
-            type="button"
-            onClick={() => setActiveTab('operations')}
-            className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${
-              activeTab === 'operations' ? 'bg-emerald-600 text-white shadow-sm' : 'text-gray-700 hover:bg-gray-100'
-            }`}
-          >
-            Overview & Fleet Operations
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('profile')}
-            className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all flex items-center gap-1.5 ${
-              activeTab === 'profile' ? 'bg-emerald-600 text-white shadow-sm' : 'text-gray-700 hover:bg-gray-100'
-            }`}
-          >
-            <ShieldCheck size={13} />
-            {profile?.partnerType === 'FLEET_OPERATOR'
-              ? '🏢 Organization Profile & KYC'
-              : profile?.partnerType === 'DRIVER' || profile?.partnerType === 'INDIVIDUAL_DRIVER'
-              ? '🪪 Driver Profile & DL'
-              : '🚚 Owner Profile & Bank'}
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('payments')}
-            className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all flex items-center gap-1.5 ${
-              activeTab === 'payments' ? 'bg-emerald-600 text-white shadow-sm' : 'text-gray-700 hover:bg-gray-100'
-            }`}
-          >
-            <CreditCard size={13} />
-            💳 Payments & Earnings
-          </button>
-          <Link
-            to="/logistics/map"
-            className="px-3 py-1.5 rounded-md text-xs font-medium text-gray-700 hover:bg-gray-100"
-          >
-            Live Route Tracking
-          </Link>
-          <Link
-            to="/logistics/milestones"
-            className="px-3 py-1.5 rounded-md text-xs font-medium text-gray-700 hover:bg-gray-100"
-          >
-            Milestone Updater
-          </Link>
-        </div>
-
-        <div className="flex items-center gap-2.5">
-          <NotificationBell />
-        </div>
-      </div>
+      {activeTab !== 'profile' && <LogisticsSubnav activePage={activeTab} />}
 
       {activeTab === 'profile' && (
         <LogisticsProfileView
@@ -526,7 +474,7 @@ function MainOperationsDashboard({ initialTab = 'operations' }) {
                 <div className="shrink-0 flex items-center gap-2">
                   <button
                     type="button"
-                    onClick={() => setActiveTab('profile')}
+                    onClick={() => navigate('/logistics?tab=profile')}
                     className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-white text-gray-900 border border-gray-300 hover:bg-gray-50 shadow-sm transition"
                   >
                     Manage Documents
@@ -613,7 +561,7 @@ function MainOperationsDashboard({ initialTab = 'operations' }) {
                     ) : (
                       <button
                         type="button"
-                        onClick={() => setActiveTab('profile')}
+                        onClick={() => navigate('/logistics?tab=profile')}
                         className="text-[11px] font-bold text-teal-700 hover:text-teal-900 text-left mt-2 underline"
                       >
                         Submit Now →
@@ -667,7 +615,7 @@ function MainOperationsDashboard({ initialTab = 'operations' }) {
                     ) : (
                       <button
                         type="button"
-                        onClick={() => setActiveTab('profile')}
+                        onClick={() => navigate('/logistics?tab=profile')}
                         className="text-[11px] font-bold text-teal-700 hover:text-teal-900 text-left mt-2 underline"
                       >
                         Add Bank →
@@ -698,7 +646,7 @@ function MainOperationsDashboard({ initialTab = 'operations' }) {
           <span><strong>Load:</strong> {activeShipment?.totalWeightKg || 0} kg</span>
         </div>
         <div className="logistics-workflow-actions">
-          <Link to={`/logistics/map?shipmentId=${activeShipment?.trackingNumber || 'SV-DATASET-S2-001'}`} className="btn btn-primary btn-sm">
+          <Link to={`/logistics/map${activeShipment?.trackingNumber ? `?shipmentId=${activeShipment.trackingNumber}` : ''}`} className="btn btn-primary btn-sm">
             View live map
           </Link>
           <button
@@ -708,9 +656,6 @@ function MainOperationsDashboard({ initialTab = 'operations' }) {
           >
             💳 View payments
           </button>
-          <Link to={`/logistics/milestones?shipmentId=${activeShipment?.trackingNumber || 'SV-DATASET-S2-001'}`} className="btn btn-secondary btn-sm">
-            Update status
-          </Link>
         </div>
       </div>
 
@@ -753,19 +698,22 @@ function MainOperationsDashboard({ initialTab = 'operations' }) {
             style={{ backgroundColor: '#07875B', borderColor: '#07875B' }}
           >
             <Navigation size={16} className={optimizing ? 'animate-spin' : ''} />
-            {optimizing ? 'Solving CVRP...' : 'Run Route Optimizer'}
+            {optimizing ? 'Building pickup plan...' : 'Build Pickup Plan'}
           </button>
         </div>
       </div>
 
-      {/* ─── Route Optimization Results (If executed) ────────────────────────── */}
+      {/* ─── Pickup and Procurement Plan (If executed) ───────────────────────── */}
       {planResult && planResult.plans && (
         <div className="card p-5 border-2 border-emerald-500 bg-emerald-50/20 rounded-xl space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
               <CheckCircle className="text-emerald-600" size={20} />
-              Optimization Result: {planResult.requestedQtyKg} kg {planResult.crop}
+              Pickup & Procurement Plan: {planResult.requestedQtyKg} kg {planResult.crop}
             </h2>
+            <p className="text-xs text-secondary mt-1">
+              Select farmers and quantity here. Route alternatives and route-specific costs are available in Live Fleet Map.
+            </p>
             <button
               type="button"
               onClick={() => setPlanResult(null)}
@@ -779,60 +727,12 @@ function MainOperationsDashboard({ initialTab = 'operations' }) {
             plans={planResult.plans}
             selectedPlanId={selectedPlan?.planId}
             onSelectPlan={(p) => setSelectedPlan(p)}
-            priority={planResult.priority}
-            onPriorityChange={(newPriority) => {
-              logisticsApi
-                .planOrder({
-                  crop: planResult.crop,
-                  qtyKg: planResult.requestedQtyKg,
-                  priority: newPriority,
-                  buyerLat: 18.5089,
-                  buyerLng: 73.9260,
-                })
-                .then((res) => {
-                  setPlanResult(res);
-                  if (res.plans?.length > 0) setSelectedPlan(res.plans[0]);
-                });
-            }}
           />
         </div>
       )}
 
-      {/* ─── Map & Impact Row ──────────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Route Map Card (2 Cols) */}
-        <div className="lg:col-span-2 card p-4 rounded-xl flex flex-col justify-between bg-white border" style={{ borderColor: 'var(--color-border)' }}>
-          <div className="flex items-center justify-between mb-3">
-            <div>
-              <h2 className="card-title text-base flex items-center gap-2">
-                <Truck size={18} style={{ color: 'var(--color-primary)' }} />
-                Active Sourcing & Delivery Corridor (Pune Hub)
-              </h2>
-              <p className="text-xs text-secondary">
-                {selectedPlan
-                  ? `Viewing: ${selectedPlan.label} (${selectedPlan.farmers.length} farmers -> Buyer)`
-                  : activeShipment
-                  ? `Tracking ${activeShipment.trackingNumber} (${activeShipment.status})`
-                  : 'Live Fleet Positions'}
-              </p>
-            </div>
-            {activeShipment && (
-              <span className="flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded bg-purple-50 text-purple-700 border border-purple-200">
-                <Thermometer size={14} /> 13.8°C Cold-Chain
-              </span>
-            )}
-          </div>
-
-          <LiveMap
-            key={activeShipment?.id || selectedPlan?.planId || 'fleet-preview'}
-            farmers={selectedPlan ? selectedPlan.farmers : activeShipment ? activeShipment.stops.filter((s) => s.stopType === 'PICKUP') : []}
-            buyer={selectedPlan ? selectedPlan.destination : { lat: 18.5089, lng: 73.9260, name: 'Hadapsar Hub' }}
-            vehicle={activeShipment ? { ...activeShipment.currentLocation, vehicleNumber: activeShipment.vehicleNumber } : null}
-            routeGeometry={selectedPlan?.routeGeometry || activeShipment?.routeGeometry}
-            height="380px"
-          />
-        </div>
-
+      {/* ─── Fleet Impact & Dispatch ───────────────────────────────────────── */}
+      <div className="grid grid-cols-1 gap-6">
         {/* Optimization Impact (1 Col) */}
         <div className="flex flex-col gap-4">
           <SavingsCard
@@ -887,10 +787,10 @@ function MainOperationsDashboard({ initialTab = 'operations' }) {
               </button>
               <button
                 type="button"
-                onClick={() => navigate('/logistics/milestones')}
+                onClick={() => navigate('/logistics/map')}
                 className="btn btn-primary w-full text-xs"
               >
-                Update Milestones
+                Open Live Tracking
               </button>
             </div>
           </div>

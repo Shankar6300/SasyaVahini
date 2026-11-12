@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { MapPin, Navigation, Truck, Warehouse, Maximize2 } from 'lucide-react';
-import demoCoordinates from '../../assets/demoRouteCoordinates.json';
+const demoCoordinates = [];
 
 /**
  * SasyaVahini — Live Logistics Map Component
@@ -182,6 +182,7 @@ export default function LiveMap({
 
     const defaultCenter = allPoints.length > 0 ? allPoints[0] : [18.7606, 73.8636];
     let resizeTimer;
+    let mapDisposed = false;
 
     // Destroy existing instance if container re-rendered
     if (leafletMapRef.current) {
@@ -195,6 +196,7 @@ export default function LiveMap({
         zoom: 10,
         scrollWheelZoom: interactive,
       });
+      leafletMapRef.current = map;
 
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap contributors | SasyaVahini Logistics',
@@ -371,14 +373,18 @@ export default function LiveMap({
         map.fitBounds(allPoints, { padding: [40, 40] });
       }
 
-      leafletMapRef.current = map;
-      requestAnimationFrame(() => map.invalidateSize());
-      resizeTimer = window.setTimeout(() => map.invalidateSize(), 250);
+      requestAnimationFrame(() => {
+        if (!mapDisposed && map._container) map.invalidateSize();
+      });
+      resizeTimer = window.setTimeout(() => {
+        if (!mapDisposed && map._container) map.invalidateSize();
+      }, 250);
     } catch (e) {
       setUseSvgFallback(true);
     }
 
     return () => {
+      mapDisposed = true;
       window.clearTimeout(resizeTimer);
       if (leafletMapRef.current) {
         leafletMapRef.current.remove();
