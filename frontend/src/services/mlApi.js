@@ -48,9 +48,48 @@ export async function getMLHealth() {
   return res.data?.data || res.data;
 }
 
+/**
+ * MLOps Governance & Drift Engine
+ */
+export async function getMLOpsStatus() {
+  const res = await api.get('/ml/mlops/status');
+  return res.data?.data || res.data;
+}
+
+export async function getMLOpsDrift() {
+  const res = await api.get('/ml/mlops/drift');
+  return res.data?.data || res.data;
+}
+
+export async function triggerRetrain() {
+  const res = await api.post('/ml/mlops/retrain');
+  return res.data?.data || res.data;
+}
+
+export async function triggerRollback() {
+  const res = await api.post('/ml/mlops/rollback');
+  return res.data?.data || res.data;
+}
+
+export async function syncLiveMandiData() {
+  const res = await api.post('/ml/mlops/sync-live-data');
+  return res.data?.data || res.data;
+}
+
+export async function getLiveMarketState() {
+  const res = await api.get('/ml/mlops/live-state');
+  return res.data?.data || res.data;
+}
+
 export default {
   getDemandForecast,
   getPriceRecommendation,
   getMLHealth,
+  getMLOpsStatus,
+  getMLOpsDrift,
+  triggerRetrain,
+  triggerRollback,
+  syncLiveMandiData,
+  getLiveMarketState,
 };
 

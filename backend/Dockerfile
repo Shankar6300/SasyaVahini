@@ -9,4 +9,4 @@ COPY backend ./backend
 RUN npx prisma generate --schema=backend/prisma/schema.prisma
 ENV NODE_ENV=production PORT=5000
 EXPOSE 5000
-CMD ["sh", "-c", "npx prisma migrate deploy --schema=backend/prisma/schema.prisma && npm run start --workspace=backend"]
+CMD ["sh", "-c", "npx prisma migrate deploy --schema=backend/prisma/schema.prisma && (node backend/prisma/seed.js || true) && npm run start --workspace=backend"]

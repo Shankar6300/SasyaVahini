@@ -1,0 +1,29 @@
+{
+  "version": "v0.5.0-enterprise-longitudinal-20261111-1347",
+  "status": "CHAMPION",
+  "promoted_at": "2026-11-11T13:48:18.034272",
+  "trained_records": 312000,
+  "feature_count": 102,
+  "macro_features_enabled": true,
+  "metrics": {
+    "price_r2": 0.9989,
+    "price_mae": 1.07,
+    "price_mape": 1.78,
+    "cv_r2": 0.9986,
+    "coverage_80": 79.75,
+    "quantile_crossing_rate_pct": 1.2388
+  },
+  "history": [
+    {
+      "version": "0.4.0-state-of-the-art-agmarknet",
+      "retired_at": "2026-11-11T13:48:18.034255",
+      "metrics": {
+        "price_r2": 0.9989,
+        "price_mae": 1.01,
+        "price_mape": 1.74,
+        "cv_r2": 0.9989,
+        "coverage_80": 77.33
+      }
+    }
+  ]
+}

@@ -1,0 +1,6395 @@
+{
+  "metadata": {
+    "last_synced_at": "2026-11-11T08:30:00Z",
+    "data_source": "Agmarknet Live APMC Wholesale Bulletin (Ministry of Agriculture / DoCA)",
+    "sync_status": "HEALTHY_SYNCED",
+    "total_commodities": 24,
+    "total_districts": 36
+  },
+  "commodities": {
+    "Tomato": {
+      "crop": "Tomato",
+      "category": "Vegetable",
+      "perishability_tier": "HIGH",
+      "msp_floor": 0.0,
+      "national_modal_price": 16.07,
+      "national_min_price": 13.5,
+      "national_max_price": 18.64,
+      "daily_arrivals_tonnes": 3500.0,
+      "daily_volatility_pct": 0.08,
+      "last_updated": "2026-11-11",
+      "districts": {
+        "Pune": {
+          "modal_price": 18.0,
+          "min_price": 15.12,
+          "max_price": 20.88,
+          "arrivals_tonnes": 95.2,
+          "last_updated": "2026-11-11"
+        },
+        "Nashik": {
+          "modal_price": 14.95,
+          "min_price": 12.56,
+          "max_price": 17.34,
+          "arrivals_tonnes": 121.8,
+          "last_updated": "2026-11-11"
+        },
+        "Ahmednagar": {
+          "modal_price": 14.62,
+          "min_price": 12.28,
+          "max_price": 16.96,
+          "arrivals_tonnes": 124.6,
+          "last_updated": "2026-11-11"
+        },
+        "Solapur": {
+          "modal_price": 15.27,
+          "min_price": 12.83,
+          "max_price": 17.71,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Nagpur": {
+          "modal_price": 17.19,
+          "min_price": 14.44,
+          "max_price": 19.94,
+          "arrivals_tonnes": 102.2,
+          "last_updated": "2026-11-11"
+        },
+        "Satara": {
+          "modal_price": 15.43,
+          "min_price": 12.96,
+          "max_price": 17.9,
+          "arrivals_tonnes": 117.6,
+          "last_updated": "2026-11-11"
+        },
+        "Kolhapur": {
+          "modal_price": 15.75,
+          "min_price": 13.23,
+          "max_price": 18.27,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Sangli": {
+          "modal_price": 15.59,
+          "min_price": 13.1,
+          "max_price": 18.08,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Jalgaon": {
+          "modal_price": 14.95,
+          "min_price": 12.56,
+          "max_price": 17.34,
+          "arrivals_tonnes": 121.8,
+          "last_updated": "2026-11-11"
+        },
+        "Aurangabad": {
+          "modal_price": 15.75,
+          "min_price": 13.23,
+          "max_price": 18.27,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Mumbai": {
+          "modal_price": 20.57,
+          "min_price": 17.28,
+          "max_price": 23.86,
+          "arrivals_tonnes": 72.8,
+          "last_updated": "2026-11-11"
+        },
+        "Kadapa": {
+          "modal_price": 14.78,
+          "min_price": 12.42,
+          "max_price": 17.14,
+          "arrivals_tonnes": 123.2,
+          "last_updated": "2026-11-11"
+        },
+        "Kurnool": {
+          "modal_price": 14.62,
+          "min_price": 12.28,
+          "max_price": 16.96,
+          "arrivals_tonnes": 124.6,
+          "last_updated": "2026-11-11"
+        },
+        "Guntur": {
+          "modal_price": 15.11,
+          "min_price": 12.69,
+          "max_price": 17.53,
+          "arrivals_tonnes": 120.4,
+          "last_updated": "2026-11-11"
+        },
+        "Chittoor": {
+          "modal_price": 15.27,
+          "min_price": 12.83,
+          "max_price": 17.71,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Hyderabad": {
+          "modal_price": 18.96,
+          "min_price": 15.93,
+          "max_price": 21.99,
+          "arrivals_tonnes": 86.8,
+          "last_updated": "2026-11-11"
+        },
+        "Warangal": {
+          "modal_price": 15.43,
+          "min_price": 12.96,
+          "max_price": 17.9,
+          "arrivals_tonnes": 117.6,
+          "last_updated": "2026-11-11"
+        },
+        "Khammam": {
+          "modal_price": 15.27,
+          "min_price": 12.83,
+          "max_price": 17.71,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Anantapur": {
+          "modal_price": 14.78,
+          "min_price": 12.42,
+          "max_price": 17.14,
+          "arrivals_tonnes": 123.2,
+          "last_updated": "2026-11-11"
+        },
+        "Bengaluru": {
+          "modal_price": 19.61,
+          "min_price": 16.47,
+          "max_price": 22.75,
+          "arrivals_tonnes": 81.2,
+          "last_updated": "2026-11-11"
+        },
+        "Belagavi": {
+          "modal_price": 15.75,
+          "min_price": 13.23,
+          "max_price": 18.27,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Hubballi": {
+          "modal_price": 15.59,
+          "min_price": 13.1,
+          "max_price": 18.08,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Indore": {
+          "modal_price": 16.87,
+          "min_price": 14.17,
+          "max_price": 19.57,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Bhopal": {
+          "modal_price": 16.71,
+          "min_price": 14.04,
+          "max_price": 19.38,
+          "arrivals_tonnes": 106.4,
+          "last_updated": "2026-11-11"
+        },
+        "Jaipur": {
+          "modal_price": 17.03,
+          "min_price": 14.31,
+          "max_price": 19.75,
+          "arrivals_tonnes": 103.6,
+          "last_updated": "2026-11-11"
+        },
+        "Lucknow": {
+          "modal_price": 16.87,
+          "min_price": 14.17,
+          "max_price": 19.57,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Varanasi": {
+          "modal_price": 15.59,
+          "min_price": 13.1,
+          "max_price": 18.08,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Delhi": {
+          "modal_price": 19.93,
+          "min_price": 16.74,
+          "max_price": 23.12,
+          "arrivals_tonnes": 78.4,
+          "last_updated": "2026-11-11"
+        },
+        "Ahmedabad": {
+          "modal_price": 17.84,
+          "min_price": 14.99,
+          "max_price": 20.69,
+          "arrivals_tonnes": 96.6,
+          "last_updated": "2026-11-11"
+        },
+        "Surat": {
+          "modal_price": 17.68,
+          "min_price": 14.85,
+          "max_price": 20.51,
+          "arrivals_tonnes": 98.0,
+          "last_updated": "2026-11-11"
+        },
+        "Rajkot": {
+          "modal_price": 16.39,
+          "min_price": 13.77,
+          "max_price": 19.01,
+          "arrivals_tonnes": 109.2,
+          "last_updated": "2026-11-11"
+        },
+        "Chandigarh": {
+          "modal_price": 17.36,
+          "min_price": 14.58,
+          "max_price": 20.14,
+          "arrivals_tonnes": 100.8,
+          "last_updated": "2026-11-11"
+        },
+        "Ludhiana": {
+          "modal_price": 17.36,
+          "min_price": 14.58,
+          "max_price": 20.14,
+          "arrivals_tonnes": 100.8,
+          "last_updated": "2026-11-11"
+        },
+        "Kolkata": {
+          "modal_price": 19.28,
+          "min_price": 16.2,
+          "max_price": 22.36,
+          "arrivals_tonnes": 84.0,
+          "last_updated": "2026-11-11"
+        },
+        "Patna": {
+          "modal_price": 16.87,
+          "min_price": 14.17,
+          "max_price": 19.57,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Bhubaneswar": {
+          "modal_price": 16.71,
+          "min_price": 14.04,
+          "max_price": 19.38,
+          "arrivals_tonnes": 106.4,
+          "last_updated": "2026-11-11"
+        }
+      }
+    },
+    "Onion": {
+      "crop": "Onion",
+      "category": "Vegetable",
+      "perishability_tier": "MEDIUM",
+      "msp_floor": 0.0,
+      "national_modal_price": 39.29,
+      "national_min_price": 33.79,
+      "national_max_price": 44.79,
+      "daily_arrivals_tonnes": 3500.0,
+      "daily_volatility_pct": 0.07,
+      "last_updated": "2026-11-11",
+      "districts": {
+        "Pune": {
+          "modal_price": 44.0,
+          "min_price": 37.84,
+          "max_price": 50.16,
+          "arrivals_tonnes": 95.2,
+          "last_updated": "2026-11-11"
+        },
+        "Nashik": {
+          "modal_price": 36.54,
+          "min_price": 31.42,
+          "max_price": 41.66,
+          "arrivals_tonnes": 121.8,
+          "last_updated": "2026-11-11"
+        },
+        "Ahmednagar": {
+          "modal_price": 35.75,
+          "min_price": 30.75,
+          "max_price": 40.76,
+          "arrivals_tonnes": 124.6,
+          "last_updated": "2026-11-11"
+        },
+        "Solapur": {
+          "modal_price": 37.33,
+          "min_price": 32.1,
+          "max_price": 42.56,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Nagpur": {
+          "modal_price": 42.04,
+          "min_price": 36.15,
+          "max_price": 47.93,
+          "arrivals_tonnes": 102.2,
+          "last_updated": "2026-11-11"
+        },
+        "Satara": {
+          "modal_price": 37.72,
+          "min_price": 32.44,
+          "max_price": 43.0,
+          "arrivals_tonnes": 117.6,
+          "last_updated": "2026-11-11"
+        },
+        "Kolhapur": {
+          "modal_price": 38.5,
+          "min_price": 33.11,
+          "max_price": 43.89,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Sangli": {
+          "modal_price": 38.11,
+          "min_price": 32.77,
+          "max_price": 43.45,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Jalgaon": {
+          "modal_price": 36.54,
+          "min_price": 31.42,
+          "max_price": 41.66,
+          "arrivals_tonnes": 121.8,
+          "last_updated": "2026-11-11"
+        },
+        "Aurangabad": {
+          "modal_price": 38.5,
+          "min_price": 33.11,
+          "max_price": 43.89,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Mumbai": {
+          "modal_price": 50.29,
+          "min_price": 43.25,
+          "max_price": 57.33,
+          "arrivals_tonnes": 72.8,
+          "last_updated": "2026-11-11"
+        },
+        "Kadapa": {
+          "modal_price": 36.15,
+          "min_price": 31.09,
+          "max_price": 41.21,
+          "arrivals_tonnes": 123.2,
+          "last_updated": "2026-11-11"
+        },
+        "Kurnool": {
+          "modal_price": 35.75,
+          "min_price": 30.75,
+          "max_price": 40.76,
+          "arrivals_tonnes": 124.6,
+          "last_updated": "2026-11-11"
+        },
+        "Guntur": {
+          "modal_price": 36.93,
+          "min_price": 31.76,
+          "max_price": 42.1,
+          "arrivals_tonnes": 120.4,
+          "last_updated": "2026-11-11"
+        },
+        "Chittoor": {
+          "modal_price": 37.33,
+          "min_price": 32.1,
+          "max_price": 42.56,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Hyderabad": {
+          "modal_price": 46.36,
+          "min_price": 39.87,
+          "max_price": 52.85,
+          "arrivals_tonnes": 86.8,
+          "last_updated": "2026-11-11"
+        },
+        "Warangal": {
+          "modal_price": 37.72,
+          "min_price": 32.44,
+          "max_price": 43.0,
+          "arrivals_tonnes": 117.6,
+          "last_updated": "2026-11-11"
+        },
+        "Khammam": {
+          "modal_price": 37.33,
+          "min_price": 32.1,
+          "max_price": 42.56,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Anantapur": {
+          "modal_price": 36.15,
+          "min_price": 31.09,
+          "max_price": 41.21,
+          "arrivals_tonnes": 123.2,
+          "last_updated": "2026-11-11"
+        },
+        "Bengaluru": {
+          "modal_price": 47.93,
+          "min_price": 41.22,
+          "max_price": 54.64,
+          "arrivals_tonnes": 81.2,
+          "last_updated": "2026-11-11"
+        },
+        "Belagavi": {
+          "modal_price": 38.5,
+          "min_price": 33.11,
+          "max_price": 43.89,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Hubballi": {
+          "modal_price": 38.11,
+          "min_price": 32.77,
+          "max_price": 43.45,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Indore": {
+          "modal_price": 41.25,
+          "min_price": 35.48,
+          "max_price": 47.03,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Bhopal": {
+          "modal_price": 40.86,
+          "min_price": 35.14,
+          "max_price": 46.58,
+          "arrivals_tonnes": 106.4,
+          "last_updated": "2026-11-11"
+        },
+        "Jaipur": {
+          "modal_price": 41.65,
+          "min_price": 35.82,
+          "max_price": 47.48,
+          "arrivals_tonnes": 103.6,
+          "last_updated": "2026-11-11"
+        },
+        "Lucknow": {
+          "modal_price": 41.25,
+          "min_price": 35.48,
+          "max_price": 47.03,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Varanasi": {
+          "modal_price": 38.11,
+          "min_price": 32.77,
+          "max_price": 43.45,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Delhi": {
+          "modal_price": 48.72,
+          "min_price": 41.9,
+          "max_price": 55.54,
+          "arrivals_tonnes": 78.4,
+          "last_updated": "2026-11-11"
+        },
+        "Ahmedabad": {
+          "modal_price": 43.61,
+          "min_price": 37.5,
+          "max_price": 49.72,
+          "arrivals_tonnes": 96.6,
+          "last_updated": "2026-11-11"
+        },
+        "Surat": {
+          "modal_price": 43.22,
+          "min_price": 37.17,
+          "max_price": 49.27,
+          "arrivals_tonnes": 98.0,
+          "last_updated": "2026-11-11"
+        },
+        "Rajkot": {
+          "modal_price": 40.08,
+          "min_price": 34.47,
+          "max_price": 45.69,
+          "arrivals_tonnes": 109.2,
+          "last_updated": "2026-11-11"
+        },
+        "Chandigarh": {
+          "modal_price": 42.43,
+          "min_price": 36.49,
+          "max_price": 48.37,
+          "arrivals_tonnes": 100.8,
+          "last_updated": "2026-11-11"
+        },
+        "Ludhiana": {
+          "modal_price": 42.43,
+          "min_price": 36.49,
+          "max_price": 48.37,
+          "arrivals_tonnes": 100.8,
+          "last_updated": "2026-11-11"
+        },
+        "Kolkata": {
+          "modal_price": 47.15,
+          "min_price": 40.55,
+          "max_price": 53.75,
+          "arrivals_tonnes": 84.0,
+          "last_updated": "2026-11-11"
+        },
+        "Patna": {
+          "modal_price": 41.25,
+          "min_price": 35.48,
+          "max_price": 47.03,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Bhubaneswar": {
+          "modal_price": 40.86,
+          "min_price": 35.14,
+          "max_price": 46.58,
+          "arrivals_tonnes": 106.4,
+          "last_updated": "2026-11-11"
+        }
+      }
+    },
+    "Potato": {
+      "crop": "Potato",
+      "category": "Tuber",
+      "perishability_tier": "LOW",
+      "msp_floor": 0.0,
+      "national_modal_price": 19.64,
+      "national_min_price": 17.68,
+      "national_max_price": 21.6,
+      "daily_arrivals_tonnes": 3500.0,
+      "daily_volatility_pct": 0.05,
+      "last_updated": "2026-11-11",
+      "districts": {
+        "Pune": {
+          "modal_price": 22.0,
+          "min_price": 19.8,
+          "max_price": 24.2,
+          "arrivals_tonnes": 95.2,
+          "last_updated": "2026-11-11"
+        },
+        "Nashik": {
+          "modal_price": 18.27,
+          "min_price": 16.44,
+          "max_price": 20.1,
+          "arrivals_tonnes": 121.8,
+          "last_updated": "2026-11-11"
+        },
+        "Ahmednagar": {
+          "modal_price": 17.87,
+          "min_price": 16.08,
+          "max_price": 19.66,
+          "arrivals_tonnes": 124.6,
+          "last_updated": "2026-11-11"
+        },
+        "Solapur": {
+          "modal_price": 18.66,
+          "min_price": 16.79,
+          "max_price": 20.53,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Nagpur": {
+          "modal_price": 21.01,
+          "min_price": 18.91,
+          "max_price": 23.11,
+          "arrivals_tonnes": 102.2,
+          "last_updated": "2026-11-11"
+        },
+        "Satara": {
+          "modal_price": 18.85,
+          "min_price": 16.97,
+          "max_price": 20.74,
+          "arrivals_tonnes": 117.6,
+          "last_updated": "2026-11-11"
+        },
+        "Kolhapur": {
+          "modal_price": 19.25,
+          "min_price": 17.32,
+          "max_price": 21.18,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Sangli": {
+          "modal_price": 19.05,
+          "min_price": 17.14,
+          "max_price": 20.96,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Jalgaon": {
+          "modal_price": 18.27,
+          "min_price": 16.44,
+          "max_price": 20.1,
+          "arrivals_tonnes": 121.8,
+          "last_updated": "2026-11-11"
+        },
+        "Aurangabad": {
+          "modal_price": 19.25,
+          "min_price": 17.32,
+          "max_price": 21.18,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Mumbai": {
+          "modal_price": 25.14,
+          "min_price": 22.63,
+          "max_price": 27.65,
+          "arrivals_tonnes": 72.8,
+          "last_updated": "2026-11-11"
+        },
+        "Kadapa": {
+          "modal_price": 18.07,
+          "min_price": 16.26,
+          "max_price": 19.88,
+          "arrivals_tonnes": 123.2,
+          "last_updated": "2026-11-11"
+        },
+        "Kurnool": {
+          "modal_price": 17.87,
+          "min_price": 16.08,
+          "max_price": 19.66,
+          "arrivals_tonnes": 124.6,
+          "last_updated": "2026-11-11"
+        },
+        "Guntur": {
+          "modal_price": 18.46,
+          "min_price": 16.61,
+          "max_price": 20.31,
+          "arrivals_tonnes": 120.4,
+          "last_updated": "2026-11-11"
+        },
+        "Chittoor": {
+          "modal_price": 18.66,
+          "min_price": 16.79,
+          "max_price": 20.53,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Hyderabad": {
+          "modal_price": 23.18,
+          "min_price": 20.86,
+          "max_price": 25.5,
+          "arrivals_tonnes": 86.8,
+          "last_updated": "2026-11-11"
+        },
+        "Warangal": {
+          "modal_price": 18.85,
+          "min_price": 16.97,
+          "max_price": 20.74,
+          "arrivals_tonnes": 117.6,
+          "last_updated": "2026-11-11"
+        },
+        "Khammam": {
+          "modal_price": 18.66,
+          "min_price": 16.79,
+          "max_price": 20.53,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Anantapur": {
+          "modal_price": 18.07,
+          "min_price": 16.26,
+          "max_price": 19.88,
+          "arrivals_tonnes": 123.2,
+          "last_updated": "2026-11-11"
+        },
+        "Bengaluru": {
+          "modal_price": 23.96,
+          "min_price": 21.56,
+          "max_price": 26.36,
+          "arrivals_tonnes": 81.2,
+          "last_updated": "2026-11-11"
+        },
+        "Belagavi": {
+          "modal_price": 19.25,
+          "min_price": 17.32,
+          "max_price": 21.18,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Hubballi": {
+          "modal_price": 19.05,
+          "min_price": 17.14,
+          "max_price": 20.96,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Indore": {
+          "modal_price": 20.62,
+          "min_price": 18.56,
+          "max_price": 22.68,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Bhopal": {
+          "modal_price": 20.43,
+          "min_price": 18.39,
+          "max_price": 22.47,
+          "arrivals_tonnes": 106.4,
+          "last_updated": "2026-11-11"
+        },
+        "Jaipur": {
+          "modal_price": 20.82,
+          "min_price": 18.74,
+          "max_price": 22.9,
+          "arrivals_tonnes": 103.6,
+          "last_updated": "2026-11-11"
+        },
+        "Lucknow": {
+          "modal_price": 20.62,
+          "min_price": 18.56,
+          "max_price": 22.68,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Varanasi": {
+          "modal_price": 19.05,
+          "min_price": 17.14,
+          "max_price": 20.96,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Delhi": {
+          "modal_price": 24.35,
+          "min_price": 21.92,
+          "max_price": 26.79,
+          "arrivals_tonnes": 78.4,
+          "last_updated": "2026-11-11"
+        },
+        "Ahmedabad": {
+          "modal_price": 21.8,
+          "min_price": 19.62,
+          "max_price": 23.98,
+          "arrivals_tonnes": 96.6,
+          "last_updated": "2026-11-11"
+        },
+        "Surat": {
+          "modal_price": 21.6,
+          "min_price": 19.44,
+          "max_price": 23.76,
+          "arrivals_tonnes": 98.0,
+          "last_updated": "2026-11-11"
+        },
+        "Rajkot": {
+          "modal_price": 20.03,
+          "min_price": 18.03,
+          "max_price": 22.03,
+          "arrivals_tonnes": 109.2,
+          "last_updated": "2026-11-11"
+        },
+        "Chandigarh": {
+          "modal_price": 21.21,
+          "min_price": 19.09,
+          "max_price": 23.33,
+          "arrivals_tonnes": 100.8,
+          "last_updated": "2026-11-11"
+        },
+        "Ludhiana": {
+          "modal_price": 21.21,
+          "min_price": 19.09,
+          "max_price": 23.33,
+          "arrivals_tonnes": 100.8,
+          "last_updated": "2026-11-11"
+        },
+        "Kolkata": {
+          "modal_price": 23.57,
+          "min_price": 21.21,
+          "max_price": 25.93,
+          "arrivals_tonnes": 84.0,
+          "last_updated": "2026-11-11"
+        },
+        "Patna": {
+          "modal_price": 20.62,
+          "min_price": 18.56,
+          "max_price": 22.68,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Bhubaneswar": {
+          "modal_price": 20.43,
+          "min_price": 18.39,
+          "max_price": 22.47,
+          "arrivals_tonnes": 106.4,
+          "last_updated": "2026-11-11"
+        }
+      }
+    },
+    "Brinjal": {
+      "crop": "Brinjal",
+      "category": "Vegetable",
+      "perishability_tier": "HIGH",
+      "msp_floor": 0.0,
+      "national_modal_price": 19.64,
+      "national_min_price": 16.5,
+      "national_max_price": 22.78,
+      "daily_arrivals_tonnes": 3500.0,
+      "daily_volatility_pct": 0.08,
+      "last_updated": "2026-11-11",
+      "districts": {
+        "Pune": {
+          "modal_price": 22.0,
+          "min_price": 18.48,
+          "max_price": 25.52,
+          "arrivals_tonnes": 95.2,
+          "last_updated": "2026-11-11"
+        },
+        "Nashik": {
+          "modal_price": 18.27,
+          "min_price": 15.35,
+          "max_price": 21.19,
+          "arrivals_tonnes": 121.8,
+          "last_updated": "2026-11-11"
+        },
+        "Ahmednagar": {
+          "modal_price": 17.87,
+          "min_price": 15.01,
+          "max_price": 20.73,
+          "arrivals_tonnes": 124.6,
+          "last_updated": "2026-11-11"
+        },
+        "Solapur": {
+          "modal_price": 18.66,
+          "min_price": 15.67,
+          "max_price": 21.65,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Nagpur": {
+          "modal_price": 21.01,
+          "min_price": 17.65,
+          "max_price": 24.37,
+          "arrivals_tonnes": 102.2,
+          "last_updated": "2026-11-11"
+        },
+        "Satara": {
+          "modal_price": 18.85,
+          "min_price": 15.83,
+          "max_price": 21.87,
+          "arrivals_tonnes": 117.6,
+          "last_updated": "2026-11-11"
+        },
+        "Kolhapur": {
+          "modal_price": 19.25,
+          "min_price": 16.17,
+          "max_price": 22.33,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Sangli": {
+          "modal_price": 19.05,
+          "min_price": 16.0,
+          "max_price": 22.1,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Jalgaon": {
+          "modal_price": 18.27,
+          "min_price": 15.35,
+          "max_price": 21.19,
+          "arrivals_tonnes": 121.8,
+          "last_updated": "2026-11-11"
+        },
+        "Aurangabad": {
+          "modal_price": 19.25,
+          "min_price": 16.17,
+          "max_price": 22.33,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Mumbai": {
+          "modal_price": 25.14,
+          "min_price": 21.12,
+          "max_price": 29.16,
+          "arrivals_tonnes": 72.8,
+          "last_updated": "2026-11-11"
+        },
+        "Kadapa": {
+          "modal_price": 18.07,
+          "min_price": 15.18,
+          "max_price": 20.96,
+          "arrivals_tonnes": 123.2,
+          "last_updated": "2026-11-11"
+        },
+        "Kurnool": {
+          "modal_price": 17.87,
+          "min_price": 15.01,
+          "max_price": 20.73,
+          "arrivals_tonnes": 124.6,
+          "last_updated": "2026-11-11"
+        },
+        "Guntur": {
+          "modal_price": 18.46,
+          "min_price": 15.51,
+          "max_price": 21.41,
+          "arrivals_tonnes": 120.4,
+          "last_updated": "2026-11-11"
+        },
+        "Chittoor": {
+          "modal_price": 18.66,
+          "min_price": 15.67,
+          "max_price": 21.65,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Hyderabad": {
+          "modal_price": 23.18,
+          "min_price": 19.47,
+          "max_price": 26.89,
+          "arrivals_tonnes": 86.8,
+          "last_updated": "2026-11-11"
+        },
+        "Warangal": {
+          "modal_price": 18.85,
+          "min_price": 15.83,
+          "max_price": 21.87,
+          "arrivals_tonnes": 117.6,
+          "last_updated": "2026-11-11"
+        },
+        "Khammam": {
+          "modal_price": 18.66,
+          "min_price": 15.67,
+          "max_price": 21.65,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Anantapur": {
+          "modal_price": 18.07,
+          "min_price": 15.18,
+          "max_price": 20.96,
+          "arrivals_tonnes": 123.2,
+          "last_updated": "2026-11-11"
+        },
+        "Bengaluru": {
+          "modal_price": 23.96,
+          "min_price": 20.13,
+          "max_price": 27.79,
+          "arrivals_tonnes": 81.2,
+          "last_updated": "2026-11-11"
+        },
+        "Belagavi": {
+          "modal_price": 19.25,
+          "min_price": 16.17,
+          "max_price": 22.33,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Hubballi": {
+          "modal_price": 19.05,
+          "min_price": 16.0,
+          "max_price": 22.1,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Indore": {
+          "modal_price": 20.62,
+          "min_price": 17.32,
+          "max_price": 23.92,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Bhopal": {
+          "modal_price": 20.43,
+          "min_price": 17.16,
+          "max_price": 23.7,
+          "arrivals_tonnes": 106.4,
+          "last_updated": "2026-11-11"
+        },
+        "Jaipur": {
+          "modal_price": 20.82,
+          "min_price": 17.49,
+          "max_price": 24.15,
+          "arrivals_tonnes": 103.6,
+          "last_updated": "2026-11-11"
+        },
+        "Lucknow": {
+          "modal_price": 20.62,
+          "min_price": 17.32,
+          "max_price": 23.92,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Varanasi": {
+          "modal_price": 19.05,
+          "min_price": 16.0,
+          "max_price": 22.1,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Delhi": {
+          "modal_price": 24.35,
+          "min_price": 20.45,
+          "max_price": 28.25,
+          "arrivals_tonnes": 78.4,
+          "last_updated": "2026-11-11"
+        },
+        "Ahmedabad": {
+          "modal_price": 21.8,
+          "min_price": 18.31,
+          "max_price": 25.29,
+          "arrivals_tonnes": 96.6,
+          "last_updated": "2026-11-11"
+        },
+        "Surat": {
+          "modal_price": 21.6,
+          "min_price": 18.14,
+          "max_price": 25.06,
+          "arrivals_tonnes": 98.0,
+          "last_updated": "2026-11-11"
+        },
+        "Rajkot": {
+          "modal_price": 20.03,
+          "min_price": 16.83,
+          "max_price": 23.23,
+          "arrivals_tonnes": 109.2,
+          "last_updated": "2026-11-11"
+        },
+        "Chandigarh": {
+          "modal_price": 21.21,
+          "min_price": 17.82,
+          "max_price": 24.6,
+          "arrivals_tonnes": 100.8,
+          "last_updated": "2026-11-11"
+        },
+        "Ludhiana": {
+          "modal_price": 21.21,
+          "min_price": 17.82,
+          "max_price": 24.6,
+          "arrivals_tonnes": 100.8,
+          "last_updated": "2026-11-11"
+        },
+        "Kolkata": {
+          "modal_price": 23.57,
+          "min_price": 19.8,
+          "max_price": 27.34,
+          "arrivals_tonnes": 84.0,
+          "last_updated": "2026-11-11"
+        },
+        "Patna": {
+          "modal_price": 20.62,
+          "min_price": 17.32,
+          "max_price": 23.92,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Bhubaneswar": {
+          "modal_price": 20.43,
+          "min_price": 17.16,
+          "max_price": 23.7,
+          "arrivals_tonnes": 106.4,
+          "last_updated": "2026-11-11"
+        }
+      }
+    },
+    "Cauliflower": {
+      "crop": "Cauliflower",
+      "category": "Vegetable",
+      "perishability_tier": "HIGH",
+      "msp_floor": 0.0,
+      "national_modal_price": 17.86,
+      "national_min_price": 15.0,
+      "national_max_price": 20.72,
+      "daily_arrivals_tonnes": 3500.0,
+      "daily_volatility_pct": 0.08,
+      "last_updated": "2026-11-11",
+      "districts": {
+        "Pune": {
+          "modal_price": 20.0,
+          "min_price": 16.8,
+          "max_price": 23.2,
+          "arrivals_tonnes": 95.2,
+          "last_updated": "2026-11-11"
+        },
+        "Nashik": {
+          "modal_price": 16.61,
+          "min_price": 13.95,
+          "max_price": 19.27,
+          "arrivals_tonnes": 121.8,
+          "last_updated": "2026-11-11"
+        },
+        "Ahmednagar": {
+          "modal_price": 16.25,
+          "min_price": 13.65,
+          "max_price": 18.85,
+          "arrivals_tonnes": 124.6,
+          "last_updated": "2026-11-11"
+        },
+        "Solapur": {
+          "modal_price": 16.97,
+          "min_price": 14.25,
+          "max_price": 19.69,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Nagpur": {
+          "modal_price": 19.11,
+          "min_price": 16.05,
+          "max_price": 22.17,
+          "arrivals_tonnes": 102.2,
+          "last_updated": "2026-11-11"
+        },
+        "Satara": {
+          "modal_price": 17.15,
+          "min_price": 14.41,
+          "max_price": 19.89,
+          "arrivals_tonnes": 117.6,
+          "last_updated": "2026-11-11"
+        },
+        "Kolhapur": {
+          "modal_price": 17.5,
+          "min_price": 14.7,
+          "max_price": 20.3,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Sangli": {
+          "modal_price": 17.32,
+          "min_price": 14.55,
+          "max_price": 20.09,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Jalgaon": {
+          "modal_price": 16.61,
+          "min_price": 13.95,
+          "max_price": 19.27,
+          "arrivals_tonnes": 121.8,
+          "last_updated": "2026-11-11"
+        },
+        "Aurangabad": {
+          "modal_price": 17.5,
+          "min_price": 14.7,
+          "max_price": 20.3,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Mumbai": {
+          "modal_price": 22.86,
+          "min_price": 19.2,
+          "max_price": 26.52,
+          "arrivals_tonnes": 72.8,
+          "last_updated": "2026-11-11"
+        },
+        "Kadapa": {
+          "modal_price": 16.43,
+          "min_price": 13.8,
+          "max_price": 19.06,
+          "arrivals_tonnes": 123.2,
+          "last_updated": "2026-11-11"
+        },
+        "Kurnool": {
+          "modal_price": 16.25,
+          "min_price": 13.65,
+          "max_price": 18.85,
+          "arrivals_tonnes": 124.6,
+          "last_updated": "2026-11-11"
+        },
+        "Guntur": {
+          "modal_price": 16.79,
+          "min_price": 14.1,
+          "max_price": 19.48,
+          "arrivals_tonnes": 120.4,
+          "last_updated": "2026-11-11"
+        },
+        "Chittoor": {
+          "modal_price": 16.97,
+          "min_price": 14.25,
+          "max_price": 19.69,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Hyderabad": {
+          "modal_price": 21.07,
+          "min_price": 17.7,
+          "max_price": 24.44,
+          "arrivals_tonnes": 86.8,
+          "last_updated": "2026-11-11"
+        },
+        "Warangal": {
+          "modal_price": 17.15,
+          "min_price": 14.41,
+          "max_price": 19.89,
+          "arrivals_tonnes": 117.6,
+          "last_updated": "2026-11-11"
+        },
+        "Khammam": {
+          "modal_price": 16.97,
+          "min_price": 14.25,
+          "max_price": 19.69,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Anantapur": {
+          "modal_price": 16.43,
+          "min_price": 13.8,
+          "max_price": 19.06,
+          "arrivals_tonnes": 123.2,
+          "last_updated": "2026-11-11"
+        },
+        "Bengaluru": {
+          "modal_price": 21.79,
+          "min_price": 18.3,
+          "max_price": 25.28,
+          "arrivals_tonnes": 81.2,
+          "last_updated": "2026-11-11"
+        },
+        "Belagavi": {
+          "modal_price": 17.5,
+          "min_price": 14.7,
+          "max_price": 20.3,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Hubballi": {
+          "modal_price": 17.32,
+          "min_price": 14.55,
+          "max_price": 20.09,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Indore": {
+          "modal_price": 18.75,
+          "min_price": 15.75,
+          "max_price": 21.75,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Bhopal": {
+          "modal_price": 18.57,
+          "min_price": 15.6,
+          "max_price": 21.54,
+          "arrivals_tonnes": 106.4,
+          "last_updated": "2026-11-11"
+        },
+        "Jaipur": {
+          "modal_price": 18.93,
+          "min_price": 15.9,
+          "max_price": 21.96,
+          "arrivals_tonnes": 103.6,
+          "last_updated": "2026-11-11"
+        },
+        "Lucknow": {
+          "modal_price": 18.75,
+          "min_price": 15.75,
+          "max_price": 21.75,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Varanasi": {
+          "modal_price": 17.32,
+          "min_price": 14.55,
+          "max_price": 20.09,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Delhi": {
+          "modal_price": 22.15,
+          "min_price": 18.61,
+          "max_price": 25.69,
+          "arrivals_tonnes": 78.4,
+          "last_updated": "2026-11-11"
+        },
+        "Ahmedabad": {
+          "modal_price": 19.82,
+          "min_price": 16.65,
+          "max_price": 22.99,
+          "arrivals_tonnes": 96.6,
+          "last_updated": "2026-11-11"
+        },
+        "Surat": {
+          "modal_price": 19.65,
+          "min_price": 16.51,
+          "max_price": 22.79,
+          "arrivals_tonnes": 98.0,
+          "last_updated": "2026-11-11"
+        },
+        "Rajkot": {
+          "modal_price": 18.22,
+          "min_price": 15.3,
+          "max_price": 21.14,
+          "arrivals_tonnes": 109.2,
+          "last_updated": "2026-11-11"
+        },
+        "Chandigarh": {
+          "modal_price": 19.29,
+          "min_price": 16.2,
+          "max_price": 22.38,
+          "arrivals_tonnes": 100.8,
+          "last_updated": "2026-11-11"
+        },
+        "Ludhiana": {
+          "modal_price": 19.29,
+          "min_price": 16.2,
+          "max_price": 22.38,
+          "arrivals_tonnes": 100.8,
+          "last_updated": "2026-11-11"
+        },
+        "Kolkata": {
+          "modal_price": 21.43,
+          "min_price": 18.0,
+          "max_price": 24.86,
+          "arrivals_tonnes": 84.0,
+          "last_updated": "2026-11-11"
+        },
+        "Patna": {
+          "modal_price": 18.75,
+          "min_price": 15.75,
+          "max_price": 21.75,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Bhubaneswar": {
+          "modal_price": 18.57,
+          "min_price": 15.6,
+          "max_price": 21.54,
+          "arrivals_tonnes": 106.4,
+          "last_updated": "2026-11-11"
+        }
+      }
+    },
+    "Cabbage": {
+      "crop": "Cabbage",
+      "category": "Vegetable",
+      "perishability_tier": "MEDIUM",
+      "msp_floor": 0.0,
+      "national_modal_price": 14.73,
+      "national_min_price": 12.37,
+      "national_max_price": 17.09,
+      "daily_arrivals_tonnes": 3500.0,
+      "daily_volatility_pct": 0.08,
+      "last_updated": "2026-11-11",
+      "districts": {
+        "Pune": {
+          "modal_price": 16.5,
+          "min_price": 13.86,
+          "max_price": 19.14,
+          "arrivals_tonnes": 95.2,
+          "last_updated": "2026-11-11"
+        },
+        "Nashik": {
+          "modal_price": 13.7,
+          "min_price": 11.51,
+          "max_price": 15.89,
+          "arrivals_tonnes": 121.8,
+          "last_updated": "2026-11-11"
+        },
+        "Ahmednagar": {
+          "modal_price": 13.4,
+          "min_price": 11.26,
+          "max_price": 15.54,
+          "arrivals_tonnes": 124.6,
+          "last_updated": "2026-11-11"
+        },
+        "Solapur": {
+          "modal_price": 13.99,
+          "min_price": 11.75,
+          "max_price": 16.23,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Nagpur": {
+          "modal_price": 15.76,
+          "min_price": 13.24,
+          "max_price": 18.28,
+          "arrivals_tonnes": 102.2,
+          "last_updated": "2026-11-11"
+        },
+        "Satara": {
+          "modal_price": 14.14,
+          "min_price": 11.88,
+          "max_price": 16.4,
+          "arrivals_tonnes": 117.6,
+          "last_updated": "2026-11-11"
+        },
+        "Kolhapur": {
+          "modal_price": 14.44,
+          "min_price": 12.13,
+          "max_price": 16.75,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Sangli": {
+          "modal_price": 14.29,
+          "min_price": 12.0,
+          "max_price": 16.58,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Jalgaon": {
+          "modal_price": 13.7,
+          "min_price": 11.51,
+          "max_price": 15.89,
+          "arrivals_tonnes": 121.8,
+          "last_updated": "2026-11-11"
+        },
+        "Aurangabad": {
+          "modal_price": 14.44,
+          "min_price": 12.13,
+          "max_price": 16.75,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Mumbai": {
+          "modal_price": 18.85,
+          "min_price": 15.83,
+          "max_price": 21.87,
+          "arrivals_tonnes": 72.8,
+          "last_updated": "2026-11-11"
+        },
+        "Kadapa": {
+          "modal_price": 13.55,
+          "min_price": 11.38,
+          "max_price": 15.72,
+          "arrivals_tonnes": 123.2,
+          "last_updated": "2026-11-11"
+        },
+        "Kurnool": {
+          "modal_price": 13.4,
+          "min_price": 11.26,
+          "max_price": 15.54,
+          "arrivals_tonnes": 124.6,
+          "last_updated": "2026-11-11"
+        },
+        "Guntur": {
+          "modal_price": 13.85,
+          "min_price": 11.63,
+          "max_price": 16.07,
+          "arrivals_tonnes": 120.4,
+          "last_updated": "2026-11-11"
+        },
+        "Chittoor": {
+          "modal_price": 13.99,
+          "min_price": 11.75,
+          "max_price": 16.23,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Hyderabad": {
+          "modal_price": 17.38,
+          "min_price": 14.6,
+          "max_price": 20.16,
+          "arrivals_tonnes": 86.8,
+          "last_updated": "2026-11-11"
+        },
+        "Warangal": {
+          "modal_price": 14.14,
+          "min_price": 11.88,
+          "max_price": 16.4,
+          "arrivals_tonnes": 117.6,
+          "last_updated": "2026-11-11"
+        },
+        "Khammam": {
+          "modal_price": 13.99,
+          "min_price": 11.75,
+          "max_price": 16.23,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Anantapur": {
+          "modal_price": 13.55,
+          "min_price": 11.38,
+          "max_price": 15.72,
+          "arrivals_tonnes": 123.2,
+          "last_updated": "2026-11-11"
+        },
+        "Bengaluru": {
+          "modal_price": 17.97,
+          "min_price": 15.09,
+          "max_price": 20.85,
+          "arrivals_tonnes": 81.2,
+          "last_updated": "2026-11-11"
+        },
+        "Belagavi": {
+          "modal_price": 14.44,
+          "min_price": 12.13,
+          "max_price": 16.75,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Hubballi": {
+          "modal_price": 14.29,
+          "min_price": 12.0,
+          "max_price": 16.58,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Indore": {
+          "modal_price": 15.47,
+          "min_price": 12.99,
+          "max_price": 17.95,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Bhopal": {
+          "modal_price": 15.32,
+          "min_price": 12.87,
+          "max_price": 17.77,
+          "arrivals_tonnes": 106.4,
+          "last_updated": "2026-11-11"
+        },
+        "Jaipur": {
+          "modal_price": 15.61,
+          "min_price": 13.11,
+          "max_price": 18.11,
+          "arrivals_tonnes": 103.6,
+          "last_updated": "2026-11-11"
+        },
+        "Lucknow": {
+          "modal_price": 15.47,
+          "min_price": 12.99,
+          "max_price": 17.95,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Varanasi": {
+          "modal_price": 14.29,
+          "min_price": 12.0,
+          "max_price": 16.58,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Delhi": {
+          "modal_price": 18.27,
+          "min_price": 15.35,
+          "max_price": 21.19,
+          "arrivals_tonnes": 78.4,
+          "last_updated": "2026-11-11"
+        },
+        "Ahmedabad": {
+          "modal_price": 16.35,
+          "min_price": 13.73,
+          "max_price": 18.97,
+          "arrivals_tonnes": 96.6,
+          "last_updated": "2026-11-11"
+        },
+        "Surat": {
+          "modal_price": 16.2,
+          "min_price": 13.61,
+          "max_price": 18.79,
+          "arrivals_tonnes": 98.0,
+          "last_updated": "2026-11-11"
+        },
+        "Rajkot": {
+          "modal_price": 15.02,
+          "min_price": 12.62,
+          "max_price": 17.42,
+          "arrivals_tonnes": 109.2,
+          "last_updated": "2026-11-11"
+        },
+        "Chandigarh": {
+          "modal_price": 15.91,
+          "min_price": 13.36,
+          "max_price": 18.46,
+          "arrivals_tonnes": 100.8,
+          "last_updated": "2026-11-11"
+        },
+        "Ludhiana": {
+          "modal_price": 15.91,
+          "min_price": 13.36,
+          "max_price": 18.46,
+          "arrivals_tonnes": 100.8,
+          "last_updated": "2026-11-11"
+        },
+        "Kolkata": {
+          "modal_price": 17.68,
+          "min_price": 14.85,
+          "max_price": 20.51,
+          "arrivals_tonnes": 84.0,
+          "last_updated": "2026-11-11"
+        },
+        "Patna": {
+          "modal_price": 15.47,
+          "min_price": 12.99,
+          "max_price": 17.95,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Bhubaneswar": {
+          "modal_price": 15.32,
+          "min_price": 12.87,
+          "max_price": 17.77,
+          "arrivals_tonnes": 106.4,
+          "last_updated": "2026-11-11"
+        }
+      }
+    },
+    "Capsicum": {
+      "crop": "Capsicum",
+      "category": "Vegetable",
+      "perishability_tier": "HIGH",
+      "msp_floor": 0.0,
+      "national_modal_price": 41.07,
+      "national_min_price": 34.5,
+      "national_max_price": 47.64,
+      "daily_arrivals_tonnes": 3500.0,
+      "daily_volatility_pct": 0.08,
+      "last_updated": "2026-11-11",
+      "districts": {
+        "Pune": {
+          "modal_price": 46.0,
+          "min_price": 38.64,
+          "max_price": 53.36,
+          "arrivals_tonnes": 95.2,
+          "last_updated": "2026-11-11"
+        },
+        "Nashik": {
+          "modal_price": 38.2,
+          "min_price": 32.09,
+          "max_price": 44.31,
+          "arrivals_tonnes": 121.8,
+          "last_updated": "2026-11-11"
+        },
+        "Ahmednagar": {
+          "modal_price": 37.37,
+          "min_price": 31.39,
+          "max_price": 43.35,
+          "arrivals_tonnes": 124.6,
+          "last_updated": "2026-11-11"
+        },
+        "Solapur": {
+          "modal_price": 39.02,
+          "min_price": 32.78,
+          "max_price": 45.26,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Nagpur": {
+          "modal_price": 43.94,
+          "min_price": 36.91,
+          "max_price": 50.97,
+          "arrivals_tonnes": 102.2,
+          "last_updated": "2026-11-11"
+        },
+        "Satara": {
+          "modal_price": 39.43,
+          "min_price": 33.12,
+          "max_price": 45.74,
+          "arrivals_tonnes": 117.6,
+          "last_updated": "2026-11-11"
+        },
+        "Kolhapur": {
+          "modal_price": 40.25,
+          "min_price": 33.81,
+          "max_price": 46.69,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Sangli": {
+          "modal_price": 39.84,
+          "min_price": 33.47,
+          "max_price": 46.21,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Jalgaon": {
+          "modal_price": 38.2,
+          "min_price": 32.09,
+          "max_price": 44.31,
+          "arrivals_tonnes": 121.8,
+          "last_updated": "2026-11-11"
+        },
+        "Aurangabad": {
+          "modal_price": 40.25,
+          "min_price": 33.81,
+          "max_price": 46.69,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Mumbai": {
+          "modal_price": 52.57,
+          "min_price": 44.16,
+          "max_price": 60.98,
+          "arrivals_tonnes": 72.8,
+          "last_updated": "2026-11-11"
+        },
+        "Kadapa": {
+          "modal_price": 37.78,
+          "min_price": 31.74,
+          "max_price": 43.82,
+          "arrivals_tonnes": 123.2,
+          "last_updated": "2026-11-11"
+        },
+        "Kurnool": {
+          "modal_price": 37.37,
+          "min_price": 31.39,
+          "max_price": 43.35,
+          "arrivals_tonnes": 124.6,
+          "last_updated": "2026-11-11"
+        },
+        "Guntur": {
+          "modal_price": 38.61,
+          "min_price": 32.43,
+          "max_price": 44.79,
+          "arrivals_tonnes": 120.4,
+          "last_updated": "2026-11-11"
+        },
+        "Chittoor": {
+          "modal_price": 39.02,
+          "min_price": 32.78,
+          "max_price": 45.26,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Hyderabad": {
+          "modal_price": 48.46,
+          "min_price": 40.71,
+          "max_price": 56.21,
+          "arrivals_tonnes": 86.8,
+          "last_updated": "2026-11-11"
+        },
+        "Warangal": {
+          "modal_price": 39.43,
+          "min_price": 33.12,
+          "max_price": 45.74,
+          "arrivals_tonnes": 117.6,
+          "last_updated": "2026-11-11"
+        },
+        "Khammam": {
+          "modal_price": 39.02,
+          "min_price": 32.78,
+          "max_price": 45.26,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Anantapur": {
+          "modal_price": 37.78,
+          "min_price": 31.74,
+          "max_price": 43.82,
+          "arrivals_tonnes": 123.2,
+          "last_updated": "2026-11-11"
+        },
+        "Bengaluru": {
+          "modal_price": 50.11,
+          "min_price": 42.09,
+          "max_price": 58.13,
+          "arrivals_tonnes": 81.2,
+          "last_updated": "2026-11-11"
+        },
+        "Belagavi": {
+          "modal_price": 40.25,
+          "min_price": 33.81,
+          "max_price": 46.69,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Hubballi": {
+          "modal_price": 39.84,
+          "min_price": 33.47,
+          "max_price": 46.21,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Indore": {
+          "modal_price": 43.12,
+          "min_price": 36.22,
+          "max_price": 50.02,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Bhopal": {
+          "modal_price": 42.71,
+          "min_price": 35.88,
+          "max_price": 49.54,
+          "arrivals_tonnes": 106.4,
+          "last_updated": "2026-11-11"
+        },
+        "Jaipur": {
+          "modal_price": 43.53,
+          "min_price": 36.57,
+          "max_price": 50.49,
+          "arrivals_tonnes": 103.6,
+          "last_updated": "2026-11-11"
+        },
+        "Lucknow": {
+          "modal_price": 43.12,
+          "min_price": 36.22,
+          "max_price": 50.02,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Varanasi": {
+          "modal_price": 39.84,
+          "min_price": 33.47,
+          "max_price": 46.21,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Delhi": {
+          "modal_price": 50.93,
+          "min_price": 42.78,
+          "max_price": 59.08,
+          "arrivals_tonnes": 78.4,
+          "last_updated": "2026-11-11"
+        },
+        "Ahmedabad": {
+          "modal_price": 45.59,
+          "min_price": 38.3,
+          "max_price": 52.88,
+          "arrivals_tonnes": 96.6,
+          "last_updated": "2026-11-11"
+        },
+        "Surat": {
+          "modal_price": 45.18,
+          "min_price": 37.95,
+          "max_price": 52.41,
+          "arrivals_tonnes": 98.0,
+          "last_updated": "2026-11-11"
+        },
+        "Rajkot": {
+          "modal_price": 41.89,
+          "min_price": 35.19,
+          "max_price": 48.59,
+          "arrivals_tonnes": 109.2,
+          "last_updated": "2026-11-11"
+        },
+        "Chandigarh": {
+          "modal_price": 44.36,
+          "min_price": 37.26,
+          "max_price": 51.46,
+          "arrivals_tonnes": 100.8,
+          "last_updated": "2026-11-11"
+        },
+        "Ludhiana": {
+          "modal_price": 44.36,
+          "min_price": 37.26,
+          "max_price": 51.46,
+          "arrivals_tonnes": 100.8,
+          "last_updated": "2026-11-11"
+        },
+        "Kolkata": {
+          "modal_price": 49.28,
+          "min_price": 41.4,
+          "max_price": 57.16,
+          "arrivals_tonnes": 84.0,
+          "last_updated": "2026-11-11"
+        },
+        "Patna": {
+          "modal_price": 43.12,
+          "min_price": 36.22,
+          "max_price": 50.02,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Bhubaneswar": {
+          "modal_price": 42.71,
+          "min_price": 35.88,
+          "max_price": 49.54,
+          "arrivals_tonnes": 106.4,
+          "last_updated": "2026-11-11"
+        }
+      }
+    },
+    "Cucumber": {
+      "crop": "Cucumber",
+      "category": "Vegetable",
+      "perishability_tier": "HIGH",
+      "msp_floor": 0.0,
+      "national_modal_price": 19.64,
+      "national_min_price": 16.5,
+      "national_max_price": 22.78,
+      "daily_arrivals_tonnes": 3500.0,
+      "daily_volatility_pct": 0.08,
+      "last_updated": "2026-11-11",
+      "districts": {
+        "Pune": {
+          "modal_price": 22.0,
+          "min_price": 18.48,
+          "max_price": 25.52,
+          "arrivals_tonnes": 95.2,
+          "last_updated": "2026-11-11"
+        },
+        "Nashik": {
+          "modal_price": 18.27,
+          "min_price": 15.35,
+          "max_price": 21.19,
+          "arrivals_tonnes": 121.8,
+          "last_updated": "2026-11-11"
+        },
+        "Ahmednagar": {
+          "modal_price": 17.87,
+          "min_price": 15.01,
+          "max_price": 20.73,
+          "arrivals_tonnes": 124.6,
+          "last_updated": "2026-11-11"
+        },
+        "Solapur": {
+          "modal_price": 18.66,
+          "min_price": 15.67,
+          "max_price": 21.65,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Nagpur": {
+          "modal_price": 21.01,
+          "min_price": 17.65,
+          "max_price": 24.37,
+          "arrivals_tonnes": 102.2,
+          "last_updated": "2026-11-11"
+        },
+        "Satara": {
+          "modal_price": 18.85,
+          "min_price": 15.83,
+          "max_price": 21.87,
+          "arrivals_tonnes": 117.6,
+          "last_updated": "2026-11-11"
+        },
+        "Kolhapur": {
+          "modal_price": 19.25,
+          "min_price": 16.17,
+          "max_price": 22.33,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Sangli": {
+          "modal_price": 19.05,
+          "min_price": 16.0,
+          "max_price": 22.1,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Jalgaon": {
+          "modal_price": 18.27,
+          "min_price": 15.35,
+          "max_price": 21.19,
+          "arrivals_tonnes": 121.8,
+          "last_updated": "2026-11-11"
+        },
+        "Aurangabad": {
+          "modal_price": 19.25,
+          "min_price": 16.17,
+          "max_price": 22.33,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Mumbai": {
+          "modal_price": 25.14,
+          "min_price": 21.12,
+          "max_price": 29.16,
+          "arrivals_tonnes": 72.8,
+          "last_updated": "2026-11-11"
+        },
+        "Kadapa": {
+          "modal_price": 18.07,
+          "min_price": 15.18,
+          "max_price": 20.96,
+          "arrivals_tonnes": 123.2,
+          "last_updated": "2026-11-11"
+        },
+        "Kurnool": {
+          "modal_price": 17.87,
+          "min_price": 15.01,
+          "max_price": 20.73,
+          "arrivals_tonnes": 124.6,
+          "last_updated": "2026-11-11"
+        },
+        "Guntur": {
+          "modal_price": 18.46,
+          "min_price": 15.51,
+          "max_price": 21.41,
+          "arrivals_tonnes": 120.4,
+          "last_updated": "2026-11-11"
+        },
+        "Chittoor": {
+          "modal_price": 18.66,
+          "min_price": 15.67,
+          "max_price": 21.65,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Hyderabad": {
+          "modal_price": 23.18,
+          "min_price": 19.47,
+          "max_price": 26.89,
+          "arrivals_tonnes": 86.8,
+          "last_updated": "2026-11-11"
+        },
+        "Warangal": {
+          "modal_price": 18.85,
+          "min_price": 15.83,
+          "max_price": 21.87,
+          "arrivals_tonnes": 117.6,
+          "last_updated": "2026-11-11"
+        },
+        "Khammam": {
+          "modal_price": 18.66,
+          "min_price": 15.67,
+          "max_price": 21.65,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Anantapur": {
+          "modal_price": 18.07,
+          "min_price": 15.18,
+          "max_price": 20.96,
+          "arrivals_tonnes": 123.2,
+          "last_updated": "2026-11-11"
+        },
+        "Bengaluru": {
+          "modal_price": 23.96,
+          "min_price": 20.13,
+          "max_price": 27.79,
+          "arrivals_tonnes": 81.2,
+          "last_updated": "2026-11-11"
+        },
+        "Belagavi": {
+          "modal_price": 19.25,
+          "min_price": 16.17,
+          "max_price": 22.33,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Hubballi": {
+          "modal_price": 19.05,
+          "min_price": 16.0,
+          "max_price": 22.1,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Indore": {
+          "modal_price": 20.62,
+          "min_price": 17.32,
+          "max_price": 23.92,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Bhopal": {
+          "modal_price": 20.43,
+          "min_price": 17.16,
+          "max_price": 23.7,
+          "arrivals_tonnes": 106.4,
+          "last_updated": "2026-11-11"
+        },
+        "Jaipur": {
+          "modal_price": 20.82,
+          "min_price": 17.49,
+          "max_price": 24.15,
+          "arrivals_tonnes": 103.6,
+          "last_updated": "2026-11-11"
+        },
+        "Lucknow": {
+          "modal_price": 20.62,
+          "min_price": 17.32,
+          "max_price": 23.92,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Varanasi": {
+          "modal_price": 19.05,
+          "min_price": 16.0,
+          "max_price": 22.1,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Delhi": {
+          "modal_price": 24.35,
+          "min_price": 20.45,
+          "max_price": 28.25,
+          "arrivals_tonnes": 78.4,
+          "last_updated": "2026-11-11"
+        },
+        "Ahmedabad": {
+          "modal_price": 21.8,
+          "min_price": 18.31,
+          "max_price": 25.29,
+          "arrivals_tonnes": 96.6,
+          "last_updated": "2026-11-11"
+        },
+        "Surat": {
+          "modal_price": 21.6,
+          "min_price": 18.14,
+          "max_price": 25.06,
+          "arrivals_tonnes": 98.0,
+          "last_updated": "2026-11-11"
+        },
+        "Rajkot": {
+          "modal_price": 20.03,
+          "min_price": 16.83,
+          "max_price": 23.23,
+          "arrivals_tonnes": 109.2,
+          "last_updated": "2026-11-11"
+        },
+        "Chandigarh": {
+          "modal_price": 21.21,
+          "min_price": 17.82,
+          "max_price": 24.6,
+          "arrivals_tonnes": 100.8,
+          "last_updated": "2026-11-11"
+        },
+        "Ludhiana": {
+          "modal_price": 21.21,
+          "min_price": 17.82,
+          "max_price": 24.6,
+          "arrivals_tonnes": 100.8,
+          "last_updated": "2026-11-11"
+        },
+        "Kolkata": {
+          "modal_price": 23.57,
+          "min_price": 19.8,
+          "max_price": 27.34,
+          "arrivals_tonnes": 84.0,
+          "last_updated": "2026-11-11"
+        },
+        "Patna": {
+          "modal_price": 20.62,
+          "min_price": 17.32,
+          "max_price": 23.92,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Bhubaneswar": {
+          "modal_price": 20.43,
+          "min_price": 17.16,
+          "max_price": 23.7,
+          "arrivals_tonnes": 106.4,
+          "last_updated": "2026-11-11"
+        }
+      }
+    },
+    "Wheat": {
+      "crop": "Wheat",
+      "category": "Grain",
+      "perishability_tier": "DRY_GRAIN",
+      "msp_floor": 22.75,
+      "national_modal_price": 25.45,
+      "national_min_price": 23.92,
+      "national_max_price": 26.98,
+      "daily_arrivals_tonnes": 3500.0,
+      "daily_volatility_pct": 0.03,
+      "last_updated": "2026-11-11",
+      "districts": {
+        "Pune": {
+          "modal_price": 28.5,
+          "min_price": 26.79,
+          "max_price": 30.21,
+          "arrivals_tonnes": 95.2,
+          "last_updated": "2026-11-11"
+        },
+        "Nashik": {
+          "modal_price": 23.67,
+          "min_price": 22.75,
+          "max_price": 25.09,
+          "arrivals_tonnes": 121.8,
+          "last_updated": "2026-11-11"
+        },
+        "Ahmednagar": {
+          "modal_price": 23.16,
+          "min_price": 22.75,
+          "max_price": 24.55,
+          "arrivals_tonnes": 124.6,
+          "last_updated": "2026-11-11"
+        },
+        "Solapur": {
+          "modal_price": 24.18,
+          "min_price": 22.75,
+          "max_price": 25.63,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Nagpur": {
+          "modal_price": 27.23,
+          "min_price": 25.6,
+          "max_price": 28.86,
+          "arrivals_tonnes": 102.2,
+          "last_updated": "2026-11-11"
+        },
+        "Satara": {
+          "modal_price": 24.43,
+          "min_price": 22.96,
+          "max_price": 25.9,
+          "arrivals_tonnes": 117.6,
+          "last_updated": "2026-11-11"
+        },
+        "Kolhapur": {
+          "modal_price": 24.94,
+          "min_price": 23.44,
+          "max_price": 26.44,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Sangli": {
+          "modal_price": 24.69,
+          "min_price": 23.21,
+          "max_price": 26.17,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Jalgaon": {
+          "modal_price": 23.67,
+          "min_price": 22.75,
+          "max_price": 25.09,
+          "arrivals_tonnes": 121.8,
+          "last_updated": "2026-11-11"
+        },
+        "Aurangabad": {
+          "modal_price": 24.94,
+          "min_price": 23.44,
+          "max_price": 26.44,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Mumbai": {
+          "modal_price": 32.58,
+          "min_price": 30.63,
+          "max_price": 34.53,
+          "arrivals_tonnes": 72.8,
+          "last_updated": "2026-11-11"
+        },
+        "Kadapa": {
+          "modal_price": 23.41,
+          "min_price": 22.75,
+          "max_price": 24.81,
+          "arrivals_tonnes": 123.2,
+          "last_updated": "2026-11-11"
+        },
+        "Kurnool": {
+          "modal_price": 23.16,
+          "min_price": 22.75,
+          "max_price": 24.55,
+          "arrivals_tonnes": 124.6,
+          "last_updated": "2026-11-11"
+        },
+        "Guntur": {
+          "modal_price": 23.92,
+          "min_price": 22.75,
+          "max_price": 25.36,
+          "arrivals_tonnes": 120.4,
+          "last_updated": "2026-11-11"
+        },
+        "Chittoor": {
+          "modal_price": 24.18,
+          "min_price": 22.75,
+          "max_price": 25.63,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Hyderabad": {
+          "modal_price": 30.03,
+          "min_price": 28.23,
+          "max_price": 31.83,
+          "arrivals_tonnes": 86.8,
+          "last_updated": "2026-11-11"
+        },
+        "Warangal": {
+          "modal_price": 24.43,
+          "min_price": 22.96,
+          "max_price": 25.9,
+          "arrivals_tonnes": 117.6,
+          "last_updated": "2026-11-11"
+        },
+        "Khammam": {
+          "modal_price": 24.18,
+          "min_price": 22.75,
+          "max_price": 25.63,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Anantapur": {
+          "modal_price": 23.41,
+          "min_price": 22.75,
+          "max_price": 24.81,
+          "arrivals_tonnes": 123.2,
+          "last_updated": "2026-11-11"
+        },
+        "Bengaluru": {
+          "modal_price": 31.05,
+          "min_price": 29.19,
+          "max_price": 32.91,
+          "arrivals_tonnes": 81.2,
+          "last_updated": "2026-11-11"
+        },
+        "Belagavi": {
+          "modal_price": 24.94,
+          "min_price": 23.44,
+          "max_price": 26.44,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Hubballi": {
+          "modal_price": 24.69,
+          "min_price": 23.21,
+          "max_price": 26.17,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Indore": {
+          "modal_price": 26.72,
+          "min_price": 25.12,
+          "max_price": 28.32,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Bhopal": {
+          "modal_price": 26.47,
+          "min_price": 24.88,
+          "max_price": 28.06,
+          "arrivals_tonnes": 106.4,
+          "last_updated": "2026-11-11"
+        },
+        "Jaipur": {
+          "modal_price": 26.98,
+          "min_price": 25.36,
+          "max_price": 28.6,
+          "arrivals_tonnes": 103.6,
+          "last_updated": "2026-11-11"
+        },
+        "Lucknow": {
+          "modal_price": 26.72,
+          "min_price": 25.12,
+          "max_price": 28.32,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Varanasi": {
+          "modal_price": 24.69,
+          "min_price": 23.21,
+          "max_price": 26.17,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Delhi": {
+          "modal_price": 31.56,
+          "min_price": 29.67,
+          "max_price": 33.45,
+          "arrivals_tonnes": 78.4,
+          "last_updated": "2026-11-11"
+        },
+        "Ahmedabad": {
+          "modal_price": 28.25,
+          "min_price": 26.55,
+          "max_price": 29.95,
+          "arrivals_tonnes": 96.6,
+          "last_updated": "2026-11-11"
+        },
+        "Surat": {
+          "modal_price": 28.0,
+          "min_price": 26.32,
+          "max_price": 29.68,
+          "arrivals_tonnes": 98.0,
+          "last_updated": "2026-11-11"
+        },
+        "Rajkot": {
+          "modal_price": 25.96,
+          "min_price": 24.4,
+          "max_price": 27.52,
+          "arrivals_tonnes": 109.2,
+          "last_updated": "2026-11-11"
+        },
+        "Chandigarh": {
+          "modal_price": 27.49,
+          "min_price": 25.84,
+          "max_price": 29.14,
+          "arrivals_tonnes": 100.8,
+          "last_updated": "2026-11-11"
+        },
+        "Ludhiana": {
+          "modal_price": 27.49,
+          "min_price": 25.84,
+          "max_price": 29.14,
+          "arrivals_tonnes": 100.8,
+          "last_updated": "2026-11-11"
+        },
+        "Kolkata": {
+          "modal_price": 30.54,
+          "min_price": 28.71,
+          "max_price": 32.37,
+          "arrivals_tonnes": 84.0,
+          "last_updated": "2026-11-11"
+        },
+        "Patna": {
+          "modal_price": 26.72,
+          "min_price": 25.12,
+          "max_price": 28.32,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Bhubaneswar": {
+          "modal_price": 26.47,
+          "min_price": 24.88,
+          "max_price": 28.06,
+          "arrivals_tonnes": 106.4,
+          "last_updated": "2026-11-11"
+        }
+      }
+    },
+    "Rice": {
+      "crop": "Rice",
+      "category": "Grain",
+      "perishability_tier": "DRY_GRAIN",
+      "msp_floor": 23.0,
+      "national_modal_price": 40.18,
+      "national_min_price": 37.77,
+      "national_max_price": 42.59,
+      "daily_arrivals_tonnes": 3500.0,
+      "daily_volatility_pct": 0.03,
+      "last_updated": "2026-11-11",
+      "districts": {
+        "Pune": {
+          "modal_price": 45.0,
+          "min_price": 42.3,
+          "max_price": 47.7,
+          "arrivals_tonnes": 95.2,
+          "last_updated": "2026-11-11"
+        },
+        "Nashik": {
+          "modal_price": 37.37,
+          "min_price": 35.13,
+          "max_price": 39.61,
+          "arrivals_tonnes": 121.8,
+          "last_updated": "2026-11-11"
+        },
+        "Ahmednagar": {
+          "modal_price": 36.56,
+          "min_price": 34.37,
+          "max_price": 38.75,
+          "arrivals_tonnes": 124.6,
+          "last_updated": "2026-11-11"
+        },
+        "Solapur": {
+          "modal_price": 38.17,
+          "min_price": 35.88,
+          "max_price": 40.46,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Nagpur": {
+          "modal_price": 42.99,
+          "min_price": 40.41,
+          "max_price": 45.57,
+          "arrivals_tonnes": 102.2,
+          "last_updated": "2026-11-11"
+        },
+        "Satara": {
+          "modal_price": 38.57,
+          "min_price": 36.26,
+          "max_price": 40.88,
+          "arrivals_tonnes": 117.6,
+          "last_updated": "2026-11-11"
+        },
+        "Kolhapur": {
+          "modal_price": 39.38,
+          "min_price": 37.02,
+          "max_price": 41.74,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Sangli": {
+          "modal_price": 38.97,
+          "min_price": 36.63,
+          "max_price": 41.31,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Jalgaon": {
+          "modal_price": 37.37,
+          "min_price": 35.13,
+          "max_price": 39.61,
+          "arrivals_tonnes": 121.8,
+          "last_updated": "2026-11-11"
+        },
+        "Aurangabad": {
+          "modal_price": 39.38,
+          "min_price": 37.02,
+          "max_price": 41.74,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Mumbai": {
+          "modal_price": 51.43,
+          "min_price": 48.34,
+          "max_price": 54.52,
+          "arrivals_tonnes": 72.8,
+          "last_updated": "2026-11-11"
+        },
+        "Kadapa": {
+          "modal_price": 36.97,
+          "min_price": 34.75,
+          "max_price": 39.19,
+          "arrivals_tonnes": 123.2,
+          "last_updated": "2026-11-11"
+        },
+        "Kurnool": {
+          "modal_price": 36.56,
+          "min_price": 34.37,
+          "max_price": 38.75,
+          "arrivals_tonnes": 124.6,
+          "last_updated": "2026-11-11"
+        },
+        "Guntur": {
+          "modal_price": 37.77,
+          "min_price": 35.5,
+          "max_price": 40.04,
+          "arrivals_tonnes": 120.4,
+          "last_updated": "2026-11-11"
+        },
+        "Chittoor": {
+          "modal_price": 38.17,
+          "min_price": 35.88,
+          "max_price": 40.46,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Hyderabad": {
+          "modal_price": 47.41,
+          "min_price": 44.57,
+          "max_price": 50.25,
+          "arrivals_tonnes": 86.8,
+          "last_updated": "2026-11-11"
+        },
+        "Warangal": {
+          "modal_price": 38.57,
+          "min_price": 36.26,
+          "max_price": 40.88,
+          "arrivals_tonnes": 117.6,
+          "last_updated": "2026-11-11"
+        },
+        "Khammam": {
+          "modal_price": 38.17,
+          "min_price": 35.88,
+          "max_price": 40.46,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Anantapur": {
+          "modal_price": 36.97,
+          "min_price": 34.75,
+          "max_price": 39.19,
+          "arrivals_tonnes": 123.2,
+          "last_updated": "2026-11-11"
+        },
+        "Bengaluru": {
+          "modal_price": 49.02,
+          "min_price": 46.08,
+          "max_price": 51.96,
+          "arrivals_tonnes": 81.2,
+          "last_updated": "2026-11-11"
+        },
+        "Belagavi": {
+          "modal_price": 39.38,
+          "min_price": 37.02,
+          "max_price": 41.74,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Hubballi": {
+          "modal_price": 38.97,
+          "min_price": 36.63,
+          "max_price": 41.31,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Indore": {
+          "modal_price": 42.19,
+          "min_price": 39.66,
+          "max_price": 44.72,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Bhopal": {
+          "modal_price": 41.79,
+          "min_price": 39.28,
+          "max_price": 44.3,
+          "arrivals_tonnes": 106.4,
+          "last_updated": "2026-11-11"
+        },
+        "Jaipur": {
+          "modal_price": 42.59,
+          "min_price": 40.03,
+          "max_price": 45.15,
+          "arrivals_tonnes": 103.6,
+          "last_updated": "2026-11-11"
+        },
+        "Lucknow": {
+          "modal_price": 42.19,
+          "min_price": 39.66,
+          "max_price": 44.72,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Varanasi": {
+          "modal_price": 38.97,
+          "min_price": 36.63,
+          "max_price": 41.31,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Delhi": {
+          "modal_price": 49.82,
+          "min_price": 46.83,
+          "max_price": 52.81,
+          "arrivals_tonnes": 78.4,
+          "last_updated": "2026-11-11"
+        },
+        "Ahmedabad": {
+          "modal_price": 44.6,
+          "min_price": 41.92,
+          "max_price": 47.28,
+          "arrivals_tonnes": 96.6,
+          "last_updated": "2026-11-11"
+        },
+        "Surat": {
+          "modal_price": 44.2,
+          "min_price": 41.55,
+          "max_price": 46.85,
+          "arrivals_tonnes": 98.0,
+          "last_updated": "2026-11-11"
+        },
+        "Rajkot": {
+          "modal_price": 40.98,
+          "min_price": 38.52,
+          "max_price": 43.44,
+          "arrivals_tonnes": 109.2,
+          "last_updated": "2026-11-11"
+        },
+        "Chandigarh": {
+          "modal_price": 43.39,
+          "min_price": 40.79,
+          "max_price": 45.99,
+          "arrivals_tonnes": 100.8,
+          "last_updated": "2026-11-11"
+        },
+        "Ludhiana": {
+          "modal_price": 43.39,
+          "min_price": 40.79,
+          "max_price": 45.99,
+          "arrivals_tonnes": 100.8,
+          "last_updated": "2026-11-11"
+        },
+        "Kolkata": {
+          "modal_price": 48.22,
+          "min_price": 45.33,
+          "max_price": 51.11,
+          "arrivals_tonnes": 84.0,
+          "last_updated": "2026-11-11"
+        },
+        "Patna": {
+          "modal_price": 42.19,
+          "min_price": 39.66,
+          "max_price": 44.72,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Bhubaneswar": {
+          "modal_price": 41.79,
+          "min_price": 39.28,
+          "max_price": 44.3,
+          "arrivals_tonnes": 106.4,
+          "last_updated": "2026-11-11"
+        }
+      }
+    },
+    "Maize": {
+      "crop": "Maize",
+      "category": "Grain",
+      "perishability_tier": "DRY_GRAIN",
+      "msp_floor": 22.25,
+      "national_modal_price": 21.87,
+      "national_min_price": 22.25,
+      "national_max_price": 23.62,
+      "daily_arrivals_tonnes": 3500.0,
+      "daily_volatility_pct": 0.04,
+      "last_updated": "2026-11-11",
+      "districts": {
+        "Pune": {
+          "modal_price": 24.5,
+          "min_price": 22.54,
+          "max_price": 26.46,
+          "arrivals_tonnes": 95.2,
+          "last_updated": "2026-11-11"
+        },
+        "Nashik": {
+          "modal_price": 20.34,
+          "min_price": 22.25,
+          "max_price": 21.97,
+          "arrivals_tonnes": 121.8,
+          "last_updated": "2026-11-11"
+        },
+        "Ahmednagar": {
+          "modal_price": 19.9,
+          "min_price": 22.25,
+          "max_price": 21.49,
+          "arrivals_tonnes": 124.6,
+          "last_updated": "2026-11-11"
+        },
+        "Solapur": {
+          "modal_price": 20.78,
+          "min_price": 22.25,
+          "max_price": 22.44,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Nagpur": {
+          "modal_price": 23.4,
+          "min_price": 22.25,
+          "max_price": 25.27,
+          "arrivals_tonnes": 102.2,
+          "last_updated": "2026-11-11"
+        },
+        "Satara": {
+          "modal_price": 21.0,
+          "min_price": 22.25,
+          "max_price": 22.68,
+          "arrivals_tonnes": 117.6,
+          "last_updated": "2026-11-11"
+        },
+        "Kolhapur": {
+          "modal_price": 21.43,
+          "min_price": 22.25,
+          "max_price": 23.14,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Sangli": {
+          "modal_price": 21.21,
+          "min_price": 22.25,
+          "max_price": 22.91,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Jalgaon": {
+          "modal_price": 20.34,
+          "min_price": 22.25,
+          "max_price": 21.97,
+          "arrivals_tonnes": 121.8,
+          "last_updated": "2026-11-11"
+        },
+        "Aurangabad": {
+          "modal_price": 21.43,
+          "min_price": 22.25,
+          "max_price": 23.14,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Mumbai": {
+          "modal_price": 27.99,
+          "min_price": 25.75,
+          "max_price": 30.23,
+          "arrivals_tonnes": 72.8,
+          "last_updated": "2026-11-11"
+        },
+        "Kadapa": {
+          "modal_price": 20.12,
+          "min_price": 22.25,
+          "max_price": 21.73,
+          "arrivals_tonnes": 123.2,
+          "last_updated": "2026-11-11"
+        },
+        "Kurnool": {
+          "modal_price": 19.9,
+          "min_price": 22.25,
+          "max_price": 21.49,
+          "arrivals_tonnes": 124.6,
+          "last_updated": "2026-11-11"
+        },
+        "Guntur": {
+          "modal_price": 20.56,
+          "min_price": 22.25,
+          "max_price": 22.2,
+          "arrivals_tonnes": 120.4,
+          "last_updated": "2026-11-11"
+        },
+        "Chittoor": {
+          "modal_price": 20.78,
+          "min_price": 22.25,
+          "max_price": 22.44,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Hyderabad": {
+          "modal_price": 25.81,
+          "min_price": 23.75,
+          "max_price": 27.87,
+          "arrivals_tonnes": 86.8,
+          "last_updated": "2026-11-11"
+        },
+        "Warangal": {
+          "modal_price": 21.0,
+          "min_price": 22.25,
+          "max_price": 22.68,
+          "arrivals_tonnes": 117.6,
+          "last_updated": "2026-11-11"
+        },
+        "Khammam": {
+          "modal_price": 20.78,
+          "min_price": 22.25,
+          "max_price": 22.44,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Anantapur": {
+          "modal_price": 20.12,
+          "min_price": 22.25,
+          "max_price": 21.73,
+          "arrivals_tonnes": 123.2,
+          "last_updated": "2026-11-11"
+        },
+        "Bengaluru": {
+          "modal_price": 26.68,
+          "min_price": 24.55,
+          "max_price": 28.81,
+          "arrivals_tonnes": 81.2,
+          "last_updated": "2026-11-11"
+        },
+        "Belagavi": {
+          "modal_price": 21.43,
+          "min_price": 22.25,
+          "max_price": 23.14,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Hubballi": {
+          "modal_price": 21.21,
+          "min_price": 22.25,
+          "max_price": 22.91,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Indore": {
+          "modal_price": 22.96,
+          "min_price": 22.25,
+          "max_price": 24.8,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Bhopal": {
+          "modal_price": 22.74,
+          "min_price": 22.25,
+          "max_price": 24.56,
+          "arrivals_tonnes": 106.4,
+          "last_updated": "2026-11-11"
+        },
+        "Jaipur": {
+          "modal_price": 23.18,
+          "min_price": 22.25,
+          "max_price": 25.03,
+          "arrivals_tonnes": 103.6,
+          "last_updated": "2026-11-11"
+        },
+        "Lucknow": {
+          "modal_price": 22.96,
+          "min_price": 22.25,
+          "max_price": 24.8,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Varanasi": {
+          "modal_price": 21.21,
+          "min_price": 22.25,
+          "max_price": 22.91,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Delhi": {
+          "modal_price": 27.12,
+          "min_price": 24.95,
+          "max_price": 29.29,
+          "arrivals_tonnes": 78.4,
+          "last_updated": "2026-11-11"
+        },
+        "Ahmedabad": {
+          "modal_price": 24.28,
+          "min_price": 22.34,
+          "max_price": 26.22,
+          "arrivals_tonnes": 96.6,
+          "last_updated": "2026-11-11"
+        },
+        "Surat": {
+          "modal_price": 24.06,
+          "min_price": 22.25,
+          "max_price": 25.98,
+          "arrivals_tonnes": 98.0,
+          "last_updated": "2026-11-11"
+        },
+        "Rajkot": {
+          "modal_price": 22.31,
+          "min_price": 22.25,
+          "max_price": 24.09,
+          "arrivals_tonnes": 109.2,
+          "last_updated": "2026-11-11"
+        },
+        "Chandigarh": {
+          "modal_price": 23.62,
+          "min_price": 22.25,
+          "max_price": 25.51,
+          "arrivals_tonnes": 100.8,
+          "last_updated": "2026-11-11"
+        },
+        "Ludhiana": {
+          "modal_price": 23.62,
+          "min_price": 22.25,
+          "max_price": 25.51,
+          "arrivals_tonnes": 100.8,
+          "last_updated": "2026-11-11"
+        },
+        "Kolkata": {
+          "modal_price": 26.24,
+          "min_price": 24.14,
+          "max_price": 28.34,
+          "arrivals_tonnes": 84.0,
+          "last_updated": "2026-11-11"
+        },
+        "Patna": {
+          "modal_price": 22.96,
+          "min_price": 22.25,
+          "max_price": 24.8,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Bhubaneswar": {
+          "modal_price": 22.74,
+          "min_price": 22.25,
+          "max_price": 24.56,
+          "arrivals_tonnes": 106.4,
+          "last_updated": "2026-11-11"
+        }
+      }
+    },
+    "Soybean": {
+      "crop": "Soybean",
+      "category": "Oilseed",
+      "perishability_tier": "DRY_GRAIN",
+      "msp_floor": 48.92,
+      "national_modal_price": 41.07,
+      "national_min_price": 48.92,
+      "national_max_price": 44.36,
+      "daily_arrivals_tonnes": 3500.0,
+      "daily_volatility_pct": 0.04,
+      "last_updated": "2026-11-11",
+      "districts": {
+        "Pune": {
+          "modal_price": 46.0,
+          "min_price": 48.92,
+          "max_price": 49.68,
+          "arrivals_tonnes": 95.2,
+          "last_updated": "2026-11-11"
+        },
+        "Nashik": {
+          "modal_price": 38.2,
+          "min_price": 48.92,
+          "max_price": 41.26,
+          "arrivals_tonnes": 121.8,
+          "last_updated": "2026-11-11"
+        },
+        "Ahmednagar": {
+          "modal_price": 37.37,
+          "min_price": 48.92,
+          "max_price": 40.36,
+          "arrivals_tonnes": 124.6,
+          "last_updated": "2026-11-11"
+        },
+        "Solapur": {
+          "modal_price": 39.02,
+          "min_price": 48.92,
+          "max_price": 42.14,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Nagpur": {
+          "modal_price": 43.94,
+          "min_price": 48.92,
+          "max_price": 47.46,
+          "arrivals_tonnes": 102.2,
+          "last_updated": "2026-11-11"
+        },
+        "Satara": {
+          "modal_price": 39.43,
+          "min_price": 48.92,
+          "max_price": 42.58,
+          "arrivals_tonnes": 117.6,
+          "last_updated": "2026-11-11"
+        },
+        "Kolhapur": {
+          "modal_price": 40.25,
+          "min_price": 48.92,
+          "max_price": 43.47,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Sangli": {
+          "modal_price": 39.84,
+          "min_price": 48.92,
+          "max_price": 43.03,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Jalgaon": {
+          "modal_price": 38.2,
+          "min_price": 48.92,
+          "max_price": 41.26,
+          "arrivals_tonnes": 121.8,
+          "last_updated": "2026-11-11"
+        },
+        "Aurangabad": {
+          "modal_price": 40.25,
+          "min_price": 48.92,
+          "max_price": 43.47,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Mumbai": {
+          "modal_price": 52.57,
+          "min_price": 48.92,
+          "max_price": 56.78,
+          "arrivals_tonnes": 72.8,
+          "last_updated": "2026-11-11"
+        },
+        "Kadapa": {
+          "modal_price": 37.78,
+          "min_price": 48.92,
+          "max_price": 40.8,
+          "arrivals_tonnes": 123.2,
+          "last_updated": "2026-11-11"
+        },
+        "Kurnool": {
+          "modal_price": 37.37,
+          "min_price": 48.92,
+          "max_price": 40.36,
+          "arrivals_tonnes": 124.6,
+          "last_updated": "2026-11-11"
+        },
+        "Guntur": {
+          "modal_price": 38.61,
+          "min_price": 48.92,
+          "max_price": 41.7,
+          "arrivals_tonnes": 120.4,
+          "last_updated": "2026-11-11"
+        },
+        "Chittoor": {
+          "modal_price": 39.02,
+          "min_price": 48.92,
+          "max_price": 42.14,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Hyderabad": {
+          "modal_price": 48.46,
+          "min_price": 48.92,
+          "max_price": 52.34,
+          "arrivals_tonnes": 86.8,
+          "last_updated": "2026-11-11"
+        },
+        "Warangal": {
+          "modal_price": 39.43,
+          "min_price": 48.92,
+          "max_price": 42.58,
+          "arrivals_tonnes": 117.6,
+          "last_updated": "2026-11-11"
+        },
+        "Khammam": {
+          "modal_price": 39.02,
+          "min_price": 48.92,
+          "max_price": 42.14,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Anantapur": {
+          "modal_price": 37.78,
+          "min_price": 48.92,
+          "max_price": 40.8,
+          "arrivals_tonnes": 123.2,
+          "last_updated": "2026-11-11"
+        },
+        "Bengaluru": {
+          "modal_price": 50.11,
+          "min_price": 48.92,
+          "max_price": 54.12,
+          "arrivals_tonnes": 81.2,
+          "last_updated": "2026-11-11"
+        },
+        "Belagavi": {
+          "modal_price": 40.25,
+          "min_price": 48.92,
+          "max_price": 43.47,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Hubballi": {
+          "modal_price": 39.84,
+          "min_price": 48.92,
+          "max_price": 43.03,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Indore": {
+          "modal_price": 43.12,
+          "min_price": 48.92,
+          "max_price": 46.57,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Bhopal": {
+          "modal_price": 42.71,
+          "min_price": 48.92,
+          "max_price": 46.13,
+          "arrivals_tonnes": 106.4,
+          "last_updated": "2026-11-11"
+        },
+        "Jaipur": {
+          "modal_price": 43.53,
+          "min_price": 48.92,
+          "max_price": 47.01,
+          "arrivals_tonnes": 103.6,
+          "last_updated": "2026-11-11"
+        },
+        "Lucknow": {
+          "modal_price": 43.12,
+          "min_price": 48.92,
+          "max_price": 46.57,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Varanasi": {
+          "modal_price": 39.84,
+          "min_price": 48.92,
+          "max_price": 43.03,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Delhi": {
+          "modal_price": 50.93,
+          "min_price": 48.92,
+          "max_price": 55.0,
+          "arrivals_tonnes": 78.4,
+          "last_updated": "2026-11-11"
+        },
+        "Ahmedabad": {
+          "modal_price": 45.59,
+          "min_price": 48.92,
+          "max_price": 49.24,
+          "arrivals_tonnes": 96.6,
+          "last_updated": "2026-11-11"
+        },
+        "Surat": {
+          "modal_price": 45.18,
+          "min_price": 48.92,
+          "max_price": 48.79,
+          "arrivals_tonnes": 98.0,
+          "last_updated": "2026-11-11"
+        },
+        "Rajkot": {
+          "modal_price": 41.89,
+          "min_price": 48.92,
+          "max_price": 45.24,
+          "arrivals_tonnes": 109.2,
+          "last_updated": "2026-11-11"
+        },
+        "Chandigarh": {
+          "modal_price": 44.36,
+          "min_price": 48.92,
+          "max_price": 47.91,
+          "arrivals_tonnes": 100.8,
+          "last_updated": "2026-11-11"
+        },
+        "Ludhiana": {
+          "modal_price": 44.36,
+          "min_price": 48.92,
+          "max_price": 47.91,
+          "arrivals_tonnes": 100.8,
+          "last_updated": "2026-11-11"
+        },
+        "Kolkata": {
+          "modal_price": 49.28,
+          "min_price": 48.92,
+          "max_price": 53.22,
+          "arrivals_tonnes": 84.0,
+          "last_updated": "2026-11-11"
+        },
+        "Patna": {
+          "modal_price": 43.12,
+          "min_price": 48.92,
+          "max_price": 46.57,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Bhubaneswar": {
+          "modal_price": 42.71,
+          "min_price": 48.92,
+          "max_price": 46.13,
+          "arrivals_tonnes": 106.4,
+          "last_updated": "2026-11-11"
+        }
+      }
+    },
+    "Cotton": {
+      "crop": "Cotton",
+      "category": "Commercial",
+      "perishability_tier": "NON_PERISHABLE",
+      "msp_floor": 75.21,
+      "national_modal_price": 65.27,
+      "national_min_price": 75.21,
+      "national_max_price": 69.19,
+      "daily_arrivals_tonnes": 3500.0,
+      "daily_volatility_pct": 0.03,
+      "last_updated": "2026-11-11",
+      "districts": {
+        "Pune": {
+          "modal_price": 73.1,
+          "min_price": 75.21,
+          "max_price": 77.49,
+          "arrivals_tonnes": 95.2,
+          "last_updated": "2026-11-11"
+        },
+        "Nashik": {
+          "modal_price": 60.7,
+          "min_price": 75.21,
+          "max_price": 64.34,
+          "arrivals_tonnes": 121.8,
+          "last_updated": "2026-11-11"
+        },
+        "Ahmednagar": {
+          "modal_price": 59.4,
+          "min_price": 75.21,
+          "max_price": 62.96,
+          "arrivals_tonnes": 124.6,
+          "last_updated": "2026-11-11"
+        },
+        "Solapur": {
+          "modal_price": 62.01,
+          "min_price": 75.21,
+          "max_price": 65.73,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Nagpur": {
+          "modal_price": 69.84,
+          "min_price": 75.21,
+          "max_price": 74.03,
+          "arrivals_tonnes": 102.2,
+          "last_updated": "2026-11-11"
+        },
+        "Satara": {
+          "modal_price": 62.66,
+          "min_price": 75.21,
+          "max_price": 66.42,
+          "arrivals_tonnes": 117.6,
+          "last_updated": "2026-11-11"
+        },
+        "Kolhapur": {
+          "modal_price": 63.96,
+          "min_price": 75.21,
+          "max_price": 67.8,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Sangli": {
+          "modal_price": 63.31,
+          "min_price": 75.21,
+          "max_price": 67.11,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Jalgaon": {
+          "modal_price": 60.7,
+          "min_price": 75.21,
+          "max_price": 64.34,
+          "arrivals_tonnes": 121.8,
+          "last_updated": "2026-11-11"
+        },
+        "Aurangabad": {
+          "modal_price": 63.96,
+          "min_price": 75.21,
+          "max_price": 67.8,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Mumbai": {
+          "modal_price": 83.55,
+          "min_price": 78.54,
+          "max_price": 88.56,
+          "arrivals_tonnes": 72.8,
+          "last_updated": "2026-11-11"
+        },
+        "Kadapa": {
+          "modal_price": 60.05,
+          "min_price": 75.21,
+          "max_price": 63.65,
+          "arrivals_tonnes": 123.2,
+          "last_updated": "2026-11-11"
+        },
+        "Kurnool": {
+          "modal_price": 59.4,
+          "min_price": 75.21,
+          "max_price": 62.96,
+          "arrivals_tonnes": 124.6,
+          "last_updated": "2026-11-11"
+        },
+        "Guntur": {
+          "modal_price": 61.35,
+          "min_price": 75.21,
+          "max_price": 65.03,
+          "arrivals_tonnes": 120.4,
+          "last_updated": "2026-11-11"
+        },
+        "Chittoor": {
+          "modal_price": 62.01,
+          "min_price": 75.21,
+          "max_price": 65.73,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Hyderabad": {
+          "modal_price": 77.02,
+          "min_price": 75.21,
+          "max_price": 81.64,
+          "arrivals_tonnes": 86.8,
+          "last_updated": "2026-11-11"
+        },
+        "Warangal": {
+          "modal_price": 62.66,
+          "min_price": 75.21,
+          "max_price": 66.42,
+          "arrivals_tonnes": 117.6,
+          "last_updated": "2026-11-11"
+        },
+        "Khammam": {
+          "modal_price": 62.01,
+          "min_price": 75.21,
+          "max_price": 65.73,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Anantapur": {
+          "modal_price": 60.05,
+          "min_price": 75.21,
+          "max_price": 63.65,
+          "arrivals_tonnes": 123.2,
+          "last_updated": "2026-11-11"
+        },
+        "Bengaluru": {
+          "modal_price": 79.63,
+          "min_price": 75.21,
+          "max_price": 84.41,
+          "arrivals_tonnes": 81.2,
+          "last_updated": "2026-11-11"
+        },
+        "Belagavi": {
+          "modal_price": 63.96,
+          "min_price": 75.21,
+          "max_price": 67.8,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Hubballi": {
+          "modal_price": 63.31,
+          "min_price": 75.21,
+          "max_price": 67.11,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Indore": {
+          "modal_price": 68.53,
+          "min_price": 75.21,
+          "max_price": 72.64,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Bhopal": {
+          "modal_price": 67.88,
+          "min_price": 75.21,
+          "max_price": 71.95,
+          "arrivals_tonnes": 106.4,
+          "last_updated": "2026-11-11"
+        },
+        "Jaipur": {
+          "modal_price": 69.19,
+          "min_price": 75.21,
+          "max_price": 73.34,
+          "arrivals_tonnes": 103.6,
+          "last_updated": "2026-11-11"
+        },
+        "Lucknow": {
+          "modal_price": 68.53,
+          "min_price": 75.21,
+          "max_price": 72.64,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Varanasi": {
+          "modal_price": 63.31,
+          "min_price": 75.21,
+          "max_price": 67.11,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Delhi": {
+          "modal_price": 80.93,
+          "min_price": 76.07,
+          "max_price": 85.79,
+          "arrivals_tonnes": 78.4,
+          "last_updated": "2026-11-11"
+        },
+        "Ahmedabad": {
+          "modal_price": 72.45,
+          "min_price": 75.21,
+          "max_price": 76.8,
+          "arrivals_tonnes": 96.6,
+          "last_updated": "2026-11-11"
+        },
+        "Surat": {
+          "modal_price": 71.8,
+          "min_price": 75.21,
+          "max_price": 76.11,
+          "arrivals_tonnes": 98.0,
+          "last_updated": "2026-11-11"
+        },
+        "Rajkot": {
+          "modal_price": 66.58,
+          "min_price": 75.21,
+          "max_price": 70.57,
+          "arrivals_tonnes": 109.2,
+          "last_updated": "2026-11-11"
+        },
+        "Chandigarh": {
+          "modal_price": 70.49,
+          "min_price": 75.21,
+          "max_price": 74.72,
+          "arrivals_tonnes": 100.8,
+          "last_updated": "2026-11-11"
+        },
+        "Ludhiana": {
+          "modal_price": 70.49,
+          "min_price": 75.21,
+          "max_price": 74.72,
+          "arrivals_tonnes": 100.8,
+          "last_updated": "2026-11-11"
+        },
+        "Kolkata": {
+          "modal_price": 78.32,
+          "min_price": 75.21,
+          "max_price": 83.02,
+          "arrivals_tonnes": 84.0,
+          "last_updated": "2026-11-11"
+        },
+        "Patna": {
+          "modal_price": 68.53,
+          "min_price": 75.21,
+          "max_price": 72.64,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Bhubaneswar": {
+          "modal_price": 67.88,
+          "min_price": 75.21,
+          "max_price": 71.95,
+          "arrivals_tonnes": 106.4,
+          "last_updated": "2026-11-11"
+        }
+      }
+    },
+    "Sugarcane": {
+      "crop": "Sugarcane",
+      "category": "Commercial",
+      "perishability_tier": "CRITICAL",
+      "msp_floor": 3.4,
+      "national_modal_price": 3.21,
+      "national_min_price": 3.4,
+      "national_max_price": 3.34,
+      "daily_arrivals_tonnes": 3500.0,
+      "daily_volatility_pct": 0.02,
+      "last_updated": "2026-11-11",
+      "districts": {
+        "Pune": {
+          "modal_price": 3.6,
+          "min_price": 3.46,
+          "max_price": 3.74,
+          "arrivals_tonnes": 95.2,
+          "last_updated": "2026-11-11"
+        },
+        "Nashik": {
+          "modal_price": 2.99,
+          "min_price": 3.4,
+          "max_price": 3.11,
+          "arrivals_tonnes": 121.8,
+          "last_updated": "2026-11-11"
+        },
+        "Ahmednagar": {
+          "modal_price": 2.92,
+          "min_price": 3.4,
+          "max_price": 3.04,
+          "arrivals_tonnes": 124.6,
+          "last_updated": "2026-11-11"
+        },
+        "Solapur": {
+          "modal_price": 3.05,
+          "min_price": 3.4,
+          "max_price": 3.17,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Nagpur": {
+          "modal_price": 3.43,
+          "min_price": 3.4,
+          "max_price": 3.57,
+          "arrivals_tonnes": 102.2,
+          "last_updated": "2026-11-11"
+        },
+        "Satara": {
+          "modal_price": 3.08,
+          "min_price": 3.4,
+          "max_price": 3.2,
+          "arrivals_tonnes": 117.6,
+          "last_updated": "2026-11-11"
+        },
+        "Kolhapur": {
+          "modal_price": 3.15,
+          "min_price": 3.4,
+          "max_price": 3.28,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Sangli": {
+          "modal_price": 3.11,
+          "min_price": 3.4,
+          "max_price": 3.23,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Jalgaon": {
+          "modal_price": 2.99,
+          "min_price": 3.4,
+          "max_price": 3.11,
+          "arrivals_tonnes": 121.8,
+          "last_updated": "2026-11-11"
+        },
+        "Aurangabad": {
+          "modal_price": 3.15,
+          "min_price": 3.4,
+          "max_price": 3.28,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Mumbai": {
+          "modal_price": 4.11,
+          "min_price": 3.95,
+          "max_price": 4.27,
+          "arrivals_tonnes": 72.8,
+          "last_updated": "2026-11-11"
+        },
+        "Kadapa": {
+          "modal_price": 2.95,
+          "min_price": 3.4,
+          "max_price": 3.07,
+          "arrivals_tonnes": 123.2,
+          "last_updated": "2026-11-11"
+        },
+        "Kurnool": {
+          "modal_price": 2.92,
+          "min_price": 3.4,
+          "max_price": 3.04,
+          "arrivals_tonnes": 124.6,
+          "last_updated": "2026-11-11"
+        },
+        "Guntur": {
+          "modal_price": 3.02,
+          "min_price": 3.4,
+          "max_price": 3.14,
+          "arrivals_tonnes": 120.4,
+          "last_updated": "2026-11-11"
+        },
+        "Chittoor": {
+          "modal_price": 3.05,
+          "min_price": 3.4,
+          "max_price": 3.17,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Hyderabad": {
+          "modal_price": 3.79,
+          "min_price": 3.64,
+          "max_price": 3.94,
+          "arrivals_tonnes": 86.8,
+          "last_updated": "2026-11-11"
+        },
+        "Warangal": {
+          "modal_price": 3.08,
+          "min_price": 3.4,
+          "max_price": 3.2,
+          "arrivals_tonnes": 117.6,
+          "last_updated": "2026-11-11"
+        },
+        "Khammam": {
+          "modal_price": 3.05,
+          "min_price": 3.4,
+          "max_price": 3.17,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Anantapur": {
+          "modal_price": 2.95,
+          "min_price": 3.4,
+          "max_price": 3.07,
+          "arrivals_tonnes": 123.2,
+          "last_updated": "2026-11-11"
+        },
+        "Bengaluru": {
+          "modal_price": 3.92,
+          "min_price": 3.76,
+          "max_price": 4.08,
+          "arrivals_tonnes": 81.2,
+          "last_updated": "2026-11-11"
+        },
+        "Belagavi": {
+          "modal_price": 3.15,
+          "min_price": 3.4,
+          "max_price": 3.28,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Hubballi": {
+          "modal_price": 3.11,
+          "min_price": 3.4,
+          "max_price": 3.23,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Indore": {
+          "modal_price": 3.37,
+          "min_price": 3.4,
+          "max_price": 3.5,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Bhopal": {
+          "modal_price": 3.34,
+          "min_price": 3.4,
+          "max_price": 3.47,
+          "arrivals_tonnes": 106.4,
+          "last_updated": "2026-11-11"
+        },
+        "Jaipur": {
+          "modal_price": 3.4,
+          "min_price": 3.4,
+          "max_price": 3.54,
+          "arrivals_tonnes": 103.6,
+          "last_updated": "2026-11-11"
+        },
+        "Lucknow": {
+          "modal_price": 3.37,
+          "min_price": 3.4,
+          "max_price": 3.5,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Varanasi": {
+          "modal_price": 3.11,
+          "min_price": 3.4,
+          "max_price": 3.23,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Delhi": {
+          "modal_price": 3.98,
+          "min_price": 3.82,
+          "max_price": 4.14,
+          "arrivals_tonnes": 78.4,
+          "last_updated": "2026-11-11"
+        },
+        "Ahmedabad": {
+          "modal_price": 3.56,
+          "min_price": 3.42,
+          "max_price": 3.7,
+          "arrivals_tonnes": 96.6,
+          "last_updated": "2026-11-11"
+        },
+        "Surat": {
+          "modal_price": 3.53,
+          "min_price": 3.4,
+          "max_price": 3.67,
+          "arrivals_tonnes": 98.0,
+          "last_updated": "2026-11-11"
+        },
+        "Rajkot": {
+          "modal_price": 3.27,
+          "min_price": 3.4,
+          "max_price": 3.4,
+          "arrivals_tonnes": 109.2,
+          "last_updated": "2026-11-11"
+        },
+        "Chandigarh": {
+          "modal_price": 3.47,
+          "min_price": 3.4,
+          "max_price": 3.61,
+          "arrivals_tonnes": 100.8,
+          "last_updated": "2026-11-11"
+        },
+        "Ludhiana": {
+          "modal_price": 3.47,
+          "min_price": 3.4,
+          "max_price": 3.61,
+          "arrivals_tonnes": 100.8,
+          "last_updated": "2026-11-11"
+        },
+        "Kolkata": {
+          "modal_price": 3.85,
+          "min_price": 3.7,
+          "max_price": 4.0,
+          "arrivals_tonnes": 84.0,
+          "last_updated": "2026-11-11"
+        },
+        "Patna": {
+          "modal_price": 3.37,
+          "min_price": 3.4,
+          "max_price": 3.5,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Bhubaneswar": {
+          "modal_price": 3.34,
+          "min_price": 3.4,
+          "max_price": 3.47,
+          "arrivals_tonnes": 106.4,
+          "last_updated": "2026-11-11"
+        }
+      }
+    },
+    "Banana": {
+      "crop": "Banana",
+      "category": "Fruit",
+      "perishability_tier": "HIGH",
+      "msp_floor": 0.0,
+      "national_modal_price": 37.5,
+      "national_min_price": 33.75,
+      "national_max_price": 41.25,
+      "daily_arrivals_tonnes": 3500.0,
+      "daily_volatility_pct": 0.05,
+      "last_updated": "2026-11-11",
+      "districts": {
+        "Pune": {
+          "modal_price": 42.0,
+          "min_price": 37.8,
+          "max_price": 46.2,
+          "arrivals_tonnes": 95.2,
+          "last_updated": "2026-11-11"
+        },
+        "Nashik": {
+          "modal_price": 34.88,
+          "min_price": 31.39,
+          "max_price": 38.37,
+          "arrivals_tonnes": 121.8,
+          "last_updated": "2026-11-11"
+        },
+        "Ahmednagar": {
+          "modal_price": 34.12,
+          "min_price": 30.71,
+          "max_price": 37.53,
+          "arrivals_tonnes": 124.6,
+          "last_updated": "2026-11-11"
+        },
+        "Solapur": {
+          "modal_price": 35.62,
+          "min_price": 32.06,
+          "max_price": 39.18,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Nagpur": {
+          "modal_price": 40.12,
+          "min_price": 36.11,
+          "max_price": 44.13,
+          "arrivals_tonnes": 102.2,
+          "last_updated": "2026-11-11"
+        },
+        "Satara": {
+          "modal_price": 36.0,
+          "min_price": 32.4,
+          "max_price": 39.6,
+          "arrivals_tonnes": 117.6,
+          "last_updated": "2026-11-11"
+        },
+        "Kolhapur": {
+          "modal_price": 36.75,
+          "min_price": 33.08,
+          "max_price": 40.43,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Sangli": {
+          "modal_price": 36.38,
+          "min_price": 32.74,
+          "max_price": 40.02,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Jalgaon": {
+          "modal_price": 34.88,
+          "min_price": 31.39,
+          "max_price": 38.37,
+          "arrivals_tonnes": 121.8,
+          "last_updated": "2026-11-11"
+        },
+        "Aurangabad": {
+          "modal_price": 36.75,
+          "min_price": 33.08,
+          "max_price": 40.43,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Mumbai": {
+          "modal_price": 48.0,
+          "min_price": 43.2,
+          "max_price": 52.8,
+          "arrivals_tonnes": 72.8,
+          "last_updated": "2026-11-11"
+        },
+        "Kadapa": {
+          "modal_price": 34.5,
+          "min_price": 31.05,
+          "max_price": 37.95,
+          "arrivals_tonnes": 123.2,
+          "last_updated": "2026-11-11"
+        },
+        "Kurnool": {
+          "modal_price": 34.12,
+          "min_price": 30.71,
+          "max_price": 37.53,
+          "arrivals_tonnes": 124.6,
+          "last_updated": "2026-11-11"
+        },
+        "Guntur": {
+          "modal_price": 35.25,
+          "min_price": 31.73,
+          "max_price": 38.78,
+          "arrivals_tonnes": 120.4,
+          "last_updated": "2026-11-11"
+        },
+        "Chittoor": {
+          "modal_price": 35.62,
+          "min_price": 32.06,
+          "max_price": 39.18,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Hyderabad": {
+          "modal_price": 44.25,
+          "min_price": 39.83,
+          "max_price": 48.68,
+          "arrivals_tonnes": 86.8,
+          "last_updated": "2026-11-11"
+        },
+        "Warangal": {
+          "modal_price": 36.0,
+          "min_price": 32.4,
+          "max_price": 39.6,
+          "arrivals_tonnes": 117.6,
+          "last_updated": "2026-11-11"
+        },
+        "Khammam": {
+          "modal_price": 35.62,
+          "min_price": 32.06,
+          "max_price": 39.18,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Anantapur": {
+          "modal_price": 34.5,
+          "min_price": 31.05,
+          "max_price": 37.95,
+          "arrivals_tonnes": 123.2,
+          "last_updated": "2026-11-11"
+        },
+        "Bengaluru": {
+          "modal_price": 45.75,
+          "min_price": 41.18,
+          "max_price": 50.33,
+          "arrivals_tonnes": 81.2,
+          "last_updated": "2026-11-11"
+        },
+        "Belagavi": {
+          "modal_price": 36.75,
+          "min_price": 33.08,
+          "max_price": 40.43,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Hubballi": {
+          "modal_price": 36.38,
+          "min_price": 32.74,
+          "max_price": 40.02,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Indore": {
+          "modal_price": 39.38,
+          "min_price": 35.44,
+          "max_price": 43.32,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Bhopal": {
+          "modal_price": 39.0,
+          "min_price": 35.1,
+          "max_price": 42.9,
+          "arrivals_tonnes": 106.4,
+          "last_updated": "2026-11-11"
+        },
+        "Jaipur": {
+          "modal_price": 39.75,
+          "min_price": 35.77,
+          "max_price": 43.73,
+          "arrivals_tonnes": 103.6,
+          "last_updated": "2026-11-11"
+        },
+        "Lucknow": {
+          "modal_price": 39.38,
+          "min_price": 35.44,
+          "max_price": 43.32,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Varanasi": {
+          "modal_price": 36.38,
+          "min_price": 32.74,
+          "max_price": 40.02,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Delhi": {
+          "modal_price": 46.5,
+          "min_price": 41.85,
+          "max_price": 51.15,
+          "arrivals_tonnes": 78.4,
+          "last_updated": "2026-11-11"
+        },
+        "Ahmedabad": {
+          "modal_price": 41.63,
+          "min_price": 37.47,
+          "max_price": 45.79,
+          "arrivals_tonnes": 96.6,
+          "last_updated": "2026-11-11"
+        },
+        "Surat": {
+          "modal_price": 41.25,
+          "min_price": 37.12,
+          "max_price": 45.38,
+          "arrivals_tonnes": 98.0,
+          "last_updated": "2026-11-11"
+        },
+        "Rajkot": {
+          "modal_price": 38.25,
+          "min_price": 34.43,
+          "max_price": 42.08,
+          "arrivals_tonnes": 109.2,
+          "last_updated": "2026-11-11"
+        },
+        "Chandigarh": {
+          "modal_price": 40.5,
+          "min_price": 36.45,
+          "max_price": 44.55,
+          "arrivals_tonnes": 100.8,
+          "last_updated": "2026-11-11"
+        },
+        "Ludhiana": {
+          "modal_price": 40.5,
+          "min_price": 36.45,
+          "max_price": 44.55,
+          "arrivals_tonnes": 100.8,
+          "last_updated": "2026-11-11"
+        },
+        "Kolkata": {
+          "modal_price": 45.0,
+          "min_price": 40.5,
+          "max_price": 49.5,
+          "arrivals_tonnes": 84.0,
+          "last_updated": "2026-11-11"
+        },
+        "Patna": {
+          "modal_price": 39.38,
+          "min_price": 35.44,
+          "max_price": 43.32,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Bhubaneswar": {
+          "modal_price": 39.0,
+          "min_price": 35.1,
+          "max_price": 42.9,
+          "arrivals_tonnes": 106.4,
+          "last_updated": "2026-11-11"
+        }
+      }
+    },
+    "Grapes": {
+      "crop": "Grapes",
+      "category": "Fruit",
+      "perishability_tier": "HIGH",
+      "msp_floor": 0.0,
+      "national_modal_price": 84.82,
+      "national_min_price": 69.55,
+      "national_max_price": 100.09,
+      "daily_arrivals_tonnes": 3500.0,
+      "daily_volatility_pct": 0.09,
+      "last_updated": "2026-11-11",
+      "districts": {
+        "Pune": {
+          "modal_price": 95.0,
+          "min_price": 77.9,
+          "max_price": 112.1,
+          "arrivals_tonnes": 95.2,
+          "last_updated": "2026-11-11"
+        },
+        "Nashik": {
+          "modal_price": 78.88,
+          "min_price": 64.68,
+          "max_price": 93.08,
+          "arrivals_tonnes": 121.8,
+          "last_updated": "2026-11-11"
+        },
+        "Ahmednagar": {
+          "modal_price": 77.19,
+          "min_price": 63.3,
+          "max_price": 91.08,
+          "arrivals_tonnes": 124.6,
+          "last_updated": "2026-11-11"
+        },
+        "Solapur": {
+          "modal_price": 80.58,
+          "min_price": 66.08,
+          "max_price": 95.08,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Nagpur": {
+          "modal_price": 90.76,
+          "min_price": 74.42,
+          "max_price": 107.1,
+          "arrivals_tonnes": 102.2,
+          "last_updated": "2026-11-11"
+        },
+        "Satara": {
+          "modal_price": 81.43,
+          "min_price": 66.77,
+          "max_price": 96.09,
+          "arrivals_tonnes": 117.6,
+          "last_updated": "2026-11-11"
+        },
+        "Kolhapur": {
+          "modal_price": 83.12,
+          "min_price": 68.16,
+          "max_price": 98.08,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Sangli": {
+          "modal_price": 82.28,
+          "min_price": 67.47,
+          "max_price": 97.09,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Jalgaon": {
+          "modal_price": 78.88,
+          "min_price": 64.68,
+          "max_price": 93.08,
+          "arrivals_tonnes": 121.8,
+          "last_updated": "2026-11-11"
+        },
+        "Aurangabad": {
+          "modal_price": 83.12,
+          "min_price": 68.16,
+          "max_price": 98.08,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Mumbai": {
+          "modal_price": 108.57,
+          "min_price": 89.03,
+          "max_price": 128.11,
+          "arrivals_tonnes": 72.8,
+          "last_updated": "2026-11-11"
+        },
+        "Kadapa": {
+          "modal_price": 78.03,
+          "min_price": 63.98,
+          "max_price": 92.08,
+          "arrivals_tonnes": 123.2,
+          "last_updated": "2026-11-11"
+        },
+        "Kurnool": {
+          "modal_price": 77.19,
+          "min_price": 63.3,
+          "max_price": 91.08,
+          "arrivals_tonnes": 124.6,
+          "last_updated": "2026-11-11"
+        },
+        "Guntur": {
+          "modal_price": 79.73,
+          "min_price": 65.38,
+          "max_price": 94.08,
+          "arrivals_tonnes": 120.4,
+          "last_updated": "2026-11-11"
+        },
+        "Chittoor": {
+          "modal_price": 80.58,
+          "min_price": 66.08,
+          "max_price": 95.08,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Hyderabad": {
+          "modal_price": 100.09,
+          "min_price": 82.07,
+          "max_price": 118.11,
+          "arrivals_tonnes": 86.8,
+          "last_updated": "2026-11-11"
+        },
+        "Warangal": {
+          "modal_price": 81.43,
+          "min_price": 66.77,
+          "max_price": 96.09,
+          "arrivals_tonnes": 117.6,
+          "last_updated": "2026-11-11"
+        },
+        "Khammam": {
+          "modal_price": 80.58,
+          "min_price": 66.08,
+          "max_price": 95.08,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Anantapur": {
+          "modal_price": 78.03,
+          "min_price": 63.98,
+          "max_price": 92.08,
+          "arrivals_tonnes": 123.2,
+          "last_updated": "2026-11-11"
+        },
+        "Bengaluru": {
+          "modal_price": 103.48,
+          "min_price": 84.85,
+          "max_price": 122.11,
+          "arrivals_tonnes": 81.2,
+          "last_updated": "2026-11-11"
+        },
+        "Belagavi": {
+          "modal_price": 83.12,
+          "min_price": 68.16,
+          "max_price": 98.08,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Hubballi": {
+          "modal_price": 82.28,
+          "min_price": 67.47,
+          "max_price": 97.09,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Indore": {
+          "modal_price": 89.06,
+          "min_price": 73.03,
+          "max_price": 105.09,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Bhopal": {
+          "modal_price": 88.21,
+          "min_price": 72.33,
+          "max_price": 104.09,
+          "arrivals_tonnes": 106.4,
+          "last_updated": "2026-11-11"
+        },
+        "Jaipur": {
+          "modal_price": 89.91,
+          "min_price": 73.73,
+          "max_price": 106.09,
+          "arrivals_tonnes": 103.6,
+          "last_updated": "2026-11-11"
+        },
+        "Lucknow": {
+          "modal_price": 89.06,
+          "min_price": 73.03,
+          "max_price": 105.09,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Varanasi": {
+          "modal_price": 82.28,
+          "min_price": 67.47,
+          "max_price": 97.09,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Delhi": {
+          "modal_price": 105.18,
+          "min_price": 86.25,
+          "max_price": 124.11,
+          "arrivals_tonnes": 78.4,
+          "last_updated": "2026-11-11"
+        },
+        "Ahmedabad": {
+          "modal_price": 94.15,
+          "min_price": 77.2,
+          "max_price": 111.1,
+          "arrivals_tonnes": 96.6,
+          "last_updated": "2026-11-11"
+        },
+        "Surat": {
+          "modal_price": 93.3,
+          "min_price": 76.51,
+          "max_price": 110.09,
+          "arrivals_tonnes": 98.0,
+          "last_updated": "2026-11-11"
+        },
+        "Rajkot": {
+          "modal_price": 86.52,
+          "min_price": 70.95,
+          "max_price": 102.09,
+          "arrivals_tonnes": 109.2,
+          "last_updated": "2026-11-11"
+        },
+        "Chandigarh": {
+          "modal_price": 91.61,
+          "min_price": 75.12,
+          "max_price": 108.1,
+          "arrivals_tonnes": 100.8,
+          "last_updated": "2026-11-11"
+        },
+        "Ludhiana": {
+          "modal_price": 91.61,
+          "min_price": 75.12,
+          "max_price": 108.1,
+          "arrivals_tonnes": 100.8,
+          "last_updated": "2026-11-11"
+        },
+        "Kolkata": {
+          "modal_price": 101.78,
+          "min_price": 83.46,
+          "max_price": 120.1,
+          "arrivals_tonnes": 84.0,
+          "last_updated": "2026-11-11"
+        },
+        "Patna": {
+          "modal_price": 89.06,
+          "min_price": 73.03,
+          "max_price": 105.09,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Bhubaneswar": {
+          "modal_price": 88.21,
+          "min_price": 72.33,
+          "max_price": 104.09,
+          "arrivals_tonnes": 106.4,
+          "last_updated": "2026-11-11"
+        }
+      }
+    },
+    "Pomegranate": {
+      "crop": "Pomegranate",
+      "category": "Fruit",
+      "perishability_tier": "MEDIUM",
+      "msp_floor": 0.0,
+      "national_modal_price": 120.54,
+      "national_min_price": 103.66,
+      "national_max_price": 137.42,
+      "daily_arrivals_tonnes": 3500.0,
+      "daily_volatility_pct": 0.07,
+      "last_updated": "2026-11-11",
+      "districts": {
+        "Pune": {
+          "modal_price": 135.0,
+          "min_price": 116.1,
+          "max_price": 153.9,
+          "arrivals_tonnes": 95.2,
+          "last_updated": "2026-11-11"
+        },
+        "Nashik": {
+          "modal_price": 112.1,
+          "min_price": 96.41,
+          "max_price": 127.79,
+          "arrivals_tonnes": 121.8,
+          "last_updated": "2026-11-11"
+        },
+        "Ahmednagar": {
+          "modal_price": 109.69,
+          "min_price": 94.33,
+          "max_price": 125.05,
+          "arrivals_tonnes": 124.6,
+          "last_updated": "2026-11-11"
+        },
+        "Solapur": {
+          "modal_price": 114.51,
+          "min_price": 98.48,
+          "max_price": 130.54,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Nagpur": {
+          "modal_price": 128.98,
+          "min_price": 110.92,
+          "max_price": 147.04,
+          "arrivals_tonnes": 102.2,
+          "last_updated": "2026-11-11"
+        },
+        "Satara": {
+          "modal_price": 115.72,
+          "min_price": 99.52,
+          "max_price": 131.92,
+          "arrivals_tonnes": 117.6,
+          "last_updated": "2026-11-11"
+        },
+        "Kolhapur": {
+          "modal_price": 118.13,
+          "min_price": 101.59,
+          "max_price": 134.67,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Sangli": {
+          "modal_price": 116.92,
+          "min_price": 100.55,
+          "max_price": 133.29,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Jalgaon": {
+          "modal_price": 112.1,
+          "min_price": 96.41,
+          "max_price": 127.79,
+          "arrivals_tonnes": 121.8,
+          "last_updated": "2026-11-11"
+        },
+        "Aurangabad": {
+          "modal_price": 118.13,
+          "min_price": 101.59,
+          "max_price": 134.67,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Mumbai": {
+          "modal_price": 154.29,
+          "min_price": 132.69,
+          "max_price": 175.89,
+          "arrivals_tonnes": 72.8,
+          "last_updated": "2026-11-11"
+        },
+        "Kadapa": {
+          "modal_price": 110.9,
+          "min_price": 95.37,
+          "max_price": 126.43,
+          "arrivals_tonnes": 123.2,
+          "last_updated": "2026-11-11"
+        },
+        "Kurnool": {
+          "modal_price": 109.69,
+          "min_price": 94.33,
+          "max_price": 125.05,
+          "arrivals_tonnes": 124.6,
+          "last_updated": "2026-11-11"
+        },
+        "Guntur": {
+          "modal_price": 113.31,
+          "min_price": 97.45,
+          "max_price": 129.17,
+          "arrivals_tonnes": 120.4,
+          "last_updated": "2026-11-11"
+        },
+        "Chittoor": {
+          "modal_price": 114.51,
+          "min_price": 98.48,
+          "max_price": 130.54,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Hyderabad": {
+          "modal_price": 142.24,
+          "min_price": 122.33,
+          "max_price": 162.15,
+          "arrivals_tonnes": 86.8,
+          "last_updated": "2026-11-11"
+        },
+        "Warangal": {
+          "modal_price": 115.72,
+          "min_price": 99.52,
+          "max_price": 131.92,
+          "arrivals_tonnes": 117.6,
+          "last_updated": "2026-11-11"
+        },
+        "Khammam": {
+          "modal_price": 114.51,
+          "min_price": 98.48,
+          "max_price": 130.54,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Anantapur": {
+          "modal_price": 110.9,
+          "min_price": 95.37,
+          "max_price": 126.43,
+          "arrivals_tonnes": 123.2,
+          "last_updated": "2026-11-11"
+        },
+        "Bengaluru": {
+          "modal_price": 147.06,
+          "min_price": 126.47,
+          "max_price": 167.65,
+          "arrivals_tonnes": 81.2,
+          "last_updated": "2026-11-11"
+        },
+        "Belagavi": {
+          "modal_price": 118.13,
+          "min_price": 101.59,
+          "max_price": 134.67,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Hubballi": {
+          "modal_price": 116.92,
+          "min_price": 100.55,
+          "max_price": 133.29,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Indore": {
+          "modal_price": 126.57,
+          "min_price": 108.85,
+          "max_price": 144.29,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Bhopal": {
+          "modal_price": 125.36,
+          "min_price": 107.81,
+          "max_price": 142.91,
+          "arrivals_tonnes": 106.4,
+          "last_updated": "2026-11-11"
+        },
+        "Jaipur": {
+          "modal_price": 127.77,
+          "min_price": 109.88,
+          "max_price": 145.66,
+          "arrivals_tonnes": 103.6,
+          "last_updated": "2026-11-11"
+        },
+        "Lucknow": {
+          "modal_price": 126.57,
+          "min_price": 108.85,
+          "max_price": 144.29,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Varanasi": {
+          "modal_price": 116.92,
+          "min_price": 100.55,
+          "max_price": 133.29,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Delhi": {
+          "modal_price": 149.47,
+          "min_price": 128.54,
+          "max_price": 170.4,
+          "arrivals_tonnes": 78.4,
+          "last_updated": "2026-11-11"
+        },
+        "Ahmedabad": {
+          "modal_price": 133.8,
+          "min_price": 115.07,
+          "max_price": 152.53,
+          "arrivals_tonnes": 96.6,
+          "last_updated": "2026-11-11"
+        },
+        "Surat": {
+          "modal_price": 132.59,
+          "min_price": 114.03,
+          "max_price": 151.15,
+          "arrivals_tonnes": 98.0,
+          "last_updated": "2026-11-11"
+        },
+        "Rajkot": {
+          "modal_price": 122.95,
+          "min_price": 105.74,
+          "max_price": 140.16,
+          "arrivals_tonnes": 109.2,
+          "last_updated": "2026-11-11"
+        },
+        "Chandigarh": {
+          "modal_price": 130.18,
+          "min_price": 111.95,
+          "max_price": 148.41,
+          "arrivals_tonnes": 100.8,
+          "last_updated": "2026-11-11"
+        },
+        "Ludhiana": {
+          "modal_price": 130.18,
+          "min_price": 111.95,
+          "max_price": 148.41,
+          "arrivals_tonnes": 100.8,
+          "last_updated": "2026-11-11"
+        },
+        "Kolkata": {
+          "modal_price": 144.65,
+          "min_price": 124.4,
+          "max_price": 164.9,
+          "arrivals_tonnes": 84.0,
+          "last_updated": "2026-11-11"
+        },
+        "Patna": {
+          "modal_price": 126.57,
+          "min_price": 108.85,
+          "max_price": 144.29,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Bhubaneswar": {
+          "modal_price": 125.36,
+          "min_price": 107.81,
+          "max_price": 142.91,
+          "arrivals_tonnes": 106.4,
+          "last_updated": "2026-11-11"
+        }
+      }
+    },
+    "Mango": {
+      "crop": "Mango",
+      "category": "Fruit",
+      "perishability_tier": "HIGH",
+      "msp_floor": 0.0,
+      "national_modal_price": 98.21,
+      "national_min_price": 78.57,
+      "national_max_price": 117.85,
+      "daily_arrivals_tonnes": 3500.0,
+      "daily_volatility_pct": 0.1,
+      "last_updated": "2026-11-11",
+      "districts": {
+        "Pune": {
+          "modal_price": 110.0,
+          "min_price": 88.0,
+          "max_price": 132.0,
+          "arrivals_tonnes": 95.2,
+          "last_updated": "2026-11-11"
+        },
+        "Nashik": {
+          "modal_price": 91.34,
+          "min_price": 73.07,
+          "max_price": 109.61,
+          "arrivals_tonnes": 121.8,
+          "last_updated": "2026-11-11"
+        },
+        "Ahmednagar": {
+          "modal_price": 89.37,
+          "min_price": 71.5,
+          "max_price": 107.24,
+          "arrivals_tonnes": 124.6,
+          "last_updated": "2026-11-11"
+        },
+        "Solapur": {
+          "modal_price": 93.3,
+          "min_price": 74.64,
+          "max_price": 111.96,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Nagpur": {
+          "modal_price": 105.08,
+          "min_price": 84.06,
+          "max_price": 126.1,
+          "arrivals_tonnes": 102.2,
+          "last_updated": "2026-11-11"
+        },
+        "Satara": {
+          "modal_price": 94.28,
+          "min_price": 75.42,
+          "max_price": 113.14,
+          "arrivals_tonnes": 117.6,
+          "last_updated": "2026-11-11"
+        },
+        "Kolhapur": {
+          "modal_price": 96.25,
+          "min_price": 77.0,
+          "max_price": 115.5,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Sangli": {
+          "modal_price": 95.26,
+          "min_price": 76.21,
+          "max_price": 114.31,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Jalgaon": {
+          "modal_price": 91.34,
+          "min_price": 73.07,
+          "max_price": 109.61,
+          "arrivals_tonnes": 121.8,
+          "last_updated": "2026-11-11"
+        },
+        "Aurangabad": {
+          "modal_price": 96.25,
+          "min_price": 77.0,
+          "max_price": 115.5,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Mumbai": {
+          "modal_price": 125.71,
+          "min_price": 100.57,
+          "max_price": 150.85,
+          "arrivals_tonnes": 72.8,
+          "last_updated": "2026-11-11"
+        },
+        "Kadapa": {
+          "modal_price": 90.35,
+          "min_price": 72.28,
+          "max_price": 108.42,
+          "arrivals_tonnes": 123.2,
+          "last_updated": "2026-11-11"
+        },
+        "Kurnool": {
+          "modal_price": 89.37,
+          "min_price": 71.5,
+          "max_price": 107.24,
+          "arrivals_tonnes": 124.6,
+          "last_updated": "2026-11-11"
+        },
+        "Guntur": {
+          "modal_price": 92.32,
+          "min_price": 73.86,
+          "max_price": 110.78,
+          "arrivals_tonnes": 120.4,
+          "last_updated": "2026-11-11"
+        },
+        "Chittoor": {
+          "modal_price": 93.3,
+          "min_price": 74.64,
+          "max_price": 111.96,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Hyderabad": {
+          "modal_price": 115.89,
+          "min_price": 92.71,
+          "max_price": 139.07,
+          "arrivals_tonnes": 86.8,
+          "last_updated": "2026-11-11"
+        },
+        "Warangal": {
+          "modal_price": 94.28,
+          "min_price": 75.42,
+          "max_price": 113.14,
+          "arrivals_tonnes": 117.6,
+          "last_updated": "2026-11-11"
+        },
+        "Khammam": {
+          "modal_price": 93.3,
+          "min_price": 74.64,
+          "max_price": 111.96,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Anantapur": {
+          "modal_price": 90.35,
+          "min_price": 72.28,
+          "max_price": 108.42,
+          "arrivals_tonnes": 123.2,
+          "last_updated": "2026-11-11"
+        },
+        "Bengaluru": {
+          "modal_price": 119.82,
+          "min_price": 95.86,
+          "max_price": 143.78,
+          "arrivals_tonnes": 81.2,
+          "last_updated": "2026-11-11"
+        },
+        "Belagavi": {
+          "modal_price": 96.25,
+          "min_price": 77.0,
+          "max_price": 115.5,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Hubballi": {
+          "modal_price": 95.26,
+          "min_price": 76.21,
+          "max_price": 114.31,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Indore": {
+          "modal_price": 103.12,
+          "min_price": 82.5,
+          "max_price": 123.74,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Bhopal": {
+          "modal_price": 102.14,
+          "min_price": 81.71,
+          "max_price": 122.57,
+          "arrivals_tonnes": 106.4,
+          "last_updated": "2026-11-11"
+        },
+        "Jaipur": {
+          "modal_price": 104.1,
+          "min_price": 83.28,
+          "max_price": 124.92,
+          "arrivals_tonnes": 103.6,
+          "last_updated": "2026-11-11"
+        },
+        "Lucknow": {
+          "modal_price": 103.12,
+          "min_price": 82.5,
+          "max_price": 123.74,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Varanasi": {
+          "modal_price": 95.26,
+          "min_price": 76.21,
+          "max_price": 114.31,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Delhi": {
+          "modal_price": 121.78,
+          "min_price": 97.42,
+          "max_price": 146.14,
+          "arrivals_tonnes": 78.4,
+          "last_updated": "2026-11-11"
+        },
+        "Ahmedabad": {
+          "modal_price": 109.01,
+          "min_price": 87.21,
+          "max_price": 130.81,
+          "arrivals_tonnes": 96.6,
+          "last_updated": "2026-11-11"
+        },
+        "Surat": {
+          "modal_price": 108.03,
+          "min_price": 86.42,
+          "max_price": 129.64,
+          "arrivals_tonnes": 98.0,
+          "last_updated": "2026-11-11"
+        },
+        "Rajkot": {
+          "modal_price": 100.17,
+          "min_price": 80.14,
+          "max_price": 120.2,
+          "arrivals_tonnes": 109.2,
+          "last_updated": "2026-11-11"
+        },
+        "Chandigarh": {
+          "modal_price": 106.07,
+          "min_price": 84.86,
+          "max_price": 127.28,
+          "arrivals_tonnes": 100.8,
+          "last_updated": "2026-11-11"
+        },
+        "Ludhiana": {
+          "modal_price": 106.07,
+          "min_price": 84.86,
+          "max_price": 127.28,
+          "arrivals_tonnes": 100.8,
+          "last_updated": "2026-11-11"
+        },
+        "Kolkata": {
+          "modal_price": 117.85,
+          "min_price": 94.28,
+          "max_price": 141.42,
+          "arrivals_tonnes": 84.0,
+          "last_updated": "2026-11-11"
+        },
+        "Patna": {
+          "modal_price": 103.12,
+          "min_price": 82.5,
+          "max_price": 123.74,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Bhubaneswar": {
+          "modal_price": 102.14,
+          "min_price": 81.71,
+          "max_price": 122.57,
+          "arrivals_tonnes": 106.4,
+          "last_updated": "2026-11-11"
+        }
+      }
+    },
+    "Papaya": {
+      "crop": "Papaya",
+      "category": "Fruit",
+      "perishability_tier": "HIGH",
+      "msp_floor": 0.0,
+      "national_modal_price": 22.32,
+      "national_min_price": 19.2,
+      "national_max_price": 25.44,
+      "daily_arrivals_tonnes": 3500.0,
+      "daily_volatility_pct": 0.07,
+      "last_updated": "2026-11-11",
+      "districts": {
+        "Pune": {
+          "modal_price": 25.0,
+          "min_price": 21.5,
+          "max_price": 28.5,
+          "arrivals_tonnes": 95.2,
+          "last_updated": "2026-11-11"
+        },
+        "Nashik": {
+          "modal_price": 20.76,
+          "min_price": 17.85,
+          "max_price": 23.67,
+          "arrivals_tonnes": 121.8,
+          "last_updated": "2026-11-11"
+        },
+        "Ahmednagar": {
+          "modal_price": 20.31,
+          "min_price": 17.47,
+          "max_price": 23.15,
+          "arrivals_tonnes": 124.6,
+          "last_updated": "2026-11-11"
+        },
+        "Solapur": {
+          "modal_price": 21.2,
+          "min_price": 18.23,
+          "max_price": 24.17,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Nagpur": {
+          "modal_price": 23.88,
+          "min_price": 20.54,
+          "max_price": 27.22,
+          "arrivals_tonnes": 102.2,
+          "last_updated": "2026-11-11"
+        },
+        "Satara": {
+          "modal_price": 21.43,
+          "min_price": 18.43,
+          "max_price": 24.43,
+          "arrivals_tonnes": 117.6,
+          "last_updated": "2026-11-11"
+        },
+        "Kolhapur": {
+          "modal_price": 21.87,
+          "min_price": 18.81,
+          "max_price": 24.93,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Sangli": {
+          "modal_price": 21.65,
+          "min_price": 18.62,
+          "max_price": 24.68,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Jalgaon": {
+          "modal_price": 20.76,
+          "min_price": 17.85,
+          "max_price": 23.67,
+          "arrivals_tonnes": 121.8,
+          "last_updated": "2026-11-11"
+        },
+        "Aurangabad": {
+          "modal_price": 21.87,
+          "min_price": 18.81,
+          "max_price": 24.93,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Mumbai": {
+          "modal_price": 28.57,
+          "min_price": 24.57,
+          "max_price": 32.57,
+          "arrivals_tonnes": 72.8,
+          "last_updated": "2026-11-11"
+        },
+        "Kadapa": {
+          "modal_price": 20.53,
+          "min_price": 17.66,
+          "max_price": 23.4,
+          "arrivals_tonnes": 123.2,
+          "last_updated": "2026-11-11"
+        },
+        "Kurnool": {
+          "modal_price": 20.31,
+          "min_price": 17.47,
+          "max_price": 23.15,
+          "arrivals_tonnes": 124.6,
+          "last_updated": "2026-11-11"
+        },
+        "Guntur": {
+          "modal_price": 20.98,
+          "min_price": 18.04,
+          "max_price": 23.92,
+          "arrivals_tonnes": 120.4,
+          "last_updated": "2026-11-11"
+        },
+        "Chittoor": {
+          "modal_price": 21.2,
+          "min_price": 18.23,
+          "max_price": 24.17,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Hyderabad": {
+          "modal_price": 26.34,
+          "min_price": 22.65,
+          "max_price": 30.03,
+          "arrivals_tonnes": 86.8,
+          "last_updated": "2026-11-11"
+        },
+        "Warangal": {
+          "modal_price": 21.43,
+          "min_price": 18.43,
+          "max_price": 24.43,
+          "arrivals_tonnes": 117.6,
+          "last_updated": "2026-11-11"
+        },
+        "Khammam": {
+          "modal_price": 21.2,
+          "min_price": 18.23,
+          "max_price": 24.17,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Anantapur": {
+          "modal_price": 20.53,
+          "min_price": 17.66,
+          "max_price": 23.4,
+          "arrivals_tonnes": 123.2,
+          "last_updated": "2026-11-11"
+        },
+        "Bengaluru": {
+          "modal_price": 27.23,
+          "min_price": 23.42,
+          "max_price": 31.04,
+          "arrivals_tonnes": 81.2,
+          "last_updated": "2026-11-11"
+        },
+        "Belagavi": {
+          "modal_price": 21.87,
+          "min_price": 18.81,
+          "max_price": 24.93,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Hubballi": {
+          "modal_price": 21.65,
+          "min_price": 18.62,
+          "max_price": 24.68,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Indore": {
+          "modal_price": 23.44,
+          "min_price": 20.16,
+          "max_price": 26.72,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Bhopal": {
+          "modal_price": 23.21,
+          "min_price": 19.96,
+          "max_price": 26.46,
+          "arrivals_tonnes": 106.4,
+          "last_updated": "2026-11-11"
+        },
+        "Jaipur": {
+          "modal_price": 23.66,
+          "min_price": 20.35,
+          "max_price": 26.97,
+          "arrivals_tonnes": 103.6,
+          "last_updated": "2026-11-11"
+        },
+        "Lucknow": {
+          "modal_price": 23.44,
+          "min_price": 20.16,
+          "max_price": 26.72,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Varanasi": {
+          "modal_price": 21.65,
+          "min_price": 18.62,
+          "max_price": 24.68,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Delhi": {
+          "modal_price": 27.68,
+          "min_price": 23.8,
+          "max_price": 31.56,
+          "arrivals_tonnes": 78.4,
+          "last_updated": "2026-11-11"
+        },
+        "Ahmedabad": {
+          "modal_price": 24.78,
+          "min_price": 21.31,
+          "max_price": 28.25,
+          "arrivals_tonnes": 96.6,
+          "last_updated": "2026-11-11"
+        },
+        "Surat": {
+          "modal_price": 24.55,
+          "min_price": 21.11,
+          "max_price": 27.99,
+          "arrivals_tonnes": 98.0,
+          "last_updated": "2026-11-11"
+        },
+        "Rajkot": {
+          "modal_price": 22.77,
+          "min_price": 19.58,
+          "max_price": 25.96,
+          "arrivals_tonnes": 109.2,
+          "last_updated": "2026-11-11"
+        },
+        "Chandigarh": {
+          "modal_price": 24.11,
+          "min_price": 20.73,
+          "max_price": 27.49,
+          "arrivals_tonnes": 100.8,
+          "last_updated": "2026-11-11"
+        },
+        "Ludhiana": {
+          "modal_price": 24.11,
+          "min_price": 20.73,
+          "max_price": 27.49,
+          "arrivals_tonnes": 100.8,
+          "last_updated": "2026-11-11"
+        },
+        "Kolkata": {
+          "modal_price": 26.78,
+          "min_price": 23.03,
+          "max_price": 30.53,
+          "arrivals_tonnes": 84.0,
+          "last_updated": "2026-11-11"
+        },
+        "Patna": {
+          "modal_price": 23.44,
+          "min_price": 20.16,
+          "max_price": 26.72,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Bhubaneswar": {
+          "modal_price": 23.21,
+          "min_price": 19.96,
+          "max_price": 26.46,
+          "arrivals_tonnes": 106.4,
+          "last_updated": "2026-11-11"
+        }
+      }
+    },
+    "Lemon": {
+      "crop": "Lemon",
+      "category": "Fruit",
+      "perishability_tier": "MEDIUM",
+      "msp_floor": 0.0,
+      "national_modal_price": 46.43,
+      "national_min_price": 39.93,
+      "national_max_price": 52.93,
+      "daily_arrivals_tonnes": 3500.0,
+      "daily_volatility_pct": 0.07,
+      "last_updated": "2026-11-11",
+      "districts": {
+        "Pune": {
+          "modal_price": 52.0,
+          "min_price": 44.72,
+          "max_price": 59.28,
+          "arrivals_tonnes": 95.2,
+          "last_updated": "2026-11-11"
+        },
+        "Nashik": {
+          "modal_price": 43.18,
+          "min_price": 37.13,
+          "max_price": 49.23,
+          "arrivals_tonnes": 121.8,
+          "last_updated": "2026-11-11"
+        },
+        "Ahmednagar": {
+          "modal_price": 42.25,
+          "min_price": 36.34,
+          "max_price": 48.17,
+          "arrivals_tonnes": 124.6,
+          "last_updated": "2026-11-11"
+        },
+        "Solapur": {
+          "modal_price": 44.11,
+          "min_price": 37.93,
+          "max_price": 50.29,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Nagpur": {
+          "modal_price": 49.68,
+          "min_price": 42.72,
+          "max_price": 56.64,
+          "arrivals_tonnes": 102.2,
+          "last_updated": "2026-11-11"
+        },
+        "Satara": {
+          "modal_price": 44.57,
+          "min_price": 38.33,
+          "max_price": 50.81,
+          "arrivals_tonnes": 117.6,
+          "last_updated": "2026-11-11"
+        },
+        "Kolhapur": {
+          "modal_price": 45.5,
+          "min_price": 39.13,
+          "max_price": 51.87,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Sangli": {
+          "modal_price": 45.04,
+          "min_price": 38.73,
+          "max_price": 51.35,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Jalgaon": {
+          "modal_price": 43.18,
+          "min_price": 37.13,
+          "max_price": 49.23,
+          "arrivals_tonnes": 121.8,
+          "last_updated": "2026-11-11"
+        },
+        "Aurangabad": {
+          "modal_price": 45.5,
+          "min_price": 39.13,
+          "max_price": 51.87,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Mumbai": {
+          "modal_price": 59.43,
+          "min_price": 51.11,
+          "max_price": 67.75,
+          "arrivals_tonnes": 72.8,
+          "last_updated": "2026-11-11"
+        },
+        "Kadapa": {
+          "modal_price": 42.72,
+          "min_price": 36.74,
+          "max_price": 48.7,
+          "arrivals_tonnes": 123.2,
+          "last_updated": "2026-11-11"
+        },
+        "Kurnool": {
+          "modal_price": 42.25,
+          "min_price": 36.34,
+          "max_price": 48.17,
+          "arrivals_tonnes": 124.6,
+          "last_updated": "2026-11-11"
+        },
+        "Guntur": {
+          "modal_price": 43.64,
+          "min_price": 37.53,
+          "max_price": 49.75,
+          "arrivals_tonnes": 120.4,
+          "last_updated": "2026-11-11"
+        },
+        "Chittoor": {
+          "modal_price": 44.11,
+          "min_price": 37.93,
+          "max_price": 50.29,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Hyderabad": {
+          "modal_price": 54.79,
+          "min_price": 47.12,
+          "max_price": 62.46,
+          "arrivals_tonnes": 86.8,
+          "last_updated": "2026-11-11"
+        },
+        "Warangal": {
+          "modal_price": 44.57,
+          "min_price": 38.33,
+          "max_price": 50.81,
+          "arrivals_tonnes": 117.6,
+          "last_updated": "2026-11-11"
+        },
+        "Khammam": {
+          "modal_price": 44.11,
+          "min_price": 37.93,
+          "max_price": 50.29,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Anantapur": {
+          "modal_price": 42.72,
+          "min_price": 36.74,
+          "max_price": 48.7,
+          "arrivals_tonnes": 123.2,
+          "last_updated": "2026-11-11"
+        },
+        "Bengaluru": {
+          "modal_price": 56.64,
+          "min_price": 48.71,
+          "max_price": 64.57,
+          "arrivals_tonnes": 81.2,
+          "last_updated": "2026-11-11"
+        },
+        "Belagavi": {
+          "modal_price": 45.5,
+          "min_price": 39.13,
+          "max_price": 51.87,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Hubballi": {
+          "modal_price": 45.04,
+          "min_price": 38.73,
+          "max_price": 51.35,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Indore": {
+          "modal_price": 48.75,
+          "min_price": 41.92,
+          "max_price": 55.58,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Bhopal": {
+          "modal_price": 48.29,
+          "min_price": 41.53,
+          "max_price": 55.05,
+          "arrivals_tonnes": 106.4,
+          "last_updated": "2026-11-11"
+        },
+        "Jaipur": {
+          "modal_price": 49.22,
+          "min_price": 42.33,
+          "max_price": 56.11,
+          "arrivals_tonnes": 103.6,
+          "last_updated": "2026-11-11"
+        },
+        "Lucknow": {
+          "modal_price": 48.75,
+          "min_price": 41.92,
+          "max_price": 55.58,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Varanasi": {
+          "modal_price": 45.04,
+          "min_price": 38.73,
+          "max_price": 51.35,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Delhi": {
+          "modal_price": 57.57,
+          "min_price": 49.51,
+          "max_price": 65.63,
+          "arrivals_tonnes": 78.4,
+          "last_updated": "2026-11-11"
+        },
+        "Ahmedabad": {
+          "modal_price": 51.54,
+          "min_price": 44.32,
+          "max_price": 58.76,
+          "arrivals_tonnes": 96.6,
+          "last_updated": "2026-11-11"
+        },
+        "Surat": {
+          "modal_price": 51.07,
+          "min_price": 43.92,
+          "max_price": 58.22,
+          "arrivals_tonnes": 98.0,
+          "last_updated": "2026-11-11"
+        },
+        "Rajkot": {
+          "modal_price": 47.36,
+          "min_price": 40.73,
+          "max_price": 53.99,
+          "arrivals_tonnes": 109.2,
+          "last_updated": "2026-11-11"
+        },
+        "Chandigarh": {
+          "modal_price": 50.14,
+          "min_price": 43.12,
+          "max_price": 57.16,
+          "arrivals_tonnes": 100.8,
+          "last_updated": "2026-11-11"
+        },
+        "Ludhiana": {
+          "modal_price": 50.14,
+          "min_price": 43.12,
+          "max_price": 57.16,
+          "arrivals_tonnes": 100.8,
+          "last_updated": "2026-11-11"
+        },
+        "Kolkata": {
+          "modal_price": 55.72,
+          "min_price": 47.92,
+          "max_price": 63.52,
+          "arrivals_tonnes": 84.0,
+          "last_updated": "2026-11-11"
+        },
+        "Patna": {
+          "modal_price": 48.75,
+          "min_price": 41.92,
+          "max_price": 55.58,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Bhubaneswar": {
+          "modal_price": 48.29,
+          "min_price": 41.53,
+          "max_price": 55.05,
+          "arrivals_tonnes": 106.4,
+          "last_updated": "2026-11-11"
+        }
+      }
+    },
+    "Chilli": {
+      "crop": "Chilli",
+      "category": "Spice",
+      "perishability_tier": "MEDIUM",
+      "msp_floor": 0.0,
+      "national_modal_price": 42.86,
+      "national_min_price": 36.86,
+      "national_max_price": 48.86,
+      "daily_arrivals_tonnes": 3500.0,
+      "daily_volatility_pct": 0.07,
+      "last_updated": "2026-11-11",
+      "districts": {
+        "Pune": {
+          "modal_price": 48.0,
+          "min_price": 41.28,
+          "max_price": 54.72,
+          "arrivals_tonnes": 95.2,
+          "last_updated": "2026-11-11"
+        },
+        "Nashik": {
+          "modal_price": 39.86,
+          "min_price": 34.28,
+          "max_price": 45.44,
+          "arrivals_tonnes": 121.8,
+          "last_updated": "2026-11-11"
+        },
+        "Ahmednagar": {
+          "modal_price": 39.0,
+          "min_price": 33.54,
+          "max_price": 44.46,
+          "arrivals_tonnes": 124.6,
+          "last_updated": "2026-11-11"
+        },
+        "Solapur": {
+          "modal_price": 40.72,
+          "min_price": 35.02,
+          "max_price": 46.42,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Nagpur": {
+          "modal_price": 45.86,
+          "min_price": 39.44,
+          "max_price": 52.28,
+          "arrivals_tonnes": 102.2,
+          "last_updated": "2026-11-11"
+        },
+        "Satara": {
+          "modal_price": 41.15,
+          "min_price": 35.39,
+          "max_price": 46.91,
+          "arrivals_tonnes": 117.6,
+          "last_updated": "2026-11-11"
+        },
+        "Kolhapur": {
+          "modal_price": 42.0,
+          "min_price": 36.12,
+          "max_price": 47.88,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Sangli": {
+          "modal_price": 41.57,
+          "min_price": 35.75,
+          "max_price": 47.39,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Jalgaon": {
+          "modal_price": 39.86,
+          "min_price": 34.28,
+          "max_price": 45.44,
+          "arrivals_tonnes": 121.8,
+          "last_updated": "2026-11-11"
+        },
+        "Aurangabad": {
+          "modal_price": 42.0,
+          "min_price": 36.12,
+          "max_price": 47.88,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Mumbai": {
+          "modal_price": 54.86,
+          "min_price": 47.18,
+          "max_price": 62.54,
+          "arrivals_tonnes": 72.8,
+          "last_updated": "2026-11-11"
+        },
+        "Kadapa": {
+          "modal_price": 39.43,
+          "min_price": 33.91,
+          "max_price": 44.95,
+          "arrivals_tonnes": 123.2,
+          "last_updated": "2026-11-11"
+        },
+        "Kurnool": {
+          "modal_price": 39.0,
+          "min_price": 33.54,
+          "max_price": 44.46,
+          "arrivals_tonnes": 124.6,
+          "last_updated": "2026-11-11"
+        },
+        "Guntur": {
+          "modal_price": 40.29,
+          "min_price": 34.65,
+          "max_price": 45.93,
+          "arrivals_tonnes": 120.4,
+          "last_updated": "2026-11-11"
+        },
+        "Chittoor": {
+          "modal_price": 40.72,
+          "min_price": 35.02,
+          "max_price": 46.42,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Hyderabad": {
+          "modal_price": 50.57,
+          "min_price": 43.49,
+          "max_price": 57.65,
+          "arrivals_tonnes": 86.8,
+          "last_updated": "2026-11-11"
+        },
+        "Warangal": {
+          "modal_price": 41.15,
+          "min_price": 35.39,
+          "max_price": 46.91,
+          "arrivals_tonnes": 117.6,
+          "last_updated": "2026-11-11"
+        },
+        "Khammam": {
+          "modal_price": 40.72,
+          "min_price": 35.02,
+          "max_price": 46.42,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Anantapur": {
+          "modal_price": 39.43,
+          "min_price": 33.91,
+          "max_price": 44.95,
+          "arrivals_tonnes": 123.2,
+          "last_updated": "2026-11-11"
+        },
+        "Bengaluru": {
+          "modal_price": 52.29,
+          "min_price": 44.97,
+          "max_price": 59.61,
+          "arrivals_tonnes": 81.2,
+          "last_updated": "2026-11-11"
+        },
+        "Belagavi": {
+          "modal_price": 42.0,
+          "min_price": 36.12,
+          "max_price": 47.88,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Hubballi": {
+          "modal_price": 41.57,
+          "min_price": 35.75,
+          "max_price": 47.39,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Indore": {
+          "modal_price": 45.0,
+          "min_price": 38.7,
+          "max_price": 51.3,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Bhopal": {
+          "modal_price": 44.57,
+          "min_price": 38.33,
+          "max_price": 50.81,
+          "arrivals_tonnes": 106.4,
+          "last_updated": "2026-11-11"
+        },
+        "Jaipur": {
+          "modal_price": 45.43,
+          "min_price": 39.07,
+          "max_price": 51.79,
+          "arrivals_tonnes": 103.6,
+          "last_updated": "2026-11-11"
+        },
+        "Lucknow": {
+          "modal_price": 45.0,
+          "min_price": 38.7,
+          "max_price": 51.3,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Varanasi": {
+          "modal_price": 41.57,
+          "min_price": 35.75,
+          "max_price": 47.39,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Delhi": {
+          "modal_price": 53.15,
+          "min_price": 45.71,
+          "max_price": 60.59,
+          "arrivals_tonnes": 78.4,
+          "last_updated": "2026-11-11"
+        },
+        "Ahmedabad": {
+          "modal_price": 47.57,
+          "min_price": 40.91,
+          "max_price": 54.23,
+          "arrivals_tonnes": 96.6,
+          "last_updated": "2026-11-11"
+        },
+        "Surat": {
+          "modal_price": 47.15,
+          "min_price": 40.55,
+          "max_price": 53.75,
+          "arrivals_tonnes": 98.0,
+          "last_updated": "2026-11-11"
+        },
+        "Rajkot": {
+          "modal_price": 43.72,
+          "min_price": 37.6,
+          "max_price": 49.84,
+          "arrivals_tonnes": 109.2,
+          "last_updated": "2026-11-11"
+        },
+        "Chandigarh": {
+          "modal_price": 46.29,
+          "min_price": 39.81,
+          "max_price": 52.77,
+          "arrivals_tonnes": 100.8,
+          "last_updated": "2026-11-11"
+        },
+        "Ludhiana": {
+          "modal_price": 46.29,
+          "min_price": 39.81,
+          "max_price": 52.77,
+          "arrivals_tonnes": 100.8,
+          "last_updated": "2026-11-11"
+        },
+        "Kolkata": {
+          "modal_price": 51.43,
+          "min_price": 44.23,
+          "max_price": 58.63,
+          "arrivals_tonnes": 84.0,
+          "last_updated": "2026-11-11"
+        },
+        "Patna": {
+          "modal_price": 45.0,
+          "min_price": 38.7,
+          "max_price": 51.3,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Bhubaneswar": {
+          "modal_price": 44.57,
+          "min_price": 38.33,
+          "max_price": 50.81,
+          "arrivals_tonnes": 106.4,
+          "last_updated": "2026-11-11"
+        }
+      }
+    },
+    "Garlic": {
+      "crop": "Garlic",
+      "category": "Spice",
+      "perishability_tier": "LOW",
+      "msp_floor": 0.0,
+      "national_modal_price": 147.32,
+      "national_min_price": 129.64,
+      "national_max_price": 165.0,
+      "daily_arrivals_tonnes": 3500.0,
+      "daily_volatility_pct": 0.06,
+      "last_updated": "2026-11-11",
+      "districts": {
+        "Pune": {
+          "modal_price": 165.0,
+          "min_price": 145.2,
+          "max_price": 184.8,
+          "arrivals_tonnes": 95.2,
+          "last_updated": "2026-11-11"
+        },
+        "Nashik": {
+          "modal_price": 137.01,
+          "min_price": 120.57,
+          "max_price": 153.45,
+          "arrivals_tonnes": 121.8,
+          "last_updated": "2026-11-11"
+        },
+        "Ahmednagar": {
+          "modal_price": 134.06,
+          "min_price": 117.97,
+          "max_price": 150.15,
+          "arrivals_tonnes": 124.6,
+          "last_updated": "2026-11-11"
+        },
+        "Solapur": {
+          "modal_price": 139.95,
+          "min_price": 123.16,
+          "max_price": 156.74,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Nagpur": {
+          "modal_price": 157.63,
+          "min_price": 138.71,
+          "max_price": 176.55,
+          "arrivals_tonnes": 102.2,
+          "last_updated": "2026-11-11"
+        },
+        "Satara": {
+          "modal_price": 141.43,
+          "min_price": 124.46,
+          "max_price": 158.4,
+          "arrivals_tonnes": 117.6,
+          "last_updated": "2026-11-11"
+        },
+        "Kolhapur": {
+          "modal_price": 144.37,
+          "min_price": 127.05,
+          "max_price": 161.69,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Sangli": {
+          "modal_price": 142.9,
+          "min_price": 125.75,
+          "max_price": 160.05,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Jalgaon": {
+          "modal_price": 137.01,
+          "min_price": 120.57,
+          "max_price": 153.45,
+          "arrivals_tonnes": 121.8,
+          "last_updated": "2026-11-11"
+        },
+        "Aurangabad": {
+          "modal_price": 144.37,
+          "min_price": 127.05,
+          "max_price": 161.69,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Mumbai": {
+          "modal_price": 188.57,
+          "min_price": 165.94,
+          "max_price": 211.2,
+          "arrivals_tonnes": 72.8,
+          "last_updated": "2026-11-11"
+        },
+        "Kadapa": {
+          "modal_price": 135.53,
+          "min_price": 119.27,
+          "max_price": 151.79,
+          "arrivals_tonnes": 123.2,
+          "last_updated": "2026-11-11"
+        },
+        "Kurnool": {
+          "modal_price": 134.06,
+          "min_price": 117.97,
+          "max_price": 150.15,
+          "arrivals_tonnes": 124.6,
+          "last_updated": "2026-11-11"
+        },
+        "Guntur": {
+          "modal_price": 138.48,
+          "min_price": 121.86,
+          "max_price": 155.1,
+          "arrivals_tonnes": 120.4,
+          "last_updated": "2026-11-11"
+        },
+        "Chittoor": {
+          "modal_price": 139.95,
+          "min_price": 123.16,
+          "max_price": 156.74,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Hyderabad": {
+          "modal_price": 173.84,
+          "min_price": 152.98,
+          "max_price": 194.7,
+          "arrivals_tonnes": 86.8,
+          "last_updated": "2026-11-11"
+        },
+        "Warangal": {
+          "modal_price": 141.43,
+          "min_price": 124.46,
+          "max_price": 158.4,
+          "arrivals_tonnes": 117.6,
+          "last_updated": "2026-11-11"
+        },
+        "Khammam": {
+          "modal_price": 139.95,
+          "min_price": 123.16,
+          "max_price": 156.74,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Anantapur": {
+          "modal_price": 135.53,
+          "min_price": 119.27,
+          "max_price": 151.79,
+          "arrivals_tonnes": 123.2,
+          "last_updated": "2026-11-11"
+        },
+        "Bengaluru": {
+          "modal_price": 179.73,
+          "min_price": 158.16,
+          "max_price": 201.3,
+          "arrivals_tonnes": 81.2,
+          "last_updated": "2026-11-11"
+        },
+        "Belagavi": {
+          "modal_price": 144.37,
+          "min_price": 127.05,
+          "max_price": 161.69,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Hubballi": {
+          "modal_price": 142.9,
+          "min_price": 125.75,
+          "max_price": 160.05,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Indore": {
+          "modal_price": 154.69,
+          "min_price": 136.13,
+          "max_price": 173.25,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Bhopal": {
+          "modal_price": 153.21,
+          "min_price": 134.82,
+          "max_price": 171.6,
+          "arrivals_tonnes": 106.4,
+          "last_updated": "2026-11-11"
+        },
+        "Jaipur": {
+          "modal_price": 156.16,
+          "min_price": 137.42,
+          "max_price": 174.9,
+          "arrivals_tonnes": 103.6,
+          "last_updated": "2026-11-11"
+        },
+        "Lucknow": {
+          "modal_price": 154.69,
+          "min_price": 136.13,
+          "max_price": 173.25,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Varanasi": {
+          "modal_price": 142.9,
+          "min_price": 125.75,
+          "max_price": 160.05,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Delhi": {
+          "modal_price": 182.68,
+          "min_price": 160.76,
+          "max_price": 204.6,
+          "arrivals_tonnes": 78.4,
+          "last_updated": "2026-11-11"
+        },
+        "Ahmedabad": {
+          "modal_price": 163.53,
+          "min_price": 143.91,
+          "max_price": 183.15,
+          "arrivals_tonnes": 96.6,
+          "last_updated": "2026-11-11"
+        },
+        "Surat": {
+          "modal_price": 162.05,
+          "min_price": 142.6,
+          "max_price": 181.5,
+          "arrivals_tonnes": 98.0,
+          "last_updated": "2026-11-11"
+        },
+        "Rajkot": {
+          "modal_price": 150.27,
+          "min_price": 132.24,
+          "max_price": 168.3,
+          "arrivals_tonnes": 109.2,
+          "last_updated": "2026-11-11"
+        },
+        "Chandigarh": {
+          "modal_price": 159.11,
+          "min_price": 140.02,
+          "max_price": 178.2,
+          "arrivals_tonnes": 100.8,
+          "last_updated": "2026-11-11"
+        },
+        "Ludhiana": {
+          "modal_price": 159.11,
+          "min_price": 140.02,
+          "max_price": 178.2,
+          "arrivals_tonnes": 100.8,
+          "last_updated": "2026-11-11"
+        },
+        "Kolkata": {
+          "modal_price": 176.78,
+          "min_price": 155.57,
+          "max_price": 197.99,
+          "arrivals_tonnes": 84.0,
+          "last_updated": "2026-11-11"
+        },
+        "Patna": {
+          "modal_price": 154.69,
+          "min_price": 136.13,
+          "max_price": 173.25,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Bhubaneswar": {
+          "modal_price": 153.21,
+          "min_price": 134.82,
+          "max_price": 171.6,
+          "arrivals_tonnes": 106.4,
+          "last_updated": "2026-11-11"
+        }
+      }
+    },
+    "Ginger": {
+      "crop": "Ginger",
+      "category": "Spice",
+      "perishability_tier": "MEDIUM",
+      "msp_floor": 0.0,
+      "national_modal_price": 82.14,
+      "national_min_price": 72.28,
+      "national_max_price": 92.0,
+      "daily_arrivals_tonnes": 3500.0,
+      "daily_volatility_pct": 0.06,
+      "last_updated": "2026-11-11",
+      "districts": {
+        "Pune": {
+          "modal_price": 92.0,
+          "min_price": 80.96,
+          "max_price": 103.04,
+          "arrivals_tonnes": 95.2,
+          "last_updated": "2026-11-11"
+        },
+        "Nashik": {
+          "modal_price": 76.39,
+          "min_price": 67.22,
+          "max_price": 85.56,
+          "arrivals_tonnes": 121.8,
+          "last_updated": "2026-11-11"
+        },
+        "Ahmednagar": {
+          "modal_price": 74.75,
+          "min_price": 65.78,
+          "max_price": 83.72,
+          "arrivals_tonnes": 124.6,
+          "last_updated": "2026-11-11"
+        },
+        "Solapur": {
+          "modal_price": 78.03,
+          "min_price": 68.67,
+          "max_price": 87.39,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Nagpur": {
+          "modal_price": 87.89,
+          "min_price": 77.34,
+          "max_price": 98.44,
+          "arrivals_tonnes": 102.2,
+          "last_updated": "2026-11-11"
+        },
+        "Satara": {
+          "modal_price": 78.85,
+          "min_price": 69.39,
+          "max_price": 88.31,
+          "arrivals_tonnes": 117.6,
+          "last_updated": "2026-11-11"
+        },
+        "Kolhapur": {
+          "modal_price": 80.5,
+          "min_price": 70.84,
+          "max_price": 90.16,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Sangli": {
+          "modal_price": 79.68,
+          "min_price": 70.12,
+          "max_price": 89.24,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Jalgaon": {
+          "modal_price": 76.39,
+          "min_price": 67.22,
+          "max_price": 85.56,
+          "arrivals_tonnes": 121.8,
+          "last_updated": "2026-11-11"
+        },
+        "Aurangabad": {
+          "modal_price": 80.5,
+          "min_price": 70.84,
+          "max_price": 90.16,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Mumbai": {
+          "modal_price": 105.14,
+          "min_price": 92.52,
+          "max_price": 117.76,
+          "arrivals_tonnes": 72.8,
+          "last_updated": "2026-11-11"
+        },
+        "Kadapa": {
+          "modal_price": 75.57,
+          "min_price": 66.5,
+          "max_price": 84.64,
+          "arrivals_tonnes": 123.2,
+          "last_updated": "2026-11-11"
+        },
+        "Kurnool": {
+          "modal_price": 74.75,
+          "min_price": 65.78,
+          "max_price": 83.72,
+          "arrivals_tonnes": 124.6,
+          "last_updated": "2026-11-11"
+        },
+        "Guntur": {
+          "modal_price": 77.21,
+          "min_price": 67.94,
+          "max_price": 86.48,
+          "arrivals_tonnes": 120.4,
+          "last_updated": "2026-11-11"
+        },
+        "Chittoor": {
+          "modal_price": 78.03,
+          "min_price": 68.67,
+          "max_price": 87.39,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Hyderabad": {
+          "modal_price": 96.93,
+          "min_price": 85.3,
+          "max_price": 108.56,
+          "arrivals_tonnes": 86.8,
+          "last_updated": "2026-11-11"
+        },
+        "Warangal": {
+          "modal_price": 78.85,
+          "min_price": 69.39,
+          "max_price": 88.31,
+          "arrivals_tonnes": 117.6,
+          "last_updated": "2026-11-11"
+        },
+        "Khammam": {
+          "modal_price": 78.03,
+          "min_price": 68.67,
+          "max_price": 87.39,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Anantapur": {
+          "modal_price": 75.57,
+          "min_price": 66.5,
+          "max_price": 84.64,
+          "arrivals_tonnes": 123.2,
+          "last_updated": "2026-11-11"
+        },
+        "Bengaluru": {
+          "modal_price": 100.21,
+          "min_price": 88.18,
+          "max_price": 112.24,
+          "arrivals_tonnes": 81.2,
+          "last_updated": "2026-11-11"
+        },
+        "Belagavi": {
+          "modal_price": 80.5,
+          "min_price": 70.84,
+          "max_price": 90.16,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Hubballi": {
+          "modal_price": 79.68,
+          "min_price": 70.12,
+          "max_price": 89.24,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Indore": {
+          "modal_price": 86.25,
+          "min_price": 75.9,
+          "max_price": 96.6,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Bhopal": {
+          "modal_price": 85.43,
+          "min_price": 75.18,
+          "max_price": 95.68,
+          "arrivals_tonnes": 106.4,
+          "last_updated": "2026-11-11"
+        },
+        "Jaipur": {
+          "modal_price": 87.07,
+          "min_price": 76.62,
+          "max_price": 97.52,
+          "arrivals_tonnes": 103.6,
+          "last_updated": "2026-11-11"
+        },
+        "Lucknow": {
+          "modal_price": 86.25,
+          "min_price": 75.9,
+          "max_price": 96.6,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Varanasi": {
+          "modal_price": 79.68,
+          "min_price": 70.12,
+          "max_price": 89.24,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Delhi": {
+          "modal_price": 101.85,
+          "min_price": 89.63,
+          "max_price": 114.07,
+          "arrivals_tonnes": 78.4,
+          "last_updated": "2026-11-11"
+        },
+        "Ahmedabad": {
+          "modal_price": 91.18,
+          "min_price": 80.24,
+          "max_price": 102.12,
+          "arrivals_tonnes": 96.6,
+          "last_updated": "2026-11-11"
+        },
+        "Surat": {
+          "modal_price": 90.35,
+          "min_price": 79.51,
+          "max_price": 101.19,
+          "arrivals_tonnes": 98.0,
+          "last_updated": "2026-11-11"
+        },
+        "Rajkot": {
+          "modal_price": 83.78,
+          "min_price": 73.73,
+          "max_price": 93.83,
+          "arrivals_tonnes": 109.2,
+          "last_updated": "2026-11-11"
+        },
+        "Chandigarh": {
+          "modal_price": 88.71,
+          "min_price": 78.06,
+          "max_price": 99.36,
+          "arrivals_tonnes": 100.8,
+          "last_updated": "2026-11-11"
+        },
+        "Ludhiana": {
+          "modal_price": 88.71,
+          "min_price": 78.06,
+          "max_price": 99.36,
+          "arrivals_tonnes": 100.8,
+          "last_updated": "2026-11-11"
+        },
+        "Kolkata": {
+          "modal_price": 98.57,
+          "min_price": 86.74,
+          "max_price": 110.4,
+          "arrivals_tonnes": 84.0,
+          "last_updated": "2026-11-11"
+        },
+        "Patna": {
+          "modal_price": 86.25,
+          "min_price": 75.9,
+          "max_price": 96.6,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Bhubaneswar": {
+          "modal_price": 85.43,
+          "min_price": 75.18,
+          "max_price": 95.68,
+          "arrivals_tonnes": 106.4,
+          "last_updated": "2026-11-11"
+        }
+      }
+    },
+    "Turmeric": {
+      "crop": "Turmeric",
+      "category": "Spice",
+      "perishability_tier": "NON_PERISHABLE",
+      "msp_floor": 0.0,
+      "national_modal_price": 138.39,
+      "national_min_price": 127.32,
+      "national_max_price": 149.46,
+      "daily_arrivals_tonnes": 3500.0,
+      "daily_volatility_pct": 0.04,
+      "last_updated": "2026-11-11",
+      "districts": {
+        "Pune": {
+          "modal_price": 155.0,
+          "min_price": 142.6,
+          "max_price": 167.4,
+          "arrivals_tonnes": 95.2,
+          "last_updated": "2026-11-11"
+        },
+        "Nashik": {
+          "modal_price": 128.7,
+          "min_price": 118.4,
+          "max_price": 139.0,
+          "arrivals_tonnes": 121.8,
+          "last_updated": "2026-11-11"
+        },
+        "Ahmednagar": {
+          "modal_price": 125.93,
+          "min_price": 115.86,
+          "max_price": 136.0,
+          "arrivals_tonnes": 124.6,
+          "last_updated": "2026-11-11"
+        },
+        "Solapur": {
+          "modal_price": 131.47,
+          "min_price": 120.95,
+          "max_price": 141.99,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Nagpur": {
+          "modal_price": 148.08,
+          "min_price": 136.23,
+          "max_price": 159.93,
+          "arrivals_tonnes": 102.2,
+          "last_updated": "2026-11-11"
+        },
+        "Satara": {
+          "modal_price": 132.85,
+          "min_price": 122.22,
+          "max_price": 143.48,
+          "arrivals_tonnes": 117.6,
+          "last_updated": "2026-11-11"
+        },
+        "Kolhapur": {
+          "modal_price": 135.62,
+          "min_price": 124.77,
+          "max_price": 146.47,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Sangli": {
+          "modal_price": 134.24,
+          "min_price": 123.5,
+          "max_price": 144.98,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Jalgaon": {
+          "modal_price": 128.7,
+          "min_price": 118.4,
+          "max_price": 139.0,
+          "arrivals_tonnes": 121.8,
+          "last_updated": "2026-11-11"
+        },
+        "Aurangabad": {
+          "modal_price": 135.62,
+          "min_price": 124.77,
+          "max_price": 146.47,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Mumbai": {
+          "modal_price": 177.14,
+          "min_price": 162.97,
+          "max_price": 191.31,
+          "arrivals_tonnes": 72.8,
+          "last_updated": "2026-11-11"
+        },
+        "Kadapa": {
+          "modal_price": 127.32,
+          "min_price": 117.13,
+          "max_price": 137.51,
+          "arrivals_tonnes": 123.2,
+          "last_updated": "2026-11-11"
+        },
+        "Kurnool": {
+          "modal_price": 125.93,
+          "min_price": 115.86,
+          "max_price": 136.0,
+          "arrivals_tonnes": 124.6,
+          "last_updated": "2026-11-11"
+        },
+        "Guntur": {
+          "modal_price": 130.09,
+          "min_price": 119.68,
+          "max_price": 140.5,
+          "arrivals_tonnes": 120.4,
+          "last_updated": "2026-11-11"
+        },
+        "Chittoor": {
+          "modal_price": 131.47,
+          "min_price": 120.95,
+          "max_price": 141.99,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Hyderabad": {
+          "modal_price": 163.3,
+          "min_price": 150.24,
+          "max_price": 176.36,
+          "arrivals_tonnes": 86.8,
+          "last_updated": "2026-11-11"
+        },
+        "Warangal": {
+          "modal_price": 132.85,
+          "min_price": 122.22,
+          "max_price": 143.48,
+          "arrivals_tonnes": 117.6,
+          "last_updated": "2026-11-11"
+        },
+        "Khammam": {
+          "modal_price": 131.47,
+          "min_price": 120.95,
+          "max_price": 141.99,
+          "arrivals_tonnes": 119.0,
+          "last_updated": "2026-11-11"
+        },
+        "Anantapur": {
+          "modal_price": 127.32,
+          "min_price": 117.13,
+          "max_price": 137.51,
+          "arrivals_tonnes": 123.2,
+          "last_updated": "2026-11-11"
+        },
+        "Bengaluru": {
+          "modal_price": 168.84,
+          "min_price": 155.33,
+          "max_price": 182.35,
+          "arrivals_tonnes": 81.2,
+          "last_updated": "2026-11-11"
+        },
+        "Belagavi": {
+          "modal_price": 135.62,
+          "min_price": 124.77,
+          "max_price": 146.47,
+          "arrivals_tonnes": 114.8,
+          "last_updated": "2026-11-11"
+        },
+        "Hubballi": {
+          "modal_price": 134.24,
+          "min_price": 123.5,
+          "max_price": 144.98,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Indore": {
+          "modal_price": 145.31,
+          "min_price": 133.69,
+          "max_price": 156.93,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Bhopal": {
+          "modal_price": 143.93,
+          "min_price": 132.42,
+          "max_price": 155.44,
+          "arrivals_tonnes": 106.4,
+          "last_updated": "2026-11-11"
+        },
+        "Jaipur": {
+          "modal_price": 146.69,
+          "min_price": 134.95,
+          "max_price": 158.43,
+          "arrivals_tonnes": 103.6,
+          "last_updated": "2026-11-11"
+        },
+        "Lucknow": {
+          "modal_price": 145.31,
+          "min_price": 133.69,
+          "max_price": 156.93,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Varanasi": {
+          "modal_price": 134.24,
+          "min_price": 123.5,
+          "max_price": 144.98,
+          "arrivals_tonnes": 116.2,
+          "last_updated": "2026-11-11"
+        },
+        "Delhi": {
+          "modal_price": 171.6,
+          "min_price": 157.87,
+          "max_price": 185.33,
+          "arrivals_tonnes": 78.4,
+          "last_updated": "2026-11-11"
+        },
+        "Ahmedabad": {
+          "modal_price": 153.61,
+          "min_price": 141.32,
+          "max_price": 165.9,
+          "arrivals_tonnes": 96.6,
+          "last_updated": "2026-11-11"
+        },
+        "Surat": {
+          "modal_price": 152.23,
+          "min_price": 140.05,
+          "max_price": 164.41,
+          "arrivals_tonnes": 98.0,
+          "last_updated": "2026-11-11"
+        },
+        "Rajkot": {
+          "modal_price": 141.16,
+          "min_price": 129.87,
+          "max_price": 152.45,
+          "arrivals_tonnes": 109.2,
+          "last_updated": "2026-11-11"
+        },
+        "Chandigarh": {
+          "modal_price": 149.46,
+          "min_price": 137.5,
+          "max_price": 161.42,
+          "arrivals_tonnes": 100.8,
+          "last_updated": "2026-11-11"
+        },
+        "Ludhiana": {
+          "modal_price": 149.46,
+          "min_price": 137.5,
+          "max_price": 161.42,
+          "arrivals_tonnes": 100.8,
+          "last_updated": "2026-11-11"
+        },
+        "Kolkata": {
+          "modal_price": 166.07,
+          "min_price": 152.78,
+          "max_price": 179.36,
+          "arrivals_tonnes": 84.0,
+          "last_updated": "2026-11-11"
+        },
+        "Patna": {
+          "modal_price": 145.31,
+          "min_price": 133.69,
+          "max_price": 156.93,
+          "arrivals_tonnes": 105.0,
+          "last_updated": "2026-11-11"
+        },
+        "Bhubaneswar": {
+          "modal_price": 143.93,
+          "min_price": 132.42,
+          "max_price": 155.44,
+          "arrivals_tonnes": 106.4,
+          "last_updated": "2026-11-11"
+        }
+      }
+    }
+  }
+}

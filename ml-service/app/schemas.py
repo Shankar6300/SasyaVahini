@@ -78,6 +78,10 @@ class DemandForecastRequest(BaseModel):
         None,
         description="Average ambient temperature in °C (affects perishability & spoilage velocity).",
     )
+    current_price_per_kg: Optional[float] = Field(
+        None, ge=0,
+        description="Optional local mandi spot rate in ₹/kg. If omitted, resolved automatically from live Agmarknet APMC state.",
+    )
 
 
 class DemandForecastResponse(BaseModel):
@@ -95,6 +99,22 @@ class DemandForecastResponse(BaseModel):
     recommended_price_per_kg: Optional[float] = Field(
         None,
         description="Econometrically cleared listing price per kg",
+    )
+    spot_price_used: Optional[float] = Field(
+        None,
+        description="Spot price anchor used for the forecast baseline (₹/kg)",
+    )
+    spot_price_source: Optional[str] = Field(
+        None,
+        description="Source of the spot price: 'user_specified', 'live_agmarknet_apmc', or 'profile_baseline'",
+    )
+    msp_floor: Optional[float] = Field(
+        None,
+        description="Statutory GoI Minimum Support Price floor (₹/kg) if applicable",
+    )
+    guardrails_applied: List[str] = Field(
+        default_factory=list,
+        description="Econometric circuit breakers and policy guardrails triggered",
     )
     price_elasticity: Optional[float] = Field(
         None,
@@ -135,6 +155,7 @@ class PriceRecommendRequest(BaseModel):
     current_supply_kg: Optional[float] = Field(None, ge=0)
     predicted_demand_kg: Optional[float] = Field(None, ge=0)
     historical_price_per_kg: Optional[float] = Field(None, ge=0)
+    current_price_per_kg: Optional[float] = Field(None, ge=0, description="Optional local spot quote in ₹/kg")
     transit_days: Optional[float] = Field(1.5, ge=0)
 
 
@@ -147,6 +168,10 @@ class PriceRecommendResponse(BaseModel):
     price_range_min: float
     price_range_max: float
     currency: str = "INR"
+    spot_price_used: Optional[float] = None
+    spot_price_source: Optional[str] = None
+    msp_floor: Optional[float] = None
+    guardrails_applied: List[str] = Field(default_factory=list)
     elasticity_coefficient: float = Field(description="Price elasticity of demand (ε = %ΔQ / %ΔP)")
     market_clearing_volume_kg: float = Field(description="Volume projected to clear at this price point")
     spoilage_adjusted_gate_price: float = Field(description="Recommended price after transit decay discounting")
