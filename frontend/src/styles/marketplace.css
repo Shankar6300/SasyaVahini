@@ -994,3 +994,324 @@
   justify-content: center;
   margin-bottom: 16px;
 }
+
+
+/* ==========================================================================
+   SasyaVahini — Phase 4: Supplier Comparison & Total Landed Cost Styles
+   ========================================================================== */
+
+/* ── Floating Comparison Selection Bar ──────────────────────────────────── */
+.comparison-floating-bar {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 48px);
+  max-width: 1040px;
+  background: #FFFFFF;
+  border: 1px solid #DDE5DC;
+  border-radius: 16px;
+  box-shadow: 0 12px 36px rgba(23, 63, 48, 0.16);
+  z-index: 999;
+  padding: 12px 20px;
+  animation: compareSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes compareSlideUp {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 20px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+.comparison-bar-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.comparison-bar-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.comparison-bar-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #202820;
+}
+
+.comparison-bar-hint {
+  font-size: 11px;
+  color: #B45309;
+  font-weight: 500;
+}
+
+.comparison-bar-items {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.comparison-bar-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #F8F8F3;
+  border: 1px solid #DDE5DC;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+.comparison-chip-crop {
+  font-weight: 700;
+  color: #202820;
+}
+
+.comparison-chip-price {
+  color: #245C43;
+  font-weight: 800;
+}
+
+.comparison-chip-remove {
+  background: none;
+  border: none;
+  color: #68736B;
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  border-radius: 4px;
+}
+
+.comparison-chip-remove:hover {
+  background: #E8F0E8;
+  color: #B42318;
+}
+
+.comparison-bar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.comparison-bar-btn-clear {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #68736B;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.comparison-bar-btn-clear:hover {
+  background: #F8F8F3;
+  color: #202820;
+}
+
+.comparison-bar-btn-compare {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #245C43;
+  color: #FFFFFF;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.comparison-bar-btn-compare:hover:not(.disabled) {
+  background: #173F30;
+  transform: translateY(-1px);
+}
+
+.comparison-bar-btn-compare.disabled {
+  background: #DDE5DC;
+  color: #95A09A;
+  cursor: not-allowed;
+}
+
+/* ── Toggle Button Component ────────────────────────────────────────────── */
+.comparison-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.comparison-toggle-btn.compact {
+  padding: 7px 11px;
+  font-size: 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid #DDE5DC;
+  color: #202820;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.comparison-toggle-btn.compact.active {
+  background: #E8F0E8;
+  border-color: #245C43;
+  color: #245C43;
+}
+
+.comparison-toggle-btn.compact:hover:not(.active) {
+  border-color: #245C43;
+  color: #245C43;
+}
+
+.comparison-toggle-btn.standard {
+  padding: 8px 14px;
+  font-size: 12px;
+  background: #F8F8F3;
+  border: 1px solid #DDE5DC;
+  color: #202820;
+}
+
+.comparison-toggle-btn.standard.active {
+  background: #E8F0E8;
+  border-color: #245C43;
+  color: #245C43;
+}
+
+.comparison-toggle-btn.standard:hover:not(.active) {
+  border-color: #245C43;
+  background: #FFFFFF;
+}
+
+/* ── Comparison Table ───────────────────────────────────────────────────── */
+.comparison-table-wrapper {
+  background: #FFFFFF;
+  border: 1px solid #DDE5DC;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.comparison-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  text-align: left;
+}
+
+.comparison-table th,
+.comparison-table td {
+  padding: 14px 18px;
+  border-bottom: 1px solid #F1F4F1;
+  vertical-align: top;
+}
+
+.comparison-th-attribute {
+  width: 220px;
+  min-width: 200px;
+  background: #F8F8F3;
+  font-size: 12px;
+  font-weight: 800;
+  color: #68736B;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-right: 1px solid #DDE5DC;
+}
+
+.comparison-th-product {
+  min-width: 240px;
+  background: #FFFFFF;
+}
+
+.comparison-col-remove {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: #F8F8F3;
+  border: 1px solid #DDE5DC;
+  border-radius: 6px;
+  color: #68736B;
+  padding: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.comparison-col-remove:hover {
+  background: #FEE2E2;
+  color: #B42318;
+  border-color: #FCA5A5;
+}
+
+.comparison-card-top {
+  padding-right: 24px;
+}
+
+.comparison-section-row td {
+  background: #F4F7F4;
+  border-top: 1px solid #DDE5DC;
+  border-bottom: 1px solid #DDE5DC;
+  padding: 10px 18px;
+}
+
+.comparison-td-label {
+  font-weight: 700;
+  color: #202820;
+  background: #FAFBF9;
+  border-right: 1px solid #DDE5DC;
+}
+
+.comparison-td-val {
+  background: #FFFFFF;
+}
+
+/* ── Landed Cost Calculator Card ────────────────────────────────────────── */
+.comparison-landed-calculator-card {
+  border: 1px solid #DDE5DC;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(23, 63, 48, 0.04);
+}
+
+/* ── Empty State ────────────────────────────────────────────────────────── */
+.comparison-empty-panel {
+  background: #FFFFFF;
+  border: 1px solid #DDE5DC;
+  border-radius: 20px;
+  padding: 60px 24px;
+  text-align: center;
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.comparison-empty-icon {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: #E8F0E8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+}

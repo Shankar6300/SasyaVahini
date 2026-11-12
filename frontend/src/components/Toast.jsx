@@ -59,6 +59,13 @@ export function Toast() { return null; } // placeholder for barrel export
 
 export function useToast() {
   const ctx = useContext(ToastContext);
-  if (!ctx) throw new Error('useToast must be used within a ToastProvider');
+  if (!ctx) {
+    return {
+      success: () => {},
+      error: () => {},
+      warning: () => {},
+      info: () => {},
+    };
+  }
   return ctx;
 }

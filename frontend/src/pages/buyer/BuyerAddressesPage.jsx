@@ -135,7 +135,7 @@ export default function BuyerAddressesPage() {
           </button>
           <h1 className="buyer-page-title">Delivery & Billing Addresses</h1>
           <p className="buyer-page-subtitle">
-            Manage your destination points for Shankar's 2-tier logistics & CVRP fleet dispatch
+            Manage your destination points for Shanmukhananda's 2-tier logistics & CVRP fleet dispatch
           </p>
         </div>
 

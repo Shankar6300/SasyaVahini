@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './components/Toast';
+import { CompareProvider } from './context/CompareContext';
 import './i18n';
 import './index.css';
 
@@ -17,7 +18,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     >
       <ToastProvider>
         <AuthProvider>
-          <App />
+          <CompareProvider>
+            <App />
+          </CompareProvider>
         </AuthProvider>
       </ToastProvider>
     </BrowserRouter>

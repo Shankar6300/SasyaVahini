@@ -1,16 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, useLocation, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import marketplaceApi from '@/services/marketplaceApi';
 import ProductCard from '@/components/buyer/marketplace/ProductCard';
+import ProductCompareButton from '@/components/buyer/comparison/ProductCompareButton';
 import {
   ChevronLeft, MapPin, Sparkles, Building2, User, CheckCircle,
   Clock, ShieldCheck, Leaf, ArrowRight, Package, Info, AlertTriangle, ExternalLink
 } from 'lucide-react';
 import '@/styles/marketplace.css';
 
-export default function ProductDetailPage() {
-  const { productId } = useParams();
+export default function ProductDetailPage({ productId: propProductId }) {
+  const params = useParams();
+  const location = useLocation();
+  const productId =
+    propProductId ||
+    params.productId ||
+    (location.pathname.includes('/products/')
+      ? location.pathname.split('/products/')[1]?.split('?')[0]?.split('/')[0]
+      : null);
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -48,6 +56,9 @@ export default function ProductDetailPage() {
     if (productId) {
       loadData();
       window.scrollTo(0, 0);
+    } else {
+      setIsLoading(false);
+      setError('Produce lot ID not found in URL.');
     }
 
     return () => { isMounted = false; };
@@ -256,6 +267,11 @@ export default function ProductDetailPage() {
               <span>View Profile</span>
               <ExternalLink size={12} />
             </Link>
+          </div>
+
+          {/* Phase 4: Compare Action */}
+          <div className="mb-4">
+            <ProductCompareButton product={product} />
           </div>
 
           {/* Phase 3 Scope Notice */}

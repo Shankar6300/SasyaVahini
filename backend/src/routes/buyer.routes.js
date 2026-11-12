@@ -17,6 +17,7 @@ const {
   changePasswordSchema,
 } = require('../schemas/buyer.schema');
 const controller = require('../controllers/buyer.controller');
+const marketplaceController = require('../controllers/marketplace.controller');
 
 const router = Router();
 
@@ -38,6 +39,11 @@ router.patch('/addresses/:addressId/default', controller.setDefaultAddress);
 // ── Account Settings & Preferences ───────────────────────────────────────────
 router.get('/settings', controller.getSettings);
 router.patch('/settings', validate(updateSettingsSchema), controller.updateSettings);
+
+// ── Phase 4: Supplier Comparison & Total Landed Cost ────────────────────────
+router.get('/compare', marketplaceController.getComparisonData);
+router.post('/compare/calculate', marketplaceController.calculateLandedCost);
+router.get('/compare/price-history', marketplaceController.getPriceHistory);
 
 // ── Security & Password ──────────────────────────────────────────────────────
 router.post('/change-password', validate(changePasswordSchema), controller.changePassword);

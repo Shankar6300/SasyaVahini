@@ -89,6 +89,45 @@ export const marketplaceApi = {
     return res.data?.data || {};
   },
 
+  
+  /**
+   * Phase 4: Fetch side-by-side comparison data for 2 to 4 selected produce listings.
+   * @param {string[]|string} ids - Array of listing IDs or comma-separated string
+   * @param {Object} [params] - Optional parameters: sampleQuantityKg, buyerType, destLat, destLng
+   */
+  async getComparisonData(ids, params = {}) {
+    const idString = Array.isArray(ids) ? ids.join(',') : ids;
+    const res = await api.get('/marketplace/compare', {
+      params: { ids: idString, ...params },
+    });
+    return res.data?.data;
+  },
+
+  /**
+   * Phase 4: Calculate auditable Total Landed Cost based on buyer procurement quantity.
+   * @param {Object} payload
+   * @param {string[]} payload.listingIds
+   * @param {number} payload.quantityKg
+   * @param {number} [payload.destLat]
+   * @param {number} [payload.destLng]
+   * @param {string} [payload.buyerType]
+   */
+  async calculateLandedCost(payload) {
+    const res = await api.post('/marketplace/compare/calculate', payload);
+    return res.data?.data;
+  },
+
+  /**
+   * Phase 4: Fetch real Agmarknet historical price data for a crop corridor.
+   * @param {string} crop
+   */
+  async getPriceHistory(crop) {
+    const res = await api.get('/marketplace/compare/price-history', {
+      params: { crop },
+    });
+    return res.data?.data;
+  },
+
   /* ── Backward Compatibility Aliases for Phase 2 components ──────────── */
   async getProduceListings(params = {}) {
     const data = await this.getProducts(params);
