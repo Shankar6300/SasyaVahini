@@ -83,11 +83,12 @@ module.exports = {
   // Milestone Finite State Machine
   milestones: {
     INITIAL: 'ASSIGNED',
-    SEQUENCE: ['ASSIGNED', 'PICKUP', 'TRANSIT', 'OUT_FOR_DELIVERY', 'DELIVERED'],
+    SEQUENCE: ['ASSIGNED', 'PICKUP', 'TRANSIT', 'DELIVERED'],
     VALID_TRANSITIONS: {
       ASSIGNED: ['PICKUP'],
       PICKUP: ['TRANSIT'],
-      TRANSIT: ['OUT_FOR_DELIVERY'],
+      TRANSIT: ['DELIVERED'],
+      // Keep legacy shipments finishable after removing this step from new flows.
       OUT_FOR_DELIVERY: ['DELIVERED'],
       DELIVERED: [], // Terminal state
     },
@@ -128,5 +129,7 @@ module.exports = {
   ],
 
   // Environmental Config
-  dataSource: process.env.LOGISTICS_DATA_SOURCE || 'mock',
+  dataSource: ((process.env.JEST_WORKER_ID !== undefined || process.env.NODE_ENV === 'test') && !process.env.TEST_DB)
+    ? 'mock'
+    : (process.env.LOGISTICS_DATA_SOURCE || 'prisma'),
 };

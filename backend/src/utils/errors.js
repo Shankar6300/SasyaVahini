@@ -30,8 +30,8 @@ class ValidationError extends AppError {
 }
 
 class AuthenticationError extends AppError {
-  constructor(message = 'Authentication required') {
-    super(message, 401, 'AUTHENTICATION_ERROR');
+  constructor(message = 'Authentication required', code = 'AUTHENTICATION_ERROR') {
+    super(message, 401, code);
     this.name = 'AuthenticationError';
   }
 }
@@ -64,6 +64,20 @@ class BusinessRuleError extends AppError {
   }
 }
 
+class OperationalError extends AppError {
+  constructor(message = 'Operational error occurred', statusCode = 500, code = 'OPERATIONAL_ERROR', details = undefined) {
+    super(message, statusCode, code, details);
+    this.name = 'OperationalError';
+  }
+}
+
+class RateLimitError extends AppError {
+  constructor(message = 'Too many requests, please slow down.') {
+    super(message, 429, 'RATE_LIMIT_EXCEEDED');
+    this.name = 'RateLimitError';
+  }
+}
+
 module.exports = {
   AppError,
   ValidationError,
@@ -72,4 +86,6 @@ module.exports = {
   NotFoundError,
   ConflictError,
   BusinessRuleError,
+  OperationalError,
+  RateLimitError,
 };

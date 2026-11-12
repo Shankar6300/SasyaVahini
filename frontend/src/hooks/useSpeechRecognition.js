@@ -27,7 +27,7 @@ export default function useSpeechRecognition() {
   const defaultLocale = LOCALE_MAP[currentLangCode] || 'en-IN';
 
   const stopListening = useCallback(() => {
-    // If user stopped listening and there was spoken text not yet emitted as final, emit it now!
+    // If user stopped listening and there was spoken text not yet emitted as final, emit it immediately
     if (latestSpokenRef.current && !hasEmittedFinalRef.current && onResultCallbackRef.current) {
       hasEmittedFinalRef.current = true;
       const text = latestSpokenRef.current.trim();
@@ -44,11 +44,12 @@ export default function useSpeechRecognition() {
     if (recognitionRef.current) {
       try {
         recognitionRef.current.stop();
-      } catch {
+      } catch (_e) {
         // Already stopped
       }
     }
     setIsListening(false);
+    setInterimTranscript('');
   }, []);
 
   const resetTranscript = useCallback(() => {
@@ -117,13 +118,17 @@ export default function useSpeechRecognition() {
         hasEmittedFinalRef.current = true;
         latestSpokenRef.current = currentFinal;
         setInterimTranscript('');
-        setTranscript((prev) => {
-          const next = prev ? `${prev} ${currentFinal.trim()}` : currentFinal.trim();
-          if (onResultCallbackRef.current) {
-            onResultCallbackRef.current(next, currentFinal.trim());
+        const trimmed = currentFinal.trim();
+        setTranscript((prev) => (prev ? `${prev} ${trimmed}` : trimmed));
+        
+        // Execute callback directly so value enters the field immediately!
+        if (onResultCallbackRef.current) {
+          try {
+            onResultCallbackRef.current(trimmed, trimmed);
+          } catch (e) {
+            console.error('Error in onResult callback:', e);
           }
-          return next;
-        });
+        }
       }
     };
 
@@ -140,7 +145,7 @@ export default function useSpeechRecognition() {
     };
 
     recognition.onend = () => {
-      // If speech ended and there was an uncommitted interim text, flush it to callback!
+      // If speech ended and there was an uncommitted interim text, flush it directly to callback
       if (latestSpokenRef.current && !hasEmittedFinalRef.current && onResultCallbackRef.current) {
         hasEmittedFinalRef.current = true;
         const text = latestSpokenRef.current.trim();

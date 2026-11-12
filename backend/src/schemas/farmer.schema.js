@@ -1,4 +1,4 @@
-﻿/**
+/**
  * SasyaVahini — Farmer & FPO Zod Validation Schemas
  * Owner: Member 2 (Farmer & FPO Portals)
  */
@@ -17,6 +17,11 @@ const createProduceSchema = z.object({
   village: z.string().optional(),
   district: z.string().optional(),
   state: z.string().optional(),
+  pickupAddress: z.string().max(300).optional().nullable(),
+  pincode: z.string().regex(/^\d{6}$/, 'PIN code must be 6 digits').optional().or(z.literal('')).nullable(),
+  latitude: z.coerce.number().min(-90, 'Latitude must be >= -90').max(90, 'Latitude must be <= 90').optional().nullable(),
+  longitude: z.coerce.number().min(-180, 'Longitude must be >= -180').max(180, 'Longitude must be <= 180').optional().nullable(),
+  locationAccuracy: z.string().optional().default('GPS_PIN'),
   description: z.string().max(500).optional(),
   imageUrl: z.string().url().optional().or(z.literal(''))
 }).refine(data => {
@@ -37,6 +42,14 @@ const updateProduceSchema = z.object({
   qualityGrade: z.enum(['GRADE_A', 'GRADE_B', 'GRADE_C', 'ORGANIC_PREMIUM']).optional(),
   isOrganic: z.coerce.boolean().optional(),
   harvestDate: z.string().optional(),
+  village: z.string().optional(),
+  district: z.string().optional(),
+  state: z.string().optional(),
+  pickupAddress: z.string().max(300).optional().nullable(),
+  pincode: z.string().regex(/^\d{6}$/, 'PIN code must be 6 digits').optional().or(z.literal('')).nullable(),
+  latitude: z.coerce.number().min(-90).max(90).optional().nullable(),
+  longitude: z.coerce.number().min(-180).max(180).optional().nullable(),
+  locationAccuracy: z.string().optional(),
   description: z.string().max(500).optional(),
   imageUrl: z.string().url().optional().or(z.literal(''))
 });

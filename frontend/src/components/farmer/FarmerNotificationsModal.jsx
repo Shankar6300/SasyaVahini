@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import api from '../../services/api';
 import { Bell, X, CheckCheck, Clock, ShoppingBag, Truck, Info, Sparkles } from 'lucide-react';
 
 const FarmerNotificationsModal = ({ isOpen, onClose, onNotificationsRead }) => {
-
+  const { t } = useTranslation();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('ALL');
@@ -68,8 +69,8 @@ const FarmerNotificationsModal = ({ isOpen, onClose, onNotificationsRead }) => {
               <Bell className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-extrabold text-slate-900 text-lg">Platform Notifications</h3>
-              <p className="text-xs text-slate-500">Real-time alerts on allocations, orders, and market events</p>
+              <h3 className="font-extrabold text-slate-900 text-lg">{t('farmer.notificationsTitle', 'Platform Notifications')}</h3>
+              <p className="text-xs text-slate-500">{t('farmer.notificationsSubtitle', 'Real-time alerts on allocations, orders, and market events')}</p>
             </div>
           </div>
           <button
@@ -93,7 +94,7 @@ const FarmerNotificationsModal = ({ isOpen, onClose, onNotificationsRead }) => {
                     : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                 }`}
               >
-                {tab}
+                {tab === 'ALL' ? t('common.all', 'ALL') : tab === 'UNREAD' ? t('farmer.unread', 'UNREAD') : tab}
               </button>
             ))}
           </div>
@@ -102,16 +103,16 @@ const FarmerNotificationsModal = ({ isOpen, onClose, onNotificationsRead }) => {
             onClick={handleMarkAllRead}
             className="text-xs font-bold text-[#07875B] hover:text-[#056b48] flex items-center gap-1 flex-shrink-0"
           >
-            <CheckCheck className="w-4 h-4" /> Mark all read
+            <CheckCheck className="w-4 h-4" /> {t('farmer.markAllRead', 'Mark all read')}
           </button>
         </div>
 
         {/* Notification list */}
         <div className="flex-1 overflow-y-auto space-y-2.5 pr-1">
           {loading ? (
-            <div className="p-8 text-center text-slate-400 text-xs">Loading notifications...</div>
+            <div className="p-8 text-center text-slate-400 text-xs">{t('common.loading', 'Loading notifications...')}</div>
           ) : filtered.length === 0 ? (
-            <div className="p-8 text-center text-slate-400 text-xs">No notifications in this category.</div>
+            <div className="p-8 text-center text-slate-400 text-xs">{t('farmer.noNotifications', 'No notifications in this category.')}</div>
           ) : (
             filtered.map((item) => (
               <div

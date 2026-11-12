@@ -1,7 +1,9 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { X, ShieldCheck, Package } from 'lucide-react';
 
 const FpoMemberDetailsModal = ({ isOpen, onClose, member }) => {
+  const { t } = useTranslation();
   if (!isOpen || !member) return null;
 
   const user = member.user || {};
@@ -24,17 +26,18 @@ const FpoMemberDetailsModal = ({ isOpen, onClose, member }) => {
               <div className="flex items-center gap-2">
                 <h3 className="font-extrabold text-slate-900 text-lg">{user.name || 'Member Farmer'}</h3>
                 <span className="bg-emerald-100 text-emerald-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full border border-emerald-300">
-                  Verified Member
+                  {t('status.VERIFIED', 'Verified Member')}
                 </span>
               </div>
               <p className="text-xs text-slate-500">
-                Village: {user.village || 'Manchar'}, {user.district || 'Pune'} • {member.landSizeAcres || 2.5} Acres
+                {t('location.village', 'Village')}: {user.village || 'Manchar'}, {user.district || 'Pune'} • {member.landSizeAcres || 2.5} {t('farmer.acres', 'Acres')}
               </p>
             </div>
           </div>
           <button
+            type="button"
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition-colors"
+            className="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -43,15 +46,15 @@ const FpoMemberDetailsModal = ({ isOpen, onClose, member }) => {
         {/* Member KPI Summary */}
         <div className="grid grid-cols-3 gap-3 text-xs">
           <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 space-y-1">
-            <span className="text-slate-400 block font-medium">Contributed Supply</span>
+            <span className="text-slate-400 block font-medium">{t('fpo.contributedSupply', 'Contributed Supply')}</span>
             <span className="font-black text-slate-900 text-base">{totalContributedQty.toLocaleString()} kg</span>
           </div>
           <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 space-y-1">
-            <span className="text-slate-400 block font-medium">Active Lots</span>
-            <span className="font-black text-slate-900 text-base">{listings.length} Lots</span>
+            <span className="text-slate-400 block font-medium">{t('farmer.activeLots', 'Active Lots')}</span>
+            <span className="font-black text-slate-900 text-base">{listings.length} {listings.length === 1 ? t('farmer.activeLot', 'Lot') : t('farmer.activeLots', 'Lots')}</span>
           </div>
           <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 space-y-1">
-            <span className="text-slate-400 block font-medium">Total Lot Valuation</span>
+            <span className="text-slate-400 block font-medium">{t('farmer.lotValuation', 'Total Lot Valuation')}</span>
             <span className="font-black text-[#07875B] text-base">₹{totalValuation.toLocaleString()}</span>
           </div>
         </div>
@@ -60,10 +63,10 @@ const FpoMemberDetailsModal = ({ isOpen, onClose, member }) => {
         <div className="bg-[#E8F5E9] border border-emerald-200 p-4 rounded-2xl space-y-1.5 text-xs">
           <div className="flex items-center gap-2 font-bold text-[#07875B]">
             <ShieldCheck className="w-4 h-4 text-[#07875B]" />
-            Individual Traceability Guarantee
+            {t('fpo.traceabilityGuaranteeTitle', 'Individual Smallholder Traceability Guarantee')}
           </div>
           <p className="text-slate-600 text-[11px] leading-relaxed">
-            When this member's lots are aggregated into bulk buyer consignments, the central ledger preserves traceability back to this specific farmer's farm gate. Proceeds pass through directly without dilution.
+            {t('fpo.traceabilityGuaranteeText', "When this member's lots are aggregated into bulk buyer consignments, the central ledger preserves traceability back to this specific farmer's farm gate. Proceeds pass through directly without dilution.")}
           </p>
         </div>
 
@@ -71,39 +74,39 @@ const FpoMemberDetailsModal = ({ isOpen, onClose, member }) => {
         <div className="space-y-3">
           <h4 className="font-extrabold text-slate-900 text-sm flex items-center gap-1.5">
             <Package className="w-4 h-4 text-sky-600" />
-            Contributed Produce Listings
+            {t('fpo.contributedProduceListings', 'Contributed Produce Listings')}
           </h4>
 
           {listings.length === 0 ? (
             <div className="p-6 text-center text-slate-400 text-xs bg-slate-50 rounded-2xl border border-slate-200">
-              No active listings currently registered for this member farmer.
+              {t('fpo.noListingsRegistered', 'No active listings currently registered for this member farmer.')}
             </div>
           ) : (
             <div className="border border-slate-200 rounded-2xl overflow-hidden">
               <table className="w-full text-left text-xs">
-                <thead className="bg-slate-50 text-slate-600 font-extrabold uppercase border-b border-slate-200">
+                <thead className="bg-slate-50 text-slate-600 font-extrabold uppercase border-b border-slate-200 text-[10px]">
                   <tr>
-                    <th className="p-3">Crop</th>
-                    <th className="p-3">Quantity</th>
-                    <th className="p-3">Asking Rate</th>
-                    <th className="p-3">Grade</th>
-                    <th className="p-3 text-right">Status</th>
+                    <th className="p-3">{t('farmer.produce', 'Crop')}</th>
+                    <th className="p-3">{t('farmer.quantity', 'Quantity')}</th>
+                    <th className="p-3">{t('farmer.ratePerKg', 'Asking Rate')}</th>
+                    <th className="p-3">{t('farmer.qualityGradeLabel', 'Grade')}</th>
+                    <th className="p-3 text-right">{t('common.status', 'Status')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 font-medium">
                   {listings.map((l) => (
                     <tr key={l.id} className="hover:bg-slate-50">
                       <td className="p-3 font-bold text-slate-900 flex items-center gap-1.5">
-                        {l.cropName} {l.isOrganic && <span className="text-[9px] bg-emerald-100 text-emerald-800 px-1 py-0.2 rounded font-extrabold">ORG</span>}
+                        {t('crops.' + l.cropName, l.cropName)} {l.isOrganic && <span className="text-[9px] bg-emerald-100 text-emerald-800 px-1 py-0.2 rounded font-extrabold">ORG</span>}
                       </td>
                       <td className="p-3 font-bold text-slate-800">{l.quantityKg.toLocaleString()} kg</td>
                       <td className="p-3 font-black text-[#07875B]">₹{l.askingPricePerKg}/kg</td>
-                      <td className="p-3"><span className="bg-slate-100 px-1.5 py-0.5 rounded text-[10px] font-bold">{l.qualityGrade}</span></td>
+                      <td className="p-3"><span className="bg-slate-100 px-2 py-0.5 rounded text-[10px] font-bold">{l.qualityGrade}</span></td>
                       <td className="p-3 text-right">
-                        <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${
-                          l.status === 'AVAILABLE' ? 'bg-emerald-100 text-[#07875B]' : 'bg-blue-100 text-blue-800'
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                          l.status === 'AVAILABLE' ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800'
                         }`}>
-                          {l.status}
+                          {t('status.' + l.status, l.status)}
                         </span>
                       </td>
                     </tr>
@@ -114,13 +117,14 @@ const FpoMemberDetailsModal = ({ isOpen, onClose, member }) => {
           )}
         </div>
 
-        {/* Footer */}
+        {/* Close Button */}
         <div className="pt-2 flex justify-end border-t border-slate-100">
           <button
+            type="button"
             onClick={onClose}
-            className="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow-sm transition-all"
+            className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition-colors cursor-pointer"
           >
-            Close Member View
+            {t('common.close', 'Close')}
           </button>
         </div>
 

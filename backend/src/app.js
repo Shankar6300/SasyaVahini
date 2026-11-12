@@ -31,6 +31,9 @@ const mlRoutes = require('./routes/ml.routes');
 
 const app = express();
 
+// Trust reverse proxy (Nginx) so client IP is accurately extracted from X-Forwarded-For
+app.set('trust proxy', 1);
+
 // ─── Security middleware ───────────────────────────────────────────────────────
 app.use(helmet());
 
@@ -54,17 +57,19 @@ app.use(
 // ─── Rate limiting ────────────────────────────────────────────────────────────
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 500,
+  max: 10000,
   standardHeaders: true,
   legacyHeaders: false,
+  validate: { xForwardedForHeader: false },
   message: { success: false, error: { code: 'RATE_LIMIT', message: 'Too many requests' } },
 });
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 20, // Stricter for auth
+  max: 2000, // High threshold allowing user registration & logins without 429 lockouts
   standardHeaders: true,
   legacyHeaders: false,
+  validate: { xForwardedForHeader: false },
   message: { success: false, error: { code: 'RATE_LIMIT', message: 'Too many auth requests' } },
 });
 
@@ -108,6 +113,12 @@ app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/farmers', require('./routes/farmer.routes'));
 app.use('/api/fpo', require('./routes/fpo.routes'));
 app.use('/api/notifications', require('./routes/notification.routes'));
+app.use('/api/tts', require('./routes/tts.routes'));
+
+// Member 3 Routes: Buyer & Marketplace
+app.use('/api/marketplace', require('./routes/marketplace.routes'));
+app.use('/api/buyer/marketplace', require('./routes/marketplace.routes'));
+app.use('/api/buyer', require('./routes/buyer.routes'));
 
 // Member 4 Routes: Logistics
 app.use('/api/logistics', require('./routes/logistics.routes'));

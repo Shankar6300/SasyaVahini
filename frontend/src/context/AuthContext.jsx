@@ -17,6 +17,8 @@ import {
   clearSession,
   getRefreshToken,
   setPreviewSession,
+  getPreviewPersona,
+  setPreviewPersona,
 } from '../services/auth.storage';
 
 // ─── State & Actions ──────────────────────────────────────────────────────
@@ -27,12 +29,31 @@ const initialState = {
   error: null,
 };
 
-const DEV_PREVIEW_USER = {
-  id: 'dev-logistics-preview',
-  name: 'Logistics Preview User',
-  email: 'logistics-preview@local.test',
-  role: 'LOGISTICS',
+const PERSONA_USERS = {
+  VEHICLE_OWNER: {
+    id: 'dev-logistics-owner',
+    name: 'Ramesh Patil',
+    email: 'owner_7434@logistics.in',
+    role: 'LOGISTICS',
+    partnerType: 'VEHICLE_OWNER',
+  },
+  INDIVIDUAL_DRIVER: {
+    id: 'dev-logistics-driver',
+    name: 'Santosh Gaikwad',
+    email: 'driver_5029@logistics.in',
+    role: 'LOGISTICS',
+    partnerType: 'INDIVIDUAL_DRIVER',
+  },
+  FLEET_OPERATOR: {
+    id: 'dev-logistics-org',
+    name: 'Sahyadri Agro Logistics Pvt Ltd',
+    email: 'dispatch@sahyadrifleet.in',
+    role: 'LOGISTICS',
+    partnerType: 'FLEET_OPERATOR',
+  },
 };
+
+const DEV_PREVIEW_USER = PERSONA_USERS.VEHICLE_OWNER;
 
 const AUTH_ACTIONS = {
   RESTORE_START:  'RESTORE_START',
@@ -107,13 +128,38 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
-  const previewLogin = useCallback(() => {
+  const previewLogin = useCallback((input = 'transporter@sasyavahini.in', customName = null) => {
     if (!import.meta.env.DEV) {
       throw new Error('Logistics preview is only available in development.');
     }
-    setPreviewSession();
-    dispatch({ type: AUTH_ACTIONS.LOGIN_SUCCESS, payload: DEV_PREVIEW_USER });
-    return DEV_PREVIEW_USER;
+    let personaUser;
+    if (typeof input === 'string' && input.includes('@')) {
+      const emailPrefix = input.split('@')[0].replace(/[._-]/g, ' ');
+      const cleanName = customName || (emailPrefix.charAt(0).toUpperCase() + emailPrefix.slice(1));
+      personaUser = {
+        id: `usr_preview_${input.replace(/[^a-zA-Z0-9]/g, '_')}`,
+        name: cleanName,
+        email: input,
+        role: 'LOGISTICS',
+        partnerType: 'VEHICLE_OWNER',
+      };
+      setPreviewSession('VEHICLE_OWNER');
+    } else {
+      const persona = input || 'VEHICLE_OWNER';
+      personaUser = PERSONA_USERS[persona] || PERSONA_USERS.VEHICLE_OWNER;
+      setPreviewSession(persona);
+    }
+    setTokens('preview_access_token_dev', 'preview_refresh_token_dev');
+    setStoredUser(personaUser);
+    dispatch({ type: AUTH_ACTIONS.LOGIN_SUCCESS, payload: personaUser });
+    return personaUser;
+  }, []);
+
+  const switchPreviewPersona = useCallback((persona) => {
+    const personaUser = PERSONA_USERS[persona] || PERSONA_USERS.VEHICLE_OWNER;
+    setPreviewPersona(persona);
+    dispatch({ type: AUTH_ACTIONS.LOGIN_SUCCESS, payload: personaUser });
+    return personaUser;
   }, []);
 
   const register = useCallback(async (formData) => {
@@ -149,6 +195,7 @@ export function AuthProvider({ children }) {
         ...state,
         login,
         previewLogin,
+        switchPreviewPersona,
         register,
         logout,
         clearError,

@@ -1082,3 +1082,562 @@
   .buyer-stats-grid { grid-template-columns: 1fr; }
   .buyer-quick-actions { grid-template-columns: 1fr; }
 }
+
+/* ==========================================================================
+   Buyer Dashboard Top Header Bar & Interactive Marketplace Components
+   ========================================================================== */
+
+.buyer-dashboard-top-header {
+  background: var(--buyer-surface);
+  border: 1px solid var(--buyer-border-light);
+  border-radius: var(--buyer-radius-lg);
+  padding: 18px 24px;
+  margin-bottom: 24px;
+  box-shadow: var(--buyer-shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.buyer-top-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.buyer-header-branding {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.buyer-header-portal-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--buyer-radius-md);
+  background: var(--buyer-sage);
+  color: var(--buyer-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.buyer-header-title-wrap h1 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--buyer-text);
+  margin: 0 0 3px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.buyer-header-subtitle {
+  font-size: 13px;
+  color: var(--buyer-text-secondary);
+  margin: 0;
+}
+
+.buyer-header-middle-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  max-width: 420px;
+}
+
+.buyer-header-search-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.buyer-header-search-input {
+  width: 100%;
+  padding: 9px 14px 9px 38px;
+  border: 1px solid var(--buyer-border);
+  border-radius: var(--buyer-radius-md);
+  font-size: 13px;
+  color: var(--buyer-text);
+  background: var(--buyer-bg);
+  transition: all var(--buyer-transition);
+  outline: none;
+}
+
+.buyer-header-search-input:focus {
+  border-color: var(--buyer-primary);
+  background: var(--buyer-surface);
+  box-shadow: 0 0 0 3px rgba(36, 92, 67, 0.1);
+}
+
+.buyer-header-search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--buyer-text-muted);
+  pointer-events: none;
+}
+
+.buyer-header-right-badges {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.buyer-live-ticker-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #FEF6EE;
+  border: 1px solid #F9DBAF;
+  color: #B54708;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.buyer-live-indicator-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #07875B;
+  display: inline-block;
+  box-shadow: 0 0 0 2px rgba(7, 135, 91, 0.2);
+  animation: pulse-dot 2s infinite;
+}
+
+@keyframes pulse-dot {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(7, 135, 91, 0.5); }
+  70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(7, 135, 91, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(7, 135, 91, 0); }
+}
+
+.buyer-top-nav-tabs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-top: 1px solid var(--buyer-border-light);
+  padding-top: 14px;
+  overflow-x: auto;
+}
+
+.buyer-nav-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px;
+  border-radius: var(--buyer-radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--buyer-text-secondary);
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all var(--buyer-transition);
+  white-space: nowrap;
+}
+
+.buyer-nav-tab-btn:hover {
+  background: var(--buyer-sage-light);
+  color: var(--buyer-primary);
+}
+
+.buyer-nav-tab-btn.active {
+  background: var(--buyer-primary);
+  color: white;
+  box-shadow: var(--buyer-shadow-sm);
+}
+
+.buyer-produce-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 18px;
+}
+
+.buyer-produce-card {
+  background: var(--buyer-surface);
+  border: 1px solid var(--buyer-border-light);
+  border-radius: var(--buyer-radius-md);
+  padding: 18px;
+  transition: all var(--buyer-transition);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.buyer-produce-card:hover {
+  box-shadow: var(--buyer-shadow-md);
+  border-color: var(--buyer-primary-light);
+  transform: translateY(-2px);
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════════
+   PHASE 2 — BUYER PROFILE & ACCOUNT MANAGEMENT STYLES
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.buyer-page-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 20px 48px;
+}
+
+.buyer-page-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--buyer-text);
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.buyer-page-subtitle {
+  font-size: 13px;
+  color: var(--buyer-text-secondary);
+  margin-top: 4px;
+}
+
+.buyer-card {
+  background: var(--buyer-surface);
+  border: 1px solid var(--buyer-border);
+  border-radius: var(--buyer-radius-lg);
+  padding: 24px;
+  box-shadow: var(--buyer-shadow-sm);
+  transition: box-shadow var(--buyer-transition);
+}
+
+.buyer-card:hover {
+  box-shadow: var(--buyer-shadow-md);
+}
+
+.buyer-section-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--buyer-border-light);
+}
+
+.buyer-avatar-large {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--buyer-sage);
+  color: var(--buyer-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 2px solid var(--buyer-border);
+}
+
+.buyer-role-tag {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--buyer-primary);
+  background: var(--buyer-sage);
+  border: 1px solid var(--buyer-border);
+  padding: 2px 8px;
+  border-radius: 9999px;
+  letter-spacing: 0.04em;
+}
+
+/* ── Profile Completion Widget ─────────────────────────────────────────── */
+.buyer-completion-card {
+  background: linear-gradient(135deg, #FAFDF9 0%, #F4F8F4 100%);
+  border: 1px solid #D2E4D2;
+  border-radius: var(--buyer-radius-lg);
+  padding: 20px;
+}
+
+.buyer-completion-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.buyer-completion-icon-wrap {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--buyer-primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.buyer-completion-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--buyer-text);
+  margin: 0;
+}
+
+.buyer-completion-subtitle {
+  font-size: 11px;
+  color: var(--buyer-text-secondary);
+  margin-top: 1px;
+}
+
+.buyer-completion-percentage-pill {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--buyer-primary);
+  background: white;
+  border: 1px solid #D2E4D2;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.buyer-progress-track {
+  width: 100%;
+  height: 8px;
+  background: #E4ECE4;
+  border-radius: 9999px;
+  overflow: hidden;
+  margin-bottom: 14px;
+}
+
+.buyer-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #245C43 0%, #2E7554 100%);
+  border-radius: 9999px;
+  transition: width 600ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.buyer-completion-checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.buyer-checklist-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid #E4ECE4;
+  transition: all var(--buyer-transition);
+  cursor: pointer;
+}
+
+.buyer-checklist-item:hover {
+  background: white;
+  border-color: #C3D8C3;
+  transform: translateX(2px);
+}
+
+.buyer-checklist-item.completed {
+  background: rgba(235, 248, 237, 0.6);
+  border-color: #D3ECD6;
+}
+
+/* ── Address Cards & Management ────────────────────────────────────────── */
+.buyer-address-card {
+  background: var(--buyer-surface);
+  border: 1.5px solid var(--buyer-border);
+  border-radius: var(--buyer-radius-lg);
+  padding: 20px;
+  transition: all var(--buyer-transition);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.buyer-address-card:hover {
+  box-shadow: var(--buyer-shadow-md);
+  border-color: #B5C9B5;
+}
+
+.buyer-address-card.is-default {
+  border-color: var(--buyer-primary);
+  background: linear-gradient(180deg, #FFFFFF 0%, #FAFDFB 100%);
+  box-shadow: 0 2px 8px rgba(36, 92, 67, 0.08);
+}
+
+.buyer-address-type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: var(--buyer-sage);
+  color: var(--buyer-primary);
+  border: 1px solid var(--buyer-border);
+}
+
+.buyer-default-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  background: #EBFDF2;
+  color: #027A48;
+  border: 1px solid #A6F4C5;
+}
+
+.buyer-address-instructions {
+  font-size: 11px;
+  color: var(--buyer-text-secondary);
+  background: #F8F8F3;
+  border-left: 3px solid var(--buyer-gold);
+  padding: 6px 10px;
+  border-radius: 0 6px 6px 0;
+  margin-bottom: 12px;
+}
+
+.buyer-icon-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--buyer-text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--buyer-transition);
+}
+
+.buyer-icon-btn:hover {
+  background: #F4F6F4;
+  color: var(--buyer-text);
+  border-color: var(--buyer-border);
+}
+
+.buyer-icon-btn.danger:hover {
+  background: #FEF3F2;
+  color: var(--buyer-error);
+  border-color: var(--buyer-error-border);
+}
+
+/* ── Modals & Dialogs ─────────────────────────────────────────────────── */
+.buyer-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(16, 24, 18, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: buyerFadeIn 150ms ease-out;
+}
+
+.buyer-modal-card {
+  background: var(--buyer-surface);
+  border: 1px solid var(--buyer-border);
+  border-radius: var(--buyer-radius-xl);
+  width: 100%;
+  max-width: 580px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+}
+
+.buyer-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--buyer-border-light);
+}
+
+.buyer-modal-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: var(--buyer-sage);
+  color: var(--buyer-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.buyer-modal-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--buyer-text);
+  margin: 0;
+}
+
+.buyer-modal-subtitle {
+  font-size: 12px;
+  color: var(--buyer-text-secondary);
+  margin-top: 1px;
+}
+
+.buyer-modal-form {
+  padding: 20px 24px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.buyer-modal-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.buyer-type-pill {
+  padding: 7px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 8px;
+  border: 1px solid var(--buyer-border);
+  background: white;
+  color: var(--buyer-text-secondary);
+  cursor: pointer;
+  transition: all var(--buyer-transition);
+}
+
+.buyer-type-pill:hover {
+  border-color: var(--buyer-primary-light);
+  color: var(--buyer-primary);
+}
+
+.buyer-type-pill.active {
+  background: var(--buyer-primary);
+  color: white;
+  border-color: var(--buyer-primary);
+}
+
+.buyer-checkbox {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--buyer-primary);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.buyer-profile-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 360px;
+}

@@ -198,21 +198,21 @@ export default function SmartVoiceListingModal({ isOpen, onClose, onApplyParsed,
               <div className="bg-white p-2.5 rounded-xl border border-slate-200">
                 <span className="text-slate-400 block text-[10px] font-bold">{t('voice.cropDetected', 'Crop Produce')}</span>
                 <span className="font-extrabold text-slate-800 text-sm">
-                  {parsedData.cropName || <span className="text-amber-600 text-xs font-medium">Say crop name</span>}
+                  {parsedData.cropName || <span className="text-amber-600 text-xs font-medium">{t('voice.sayCropName', 'Say crop name')}</span>}
                 </span>
               </div>
 
               <div className="bg-white p-2.5 rounded-xl border border-slate-200">
                 <span className="text-slate-400 block text-[10px] font-bold">{t('voice.qtyDetected', 'Quantity')}</span>
                 <span className="font-extrabold text-slate-800 text-sm">
-                  {parsedData.quantityKg ? `${Number(parsedData.quantityKg).toLocaleString()} kg` : <span className="text-amber-600 text-xs font-medium">Say quantity</span>}
+                  {parsedData.quantityKg ? `${Number(parsedData.quantityKg).toLocaleString()} kg` : <span className="text-amber-600 text-xs font-medium">{t('voice.sayQuantity', 'Say quantity')}</span>}
                 </span>
               </div>
 
               <div className="bg-white p-2.5 rounded-xl border border-slate-200">
                 <span className="text-slate-400 block text-[10px] font-bold">{t('voice.priceDetected', 'Asking Rate')}</span>
                 <span className="font-extrabold text-slate-800 text-sm">
-                  {parsedData.askingPricePerKg ? `₹${parsedData.askingPricePerKg}/kg` : <span className="text-amber-600 text-xs font-medium">Say price/rate</span>}
+                  {parsedData.askingPricePerKg ? `₹${parsedData.askingPricePerKg}/kg` : <span className="text-amber-600 text-xs font-medium">{t('voice.sayPriceRate', 'Say price/rate')}</span>}
                 </span>
               </div>
 

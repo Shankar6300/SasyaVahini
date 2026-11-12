@@ -85,9 +85,13 @@ export default function BuyerRegisterPage() {
         phone: form.phone.replace(/[\s\-+]/g, ''),
         password: form.password,
         role: 'BUYER',
-        organizationName: form.organizationName.trim() || `${form.name.trim()} Enterprise`,
-        buyerType: form.businessCategory || (buyerType === 'business' ? 'Wholesaler' : 'Consumer'),
-        gstNumber: form.gstin.trim() || null,
+        organizationName: buyerType === 'business'
+          ? (form.organizationName.trim() || `${form.name.trim()} Enterprise`)
+          : `${form.name.trim()} (Individual)`,
+        buyerType: buyerType === 'business'
+          ? (form.businessCategory || 'Wholesaler')
+          : 'Consumer',
+        gstNumber: form.gstin.trim() || undefined,
         deliveryAddress: form.businessAddress.trim() || '',
         deliveryDistrict: 'Pune',
         deliveryState: 'Maharashtra',

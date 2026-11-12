@@ -117,7 +117,8 @@ const addProduce = async (req, res, next) => {
     const farmer = await getFarmerProfileOrThrow(req.user.id);
     const {
       cropName, category, quantityKg, totalQuantityKg, askingPricePerKg, minPricePerKg,
-      harvestDate, qualityGrade, isOrganic, location, village, district, state, imageUrl, description
+      harvestDate, qualityGrade, isOrganic, location, village, district, state, imageUrl, description,
+      latitude, longitude, pickupAddress, pincode, locationAccuracy
     } = req.body;
 
     const rawQty = quantityKg !== undefined ? quantityKg : totalQuantityKg;
@@ -136,6 +137,9 @@ const addProduce = async (req, res, next) => {
 
     const harvest = harvestDate ? new Date(harvestDate) : new Date();
 
+    const parsedLat = latitude !== undefined && latitude !== null && latitude !== '' ? parseFloat(latitude) : null;
+    const parsedLng = longitude !== undefined && longitude !== null && longitude !== '' ? parseFloat(longitude) : null;
+
     const listing = await prisma.produceListing.create({
       data: {
         farmerId: farmer.id,
@@ -153,6 +157,11 @@ const addProduce = async (req, res, next) => {
         state: state || farmer.state || 'Maharashtra',
         district: district || farmer.district || 'Pune',
         village: village || location || farmer.village || 'Manchar',
+        pickupAddress: pickupAddress || null,
+        pincode: pincode || null,
+        latitude: parsedLat,
+        longitude: parsedLng,
+        locationAccuracy: locationAccuracy || 'GPS_PIN',
         imageUrl: imageUrl || null,
         description: description || null,
         status: 'AVAILABLE'
@@ -224,6 +233,14 @@ const updateProduce = async (req, res, next) => {
     if (req.body.harvestDate !== undefined) updateData.harvestDate = new Date(req.body.harvestDate);
     if (req.body.description !== undefined) updateData.description = req.body.description;
     if (req.body.imageUrl !== undefined) updateData.imageUrl = req.body.imageUrl;
+    if (req.body.village !== undefined) updateData.village = req.body.village;
+    if (req.body.district !== undefined) updateData.district = req.body.district;
+    if (req.body.state !== undefined) updateData.state = req.body.state;
+    if (req.body.pickupAddress !== undefined) updateData.pickupAddress = req.body.pickupAddress;
+    if (req.body.pincode !== undefined) updateData.pincode = req.body.pincode;
+    if (req.body.latitude !== undefined) updateData.latitude = req.body.latitude ? parseFloat(req.body.latitude) : null;
+    if (req.body.longitude !== undefined) updateData.longitude = req.body.longitude ? parseFloat(req.body.longitude) : null;
+    if (req.body.locationAccuracy !== undefined) updateData.locationAccuracy = req.body.locationAccuracy;
 
     const updated = await prisma.produceListing.update({
       where: { id },

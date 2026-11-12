@@ -91,9 +91,9 @@ const AllocationConsentSection = ({ onAllocationStatusChanged }) => {
       <div className="bg-gradient-to-r from-emerald-950 to-slate-900 rounded-3xl p-6 sm:p-7 text-white shadow-xl border border-emerald-800/40 space-y-3">
         <div className="flex items-center gap-2">
           <span className="bg-[#07875B] text-white text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full">
-            Core Invention Workflow
+            {t('proposals.coreInvention', 'Core Invention Workflow')}
           </span>
-          <span className="text-emerald-400 text-xs font-bold">Explicit Supplier Consent Protocol</span>
+          <span className="text-emerald-400 text-xs font-bold">{t('proposals.explicitConsentProtocol', 'Explicit Supplier Consent Protocol')}</span>
         </div>
         <h2 className="text-xl sm:text-2xl font-black text-white">{t('proposals.title', 'Proposed Procurement Allocations & Supplier Consent')}</h2>
         <p className="text-xs text-slate-300 max-w-3xl leading-relaxed">{t('proposals.subtitle', "Unlike speculative platforms that assume unconfirmed stock, SasyaVahini mandates explicit supplier consent. Once you accept, the backend validates available inventory and locks it in the RESERVED state.")}</p>
@@ -113,7 +113,7 @@ const AllocationConsentSection = ({ onAllocationStatusChanged }) => {
       <div className="flex justify-between items-center">
         <div>
           <h3 className="text-base font-extrabold text-slate-900">{t('proposals.activeProposals', 'Active Procurement Proposals')}</h3>
-          <p className="text-xs text-slate-500">Review buyer purchase proposals matching your registered harvest inventory.</p>
+          <p className="text-xs text-slate-500">{t('proposals.reviewBuyerProposals', 'Review buyer purchase proposals matching your registered harvest inventory.')}</p>
         </div>
         <div className="flex items-center gap-2">
           <VoiceAssistant guideType="consent" />
@@ -191,11 +191,11 @@ const AllocationConsentSection = ({ onAllocationStatusChanged }) => {
                       </span>
                       <span className="flex items-center gap-1">
                         <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                        {prop.deliveryLocation} ({prop.distanceKm} km away)
+                        {t('proposals.deliveryTo', 'Delivery To')}: {prop.deliveryLocation} ({prop.distanceKm} km away)
                       </span>
                       <span className="flex items-center gap-1">
                         <Clock className="w-3.5 h-3.5 text-slate-400" />
-                        Delivery By: <strong>{prop.requiredByDate}</strong>
+                        {t('proposals.requiredBy', 'Required By')}: <strong>{prop.requiredByDate}</strong>
                       </span>
                     </div>
                   </div>
@@ -203,20 +203,20 @@ const AllocationConsentSection = ({ onAllocationStatusChanged }) => {
                   {/* Middle: Commercial Figures */}
                   <div className="flex items-center gap-6 bg-slate-50 p-3 rounded-xl border border-slate-100 text-xs">
                     <div>
-                      <span className="text-slate-400 block text-[11px] font-medium">Proposed Lot</span>
+                      <span className="text-slate-400 block text-[11px] font-medium">{t('proposals.proposedQty', 'Proposed Quantity')}</span>
                       <span className="font-black text-slate-900 text-sm">{prop.proposedQuantityKg.toLocaleString()} kg</span>
                     </div>
                     <div>
-                      <span className="text-slate-400 block text-[11px] font-medium">Offered Price</span>
+                      <span className="text-slate-400 block text-[11px] font-medium">{t('proposals.buyerOfferedRate', 'Offered Rate')}</span>
                       <span className="font-black text-[#07875B] text-sm">₹{prop.offeredPricePerKg}/kg</span>
                       {priceDiff >= 0 ? (
-                        <span className="text-[10px] text-[#07875B] block font-bold">+₹{priceDiff}/kg vs asking</span>
+                        <span className="text-[10px] text-[#07875B] block font-bold">+₹{priceDiff}/kg</span>
                       ) : (
-                        <span className="text-[10px] text-amber-600 block font-bold">-₹{Math.abs(priceDiff)}/kg vs asking</span>
+                        <span className="text-[10px] text-amber-600 block font-bold">-₹{Math.abs(priceDiff)}/kg</span>
                       )}
                     </div>
                     <div>
-                      <span className="text-slate-400 block text-[11px] font-medium">Estimated Gross</span>
+                      <span className="text-slate-400 block text-[11px] font-medium">{t('farmer.grossLotValuation', 'Estimated Gross')}</span>
                       <span className="font-black text-slate-900 text-sm">₹{lotValue.toLocaleString()}</span>
                     </div>
                   </div>
@@ -226,7 +226,7 @@ const AllocationConsentSection = ({ onAllocationStatusChanged }) => {
                     {isReserved ? (
                       <div className="flex items-center gap-2 text-xs font-bold text-blue-700 bg-blue-50 px-3 py-2 rounded-xl border border-blue-200">
                         <ShieldCheck className="w-4 h-4 text-blue-600" />
-                        Allocated & Reserved
+                        {t('status.RESERVED', 'Reserved')}
                       </div>
                     ) : (
                       <>
@@ -235,7 +235,7 @@ const AllocationConsentSection = ({ onAllocationStatusChanged }) => {
                           disabled={processingId === prop.id}
                           className="px-3.5 py-2 text-xs font-bold text-rose-700 hover:text-rose-800 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-xl transition-all"
                         >
-                          Decline
+                          {t('proposals.rejectBtn', 'Decline Request')}
                         </button>
                         <button
                           onClick={() => openConfirmation('ACCEPT', prop)}
@@ -243,7 +243,7 @@ const AllocationConsentSection = ({ onAllocationStatusChanged }) => {
                           className="px-4 py-2 text-xs font-extrabold text-white bg-[#07875B] hover:bg-[#056b48] rounded-xl shadow-md flex items-center gap-1.5 transition-all hover:scale-105"
                         >
                           <Check className="w-4 h-4" />
-                          Accept Allocation
+                          {t('proposals.acceptBtn', 'Accept & Reserve Inventory')}
                         </button>
                       </>
                     )}
@@ -273,44 +273,34 @@ const AllocationConsentSection = ({ onAllocationStatusChanged }) => {
               </div>
               <div>
                 <h4 className="font-extrabold text-slate-900 text-base">
-                  {confirmModal.action === 'ACCEPT' ? 'Confirm Allocation Acceptance' : 'Decline Allocation Proposal'}
+                  {confirmModal.action === 'ACCEPT' ? t('proposals.consentModalTitle', 'Confirm Supplier Consent') : t('proposals.rejectModalTitle', 'Decline Allocation Proposal')}
                 </h4>
                 <p className="text-xs text-slate-500">
-                  {confirmModal.proposal.cropName} • {confirmModal.proposal.proposedQuantityKg.toLocaleString()} kg @ ₹{confirmModal.proposal.offeredPricePerKg}/kg
+                  {t('crops.' + confirmModal.proposal.cropName, confirmModal.proposal.cropName)} • {confirmModal.proposal.proposedQuantityKg.toLocaleString()} kg @ ₹{confirmModal.proposal.offeredPricePerKg}/kg
                 </p>
               </div>
             </div>
 
             {confirmModal.action === 'ACCEPT' ? (
               <div className="bg-emerald-50 border border-emerald-200 p-4 rounded-2xl space-y-2 text-xs text-slate-700">
-                <p className="font-bold text-[#07875B]">Safe Inventory Reservation Notice:</p>
+                <p className="font-bold text-[#07875B]">{t('farmer.authoritativeInventoryState', 'Safe Inventory Reservation Notice')}:</p>
                 <p>
-                  By confirming, you explicitly grant consent to commit <strong>{confirmModal.proposal.proposedQuantityKg} kg</strong> of {confirmModal.proposal.cropName}.
-                </p>
-                <p className="text-[11px] text-slate-500">
-                  The backend will mark this produce listing as <strong>RESERVED</strong> to prevent double-booking. Dispatch instructions will be scheduled upon buyer route finalization.
+                  {t('proposals.consentModalBody', { qty: confirmModal.proposal.proposedQuantityKg, crop: confirmModal.proposal.cropName, defaultValue: `By accepting, ${confirmModal.proposal.proposedQuantityKg} kg will be locked in reservation for this buyer.` })}
                 </p>
               </div>
             ) : (
               <div className="space-y-3 text-xs">
-                <div className="bg-amber-50 border border-amber-200 p-3 rounded-2xl text-amber-900">
-                  <p className="font-bold">Shortfall-Only Rematching Guarantee:</p>
-                  <p className="text-[11px] text-amber-800 mt-1">
-                    Declining this lot does not cancel other suppliers' valid accepted quantities. The system will calculate the exact shortfall ({confirmModal.proposal.proposedQuantityKg} kg) and rematch only that portion.
-                  </p>
-                </div>
-
                 <div>
-                  <label className="block text-slate-700 font-bold mb-1">Reason for declining</label>
+                  <label className="block text-slate-700 font-bold mb-1">{t('proposals.rejectReasonLabel', 'Reason for declining')}</label>
                   <select
                     value={confirmModal.reason}
                     onChange={(e) => setConfirmModal({ ...confirmModal, reason: e.target.value })}
                     className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 font-medium outline-none"
                   >
-                    <option value="Offered price is below farm gate expectation">Offered price is below farm gate expectation</option>
-                    <option value="Harvest timing does not match required delivery date">Harvest timing does not match required delivery date</option>
-                    <option value="Physical stock already committed or sold locally">Physical stock already committed or sold locally</option>
-                    <option value="Pickup logistics location is unreachable">Pickup logistics location is unreachable</option>
+                    <option value="Offered price is below farm gate expectation">{t('proposals.reasonPriceLow', 'Offered price is below farm gate expectation')}</option>
+                    <option value="Harvest timing does not match required delivery date">{t('proposals.reasonDateMismatch', 'Harvest timing does not match required delivery date')}</option>
+                    <option value="Physical stock already committed or sold locally">{t('proposals.reasonStockSold', 'Physical stock already committed or sold locally')}</option>
+                    <option value="Pickup logistics location is unreachable">{t('proposals.reasonLogisticsUnreachable', 'Pickup logistics location is unreachable')}</option>
                   </select>
                 </div>
               </div>
@@ -321,7 +311,7 @@ const AllocationConsentSection = ({ onAllocationStatusChanged }) => {
                 onClick={() => setConfirmModal({ isOpen: false, action: null, proposal: null, reason: '' })}
                 className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl"
               >
-                Cancel
+                {t('common.cancel', 'Cancel')}
               </button>
               <button
                 onClick={executeConsentAction}
@@ -331,7 +321,7 @@ const AllocationConsentSection = ({ onAllocationStatusChanged }) => {
                     : 'bg-rose-600 hover:bg-rose-700'
                 }`}
               >
-                {confirmModal.action === 'ACCEPT' ? 'Confirm & Reserve Stock' : 'Confirm Decline'}
+                {confirmModal.action === 'ACCEPT' ? t('proposals.acceptBtn', 'Confirm & Reserve Stock') : t('proposals.declineConfirmBtn', 'Confirm Decline')}
               </button>
             </div>
 

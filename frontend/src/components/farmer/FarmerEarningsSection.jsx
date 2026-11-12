@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import api from '../../services/api';
 import { DollarSign, TrendingUp, Package, ShieldCheck, CheckCircle2, Clock, FileText, AlertCircle } from 'lucide-react';
@@ -46,7 +46,7 @@ const FarmerEarningsSection = () => {
     return (
       <div className="py-12 text-center text-slate-500">
         <Clock className="w-8 h-8 animate-spin mx-auto mb-2 text-[#07875B]" />
-        <p className="text-sm font-medium">Loading authoritative financial records…</p>
+        <p className="text-sm font-medium">{t('farmer.loadingFinancials', 'Loading authoritative financial records…')}</p>
       </div>
     );
   }
@@ -97,7 +97,7 @@ const FarmerEarningsSection = () => {
               {completedOrdersCount}
             </h3>
             <span className="text-[11px] text-slate-500 font-medium mt-0.5 block">
-              Fulfilled Deliveries
+              {t('farmer.fulfilledDeliveries', 'Fulfilled Deliveries')}
             </span>
           </div>
         </div>
@@ -112,7 +112,7 @@ const FarmerEarningsSection = () => {
               {pendingOrdersCount}
             </h3>
             <span className="text-[11px] text-purple-700 font-bold mt-0.5 block">
-              Active Reservations
+              {t('farmer.activeReservations', 'Active Reservations')}
             </span>
           </div>
         </div>
@@ -131,7 +131,7 @@ const FarmerEarningsSection = () => {
         <div className="text-xs text-slate-600 leading-relaxed">
           <strong className="text-slate-900">{t('farmer.escrowGovernanceTitle', 'Authoritative Escrow & Settlement Governance:')}</strong>
           <p className="mt-0.5">
-            Under SasyaVahini fair-trade guidelines, buyer funds are held in authorized escrow upon proposal acceptance. Payouts are triggered server-side after successful delivery verification (OTP and weight confirmation). No arbitrary middleman deductions or undisclosed commissions are applied.
+            {t('farmer.escrowGovernanceDesc', 'Under SasyaVahini fair-trade guidelines, buyer funds are held in authorized escrow upon proposal acceptance. Payouts are triggered server-side after successful delivery verification (OTP and weight confirmation). No arbitrary middleman deductions or undisclosed commissions are applied.')}
           </p>
         </div>
       </div>
@@ -148,9 +148,9 @@ const FarmerEarningsSection = () => {
         {settlements.length === 0 ? (
           <div className="py-14 text-center space-y-3">
             <FileText className="w-10 h-10 text-slate-300 mx-auto" />
-            <p className="text-sm font-bold text-slate-700">No transactions recorded yet.</p>
+            <p className="text-sm font-bold text-slate-700">{t('farmer.noTransactions', 'No transactions recorded yet.')}</p>
             <p className="text-xs text-slate-400 max-w-sm mx-auto">
-              Once you accept buyer allocation proposals and delivery milestones are verified, settled proceeds will appear in this ledger.
+              {t('farmer.noTransactionsDesc', 'Once you accept buyer allocation proposals and delivery milestones are verified, settled proceeds will appear in this ledger.')}
             </p>
           </div>
         ) : (
@@ -171,18 +171,18 @@ const FarmerEarningsSection = () => {
                 {settlements.map((item) => (
                   <tr key={item.id} className="hover:bg-slate-50/60 transition-colors">
                     <td className="py-3.5 px-4 font-mono font-bold text-slate-900">{item.orderNumber}</td>
-                    <td className="py-3.5 px-4 font-bold text-slate-800">{item.cropName}</td>
+                    <td className="py-3.5 px-4 font-bold text-slate-800">{t('crops.' + item.cropName, item.cropName)}</td>
                     <td className="py-3.5 px-4 text-slate-600">{item.quantityKg.toLocaleString('en-IN')} kg</td>
                     <td className="py-3.5 px-4 font-bold text-slate-900">₹{item.ratePerKg}</td>
                     <td className="py-3.5 px-4 font-black text-[#07875B]">₹{item.grossAmount.toLocaleString('en-IN')}</td>
                     <td className="py-3.5 px-4">
                       {item.status === 'SETTLED' ? (
                         <span className="bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full text-[10px] font-extrabold border border-emerald-300">
-                          SETTLED
+                          {t('status.SETTLED', 'SETTLED')}
                         </span>
                       ) : (
                         <span className="bg-amber-100 text-amber-800 px-2.5 py-1 rounded-full text-[10px] font-extrabold border border-amber-300">
-                          ESCROW HELD
+                          {t('status.ESCROW_HELD', 'ESCROW HELD')}
                         </span>
                       )}
                     </td>

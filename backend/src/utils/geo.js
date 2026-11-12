@@ -5,7 +5,27 @@
  * Owner: Member 4
  */
 
+const { ValidationError } = require('./errors');
+
 const toRad = (deg) => (deg * Math.PI) / 180;
+
+/**
+ * Validate that GPS coordinates are present, numeric, and within Earth boundaries.
+ * Throws HTTP 422 ValidationError if invalid.
+ */
+function validateCoordinates(lat, lng, label = 'Location') {
+  if (lat == null || lng == null || typeof lat !== 'number' || typeof lng !== 'number') {
+    throw new ValidationError(
+      `Missing or invalid GPS coordinates for ${label}. Both latitude and longitude are required numbers.`
+    );
+  }
+  if (isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+    throw new ValidationError(
+      `Invalid GPS coordinates for ${label}: lat=${lat}, lng=${lng}. Latitude must be between -90 and 90, longitude between -180 and 180.`
+    );
+  }
+  return true;
+}
 
 /**
  * Great-circle distance between two GPS coordinates in kilometers.
@@ -16,6 +36,8 @@ const toRad = (deg) => (deg * Math.PI) / 180;
  * @returns {number} Distance in kilometers
  */
 const haversineKm = (lat1, lon1, lat2, lon2) => {
+  validateCoordinates(lat1, lon1, 'Origin point');
+  validateCoordinates(lat2, lon2, 'Destination point');
   if (lat1 === lat2 && lon1 === lon2) return 0;
   const R = 6371; // Earth radius in km
   const dLat = toRad(lat2 - lat1);
@@ -41,7 +63,61 @@ const estimatedRoadKm = (lat1, lon1, lat2, lon2, detourFactor = 1.3) => {
   return Math.round(direct * detourFactor * 100) / 100;
 };
 
+/**
+ * Distance in meters from a GPS point to the nearest point on a GeoJSON polyline.
+ * @param {{ lat: number, lng: number }} point
+ * @param {Array<[number, number]>} polylineCoordinates - Array of [lng, lat]
+ * @returns {number} Distance in meters
+ */
+function distanceToPolylineMeters(point, polylineCoordinates) {
+  if (!point || !Array.isArray(polylineCoordinates) || polylineCoordinates.length < 2) {
+    return 0;
+  }
+
+  const pLat = point.lat || point.latitude;
+  const pLng = point.lng || point.longitude;
+  if (pLat == null || pLng == null) return 0;
+
+  const latToMeters = 111320;
+  const cosLat = Math.cos((pLat * Math.PI) / 180);
+  const lngToMeters = 111320 * cosLat;
+
+  let minDistanceMeters = Infinity;
+
+  for (let i = 0; i < polylineCoordinates.length - 1; i++) {
+    const [lng1, lat1] = polylineCoordinates[i];
+    const [lng2, lat2] = polylineCoordinates[i + 1];
+
+    const x1 = (lng1 - pLng) * lngToMeters;
+    const y1 = (lat1 - pLat) * latToMeters;
+    const x2 = (lng2 - pLng) * lngToMeters;
+    const y2 = (lat2 - pLat) * latToMeters;
+
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const segLenSq = dx * dx + dy * dy;
+
+    let distSq;
+    if (segLenSq === 0) {
+      distSq = x1 * x1 + y1 * y1;
+    } else {
+      const t = Math.max(0, Math.min(1, (-x1 * dx + -y1 * dy) / segLenSq));
+      const projX = x1 + t * dx;
+      const projY = y1 + t * dy;
+      distSq = projX * projX + projY * projY;
+    }
+
+    if (distSq < minDistanceMeters * minDistanceMeters) {
+      minDistanceMeters = Math.sqrt(distSq);
+    }
+  }
+
+  return Math.round(minDistanceMeters * 10) / 10;
+}
+
 module.exports = {
   haversineKm,
   estimatedRoadKm,
+  validateCoordinates,
+  distanceToPolylineMeters,
 };

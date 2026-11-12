@@ -124,10 +124,40 @@ async function main() {
           gstNumber: '27AABCF1234G1Z5',
           deliveryState: 'Maharashtra',
           deliveryDistrict: 'Pune',
+          verificationStatus: 'VERIFIED',
+          contactPerson: 'Karan Mehra (Procurement Lead)',
+          businessCategory: 'Supermarket',
         },
       },
     },
   });
+
+  // Seed sample verified address for demo buyer
+  const buyerProfileRecord = await prisma.buyerProfile.findUnique({ where: { userId: buyer.id } });
+  if (buyerProfileRecord) {
+    const existingAddr = await prisma.buyerAddress.findFirst({
+      where: { buyerId: buyerProfileRecord.id },
+    });
+    if (!existingAddr) {
+      await prisma.buyerAddress.create({
+        data: {
+          buyerId: buyerProfileRecord.id,
+          recipientName: 'FreshBasket Supermarkets Hub #4',
+          contactNumber: '+919800000004',
+          addressType: 'BUSINESS',
+          addressLine1: 'Warehouse 4, Agro Logistics Park',
+          addressLine2: 'Sector 19, APMC Market Yard',
+          locality: 'Hadapsar',
+          city: 'Pune',
+          state: 'Maharashtra',
+          postalCode: '411028',
+          country: 'India',
+          deliveryInstructions: 'Enter Gate 3, ramp unloading dock #2',
+          isDefault: true,
+        },
+      });
+    }
+  }
 
   // ─── Logistics ────────────────────────────────────────────────────────────
   const logisticsPw = await hashPw(DEMO_PASSWORD);
@@ -232,6 +262,157 @@ async function main() {
         description: '[DEMO DATA] Member lot B: 200 kg at ₹25/kg',
       },
     });
+
+    // Seed additional diverse produce across categories for Phase 3 Marketplace
+    const additionalListings = [
+      {
+        id: 'seed-listing-potato-001',
+        cropName: 'Potato (Kufri Jyoti)',
+        category: 'Vegetables',
+        qualityGrade: 'GRADE_A',
+        isOrganic: false,
+        totalQuantityKg: 1500,
+        askingPricePerKg: 21,
+        minPricePerKg: 17,
+        harvestDate: new Date('2026-11-04'),
+        state: 'Maharashtra',
+        district: 'Pune',
+        village: 'Khed',
+        description: 'Uniform medium-large clean tubers, optimal dry matter for boiling & frying.',
+      },
+      {
+        id: 'seed-listing-chili-001',
+        cropName: 'Green Chili (G4)',
+        category: 'Vegetables',
+        qualityGrade: 'GRADE_A',
+        isOrganic: false,
+        totalQuantityKg: 450,
+        askingPricePerKg: 48,
+        minPricePerKg: 40,
+        harvestDate: new Date('2026-11-06'),
+        state: 'Maharashtra',
+        district: 'Pune',
+        village: 'Junnar',
+        description: 'Fresh dark green spicy G4 chillies, crisp and firm stems.',
+      },
+      {
+        id: 'seed-listing-wheat-001',
+        cropName: 'Sharbati Wheat',
+        category: 'Grains',
+        qualityGrade: 'ORGANIC_PREMIUM',
+        isOrganic: true,
+        totalQuantityKg: 5000,
+        askingPricePerKg: 34,
+        minPricePerKg: 30,
+        harvestDate: new Date('2026-10-25'),
+        state: 'Maharashtra',
+        district: 'Pune',
+        village: 'Shirur',
+        description: 'Certified organic golden Sharbati wheat grains, high protein, 100% pesticide-free.',
+      },
+      {
+        id: 'seed-listing-rice-001',
+        cropName: 'Sona Masoori Rice',
+        category: 'Grains',
+        qualityGrade: 'GRADE_A',
+        isOrganic: false,
+        totalQuantityKg: 3500,
+        askingPricePerKg: 42,
+        minPricePerKg: 38,
+        harvestDate: new Date('2026-10-28'),
+        state: 'Maharashtra',
+        district: 'Pune',
+        village: 'Baramati',
+        description: 'Medium-grain aged aromatic white rice, non-sticky and light texture.',
+      },
+      {
+        id: 'seed-listing-pomegranate-001',
+        cropName: 'Bhagwa Pomegranate',
+        category: 'Fruits',
+        qualityGrade: 'GRADE_A',
+        isOrganic: false,
+        totalQuantityKg: 800,
+        askingPricePerKg: 95,
+        minPricePerKg: 85,
+        harvestDate: new Date('2026-11-05'),
+        state: 'Maharashtra',
+        district: 'Solapur',
+        village: 'Pandharpur',
+        description: 'Export-grade Bhagwa pomegranates, deep ruby red arils, sweet and soft-seeded.',
+      },
+      {
+        id: 'seed-listing-mango-001',
+        cropName: 'Alphonso Mango (Hapus)',
+        category: 'Fruits',
+        qualityGrade: 'GRADE_A',
+        isOrganic: true,
+        totalQuantityKg: 600,
+        askingPricePerKg: 130,
+        minPricePerKg: 115,
+        harvestDate: new Date('2026-11-03'),
+        state: 'Maharashtra',
+        district: 'Ratnagiri',
+        village: 'Devgad',
+        description: 'Geographically Indicated (GI) Devgad Alphonso mangoes, natural carbide-free ripening.',
+      },
+      {
+        id: 'seed-listing-tur-001',
+        cropName: 'Tur Dal (Pigeon Pea)',
+        category: 'Pulses',
+        qualityGrade: 'ORGANIC_PREMIUM',
+        isOrganic: true,
+        totalQuantityKg: 1200,
+        askingPricePerKg: 118,
+        minPricePerKg: 105,
+        harvestDate: new Date('2026-10-30'),
+        state: 'Maharashtra',
+        district: 'Latur',
+        village: 'Ausa',
+        description: 'Desi unpolished organic tur dal, rich natural yellow colour and high protein content.',
+      },
+      {
+        id: 'seed-listing-turmeric-001',
+        cropName: 'Salem Turmeric Fingers',
+        category: 'Spices',
+        qualityGrade: 'GRADE_A',
+        isOrganic: true,
+        totalQuantityKg: 900,
+        askingPricePerKg: 98,
+        minPricePerKg: 88,
+        harvestDate: new Date('2026-10-20'),
+        state: 'Maharashtra',
+        district: 'Sangli',
+        village: 'Walwa',
+        description: 'Sun-dried cured turmeric fingers with over 4.8% curcumin content, lab verified.',
+      },
+      {
+        id: 'seed-listing-onion-lowstock',
+        cropName: 'Nashik Red Onion (Lot C)',
+        category: 'Vegetables',
+        qualityGrade: 'GRADE_B',
+        isOrganic: false,
+        totalQuantityKg: 85,
+        askingPricePerKg: 18,
+        minPricePerKg: 15,
+        harvestDate: new Date('2026-11-05'),
+        state: 'Maharashtra',
+        district: 'Nashik',
+        village: 'Lasalgaon',
+        description: 'Medium red onions, standard commercial grade. Remaining end-of-batch stock.',
+      },
+    ];
+
+    for (const item of additionalListings) {
+      await prisma.produceListing.upsert({
+        where: { id: item.id },
+        update: {},
+        create: {
+          ...item,
+          farmerId: farmerProfile.id,
+          fpoId: fpoProfile.id,
+        },
+      });
+    }
   }
 
   await seedLogistics(prisma);

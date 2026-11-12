@@ -13,21 +13,47 @@ const logger = require('../utils/logger');
 
 const ML_SERVICE_URL = process.env.ML_SERVICE_URL || 'http://localhost:8000';
 
-// Fallback baseline modal prices (₹/kg) across common Indian staple crops
+// Fallback baseline modal prices (₹/kg) across 24 Indian agricultural commodities
 const BASELINE_PRICES = {
-  tomato: 26.50,
-  onion: 32.00,
-  potato: 22.00,
-  wheat: 24.50,
-  rice: 36.00,
-  soybean: 48.00,
-  cotton: 62.00,
-  chili: 95.00,
-  garlic: 120.00,
-  ginger: 80.00,
-  cabbage: 18.00,
-  cauliflower: 24.00,
+  tomato: 30.00,
+  onion: 54.00,
+  potato: 21.00,
+  wheat: 28.50,
+  rice: 45.00,
+  paddy: 45.00,
+  soybean: 45.00,
+  cotton: 88.00,
+  chili: 48.00,
+  chilli: 48.00,
+  garlic: 165.00,
+  ginger: 92.00,
+  turmeric: 155.00,
+  maize: 26.00,
+  sugarcane: 3.80,
+  banana: 48.00,
+  grapes: 105.00,
+  pomegranate: 140.00,
+  mango: 120.00,
+  papaya: 26.00,
+  lemon: 56.00,
+  capsicum: 46.00,
+  brinjal: 22.00,
+  cauliflower: 20.00,
+  cabbage: 16.50,
+  cucumber: 22.00,
 };
+
+const DISTRICT_PRICE_FACTORS = {
+  Mumbai: 1.28, Delhi: 1.24, Bengaluru: 1.22, Kolkata: 1.20, Hyderabad: 1.18,
+  Pune: 1.12, Ahmedabad: 1.11, Surat: 1.10, Chandigarh: 1.08, Nagpur: 1.07,
+  Jaipur: 1.06, Indore: 1.05, Lucknow: 1.05, Bhopal: 1.04, Kolhapur: 0.98,
+  Aurangabad: 0.98, Sangli: 0.97, Satara: 0.96, Solapur: 0.95, Guntur: 0.94,
+  Nashik: 0.93, Jalgaon: 0.93, Kadapa: 0.92, Kurnool: 0.91, Ahmednagar: 0.91,
+};
+
+function getDistrictFactor(district) {
+  return DISTRICT_PRICE_FACTORS[district] || 1.00;
+}
 
 /**
  * Check ML Service Health
@@ -53,10 +79,20 @@ async function checkHealth() {
   }
 }
 
+function normalizeMLPayload(payload) {
+  return {
+    ...payload,
+    district: payload.district || payload.location || 'Pune',
+    state: payload.state || 'Maharashtra',
+    quantity_kg: Number(payload.quantity_kg || payload.quantity || 1000),
+  };
+}
+
 /**
  * Predict regional crop demand with multi-horizon uncertainty
  */
-async function predictDemand(payload) {
+async function predictDemand(rawPayload) {
+  const payload = normalizeMLPayload(rawPayload);
   try {
     const res = await fetch(`${ML_SERVICE_URL}/predict-demand`, {
       method: 'POST',
@@ -81,7 +117,8 @@ async function predictDemand(payload) {
 /**
  * Recommend fair listing price grounded in price elasticity and decay discounting
  */
-async function recommendPrice(payload) {
+async function recommendPrice(rawPayload) {
+  const payload = normalizeMLPayload(rawPayload);
   try {
     const res = await fetch(`${ML_SERVICE_URL}/recommend-price`, {
       method: 'POST',
@@ -92,12 +129,15 @@ async function recommendPrice(payload) {
 
     if (res.ok) {
       const data = await res.json();
+      const minP = data.price_range_min || (data.recommended_price_per_kg * 0.9);
+      const maxP = data.price_range_max || (data.recommended_price_per_kg * 1.15);
       return {
         ...data,
         // Provide backwards-compatible field aliases for frontend components
         recommended_price: data.recommended_price_per_kg,
-        min_price: data.price_range_min,
-        max_price: data.price_range_max,
+        min_price: minP,
+        max_price: maxP,
+        market_range: `₹${minP.toFixed(1)} - ₹${maxP.toFixed(1)}/kg`,
       };
     }
     const errText = await res.text();
@@ -113,7 +153,9 @@ async function recommendPrice(payload) {
 
 function generateFallbackDemand(payload) {
   const cropLower = (payload.crop || 'Tomato').toLowerCase();
-  const baseModal = BASELINE_PRICES[cropLower] || 25.0;
+  const rawBase = BASELINE_PRICES[cropLower] || 25.0;
+  const distFactor = getDistrictFactor(payload.district);
+  const baseModal = Number((rawBase * distFactor).toFixed(2));
   const currentSupply = payload.current_supply_kg || 30000;
   const festivalMultiplier = payload.festival_period ? 1.25 : 1.0;
   
@@ -172,7 +214,9 @@ function generateFallbackDemand(payload) {
 
 function generateFallbackPrice(payload) {
   const cropLower = (payload.crop || 'Tomato').toLowerCase();
-  const baseModal = BASELINE_PRICES[cropLower] || 25.0;
+  const rawBase = BASELINE_PRICES[cropLower] || 25.0;
+  const distFactor = getDistrictFactor(payload.district);
+  const baseModal = Number((rawBase * distFactor).toFixed(2));
   const transitDays = payload.transit_days || 1.5;
   const decayDiscount = Math.min(baseModal * 0.15, transitDays * 0.8);
   const recPrice = Math.max(8.0, Number((baseModal - decayDiscount).toFixed(2)));

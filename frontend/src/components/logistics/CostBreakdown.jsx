@@ -14,6 +14,18 @@ export default function CostBreakdown({ breakdown, effectivePricePerKg, totalWei
 
   const formatRs = (val) =>
     `₹${Number(val || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
+  const componentTotal = [
+    'productCost',
+    'transportCost',
+    'handlingCost',
+    'platformFee',
+    'aggregationFee',
+    'riskCost',
+    'riskDelayCost',
+    'gst',
+  ].reduce((sum, key) => sum + (Number(breakdown[key]) || 0), 0);
+  const reportedTotal = Number(breakdown.totalCost ?? breakdown.total);
+  const totalCost = reportedTotal > 0 ? reportedTotal : componentTotal;
 
   return (
     <div className="border rounded-md bg-white p-3 text-sm mt-3" style={{ borderColor: 'var(--color-border)' }}>
@@ -25,7 +37,7 @@ export default function CostBreakdown({ breakdown, effectivePricePerKg, totalWei
       >
         <span className="flex items-center gap-1.5" style={{ color: 'var(--color-primary)' }}>
           <ShieldCheck size={16} />
-          <strong>Total Landed Cost Breakdown:</strong> {formatRs(breakdown.totalCost)}
+          <strong>Total Landed Cost Breakdown:</strong> {formatRs(totalCost)}
           {effectivePricePerKg && (
             <span className="text-secondary body-sm" style={{ marginLeft: '4px' }}>
               ({formatRs(effectivePricePerKg)}/kg)
@@ -81,7 +93,7 @@ export default function CostBreakdown({ breakdown, effectivePricePerKg, totalWei
             style={{ borderColor: 'var(--color-border)', color: 'var(--color-primary)' }}
           >
             <span>Total Landed Payable:</span>
-            <span>{formatRs(breakdown.totalCost)}</span>
+            <span>{formatRs(totalCost)}</span>
           </div>
         </div>
       )}

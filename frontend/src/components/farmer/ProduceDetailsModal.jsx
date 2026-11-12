@@ -40,7 +40,7 @@ const ProduceDetailsModal = ({ isOpen, onClose, listing, onEdit, onDelete }) => 
                   </span>
                 )}
               </div>
-              <p className="text-xs text-slate-500">Listing ID: #{listing.id.slice(0, 10)} • {listing.category}</p>
+              <p className="text-xs text-slate-500">{t('farmer.listingId', 'Listing ID')}: #{listing.id.slice(0, 10)} • {t('categories.' + (listing.category || '').toLowerCase(), listing.category)}</p>
             </div>
           </div>
           <button
@@ -77,7 +77,7 @@ const ProduceDetailsModal = ({ isOpen, onClose, listing, onEdit, onDelete }) => 
 
           <div className="bg-white p-3.5 rounded-xl border border-slate-200 space-y-1">
             <span className="text-slate-400 block font-medium">{t('farmer.qualityGradeLabel', 'Quality Grade')}</span>
-            <span className="font-extrabold text-slate-800 text-sm">{listing.qualityGrade}</span>
+            <span className="font-extrabold text-slate-800 text-sm">{t('grade.' + listing.qualityGrade, listing.qualityGrade)}</span>
           </div>
 
           <div className="bg-white p-3.5 rounded-xl border border-slate-200 space-y-1">

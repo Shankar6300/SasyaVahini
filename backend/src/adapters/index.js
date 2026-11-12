@@ -1,32 +1,60 @@
 /**
  * SasyaVahini — Logistics Data Adapters Entrypoint
- * Switches between 'mock' and 'prisma' based on LOGISTICS_DATA_SOURCE env variable.
+ * Dynamically switches between 'mock' and 'prisma' based on LOGISTICS_DATA_SOURCE and NODE_ENV.
  *
  * Owner: Member 4
  */
 
 const config = require('../config/logistics.config');
-const logger = require('../utils/logger');
 
-const isMock = config.dataSource === 'mock';
+const mockBatchRepo = require('./batchRepo.mock');
+const prismaBatchRepo = require('./batchRepo.prisma');
 
-logger.info(`Logistics Data Source initialized in [${isMock ? 'MOCK' : 'PRISMA'}] mode`);
+const mockOrderRepo = require('./orderRepo.mock');
+const prismaOrderRepo = require('./orderRepo.prisma');
 
-const batchRepo = isMock
-  ? require('./batchRepo.mock')
-  : require('./batchRepo.prisma');
+const mockFarmerRepo = require('./farmerRepo.mock');
+const prismaFarmerRepo = require('./farmerRepo.prisma');
 
-const orderRepo = isMock
-  ? require('./orderRepo.mock')
-  : require('./orderRepo.prisma');
+const mockShipmentRepo = require('./shipmentRepo.mock');
+const prismaShipmentRepo = require('./shipmentRepo.prisma');
 
-const farmerRepo = isMock
-  ? require('./farmerRepo.mock')
-  : require('./farmerRepo.prisma');
+const reservationPort = require('./reservationPort');
+
+function isMockMode() {
+  if ((process.env.JEST_WORKER_ID !== undefined || process.env.NODE_ENV === 'test') && !process.env.TEST_DB) {
+    return true;
+  }
+  if (process.env.LOGISTICS_DATA_SOURCE === 'mock') return true;
+  if (process.env.LOGISTICS_DATA_SOURCE === 'prisma') return false;
+  return config.dataSource === 'mock';
+}
+
+function createRepoProxy(mockRepo, prismaRepo) {
+  return new Proxy({}, {
+    get(_target, prop) {
+      const activeRepo = isMockMode() ? mockRepo : prismaRepo;
+      const val = activeRepo[prop];
+      if (typeof val === 'function') {
+        return val.bind(activeRepo);
+      }
+      return val;
+    },
+  });
+}
+
+const batchRepo = createRepoProxy(mockBatchRepo, prismaBatchRepo);
+const orderRepo = createRepoProxy(mockOrderRepo, prismaOrderRepo);
+const farmerRepo = createRepoProxy(mockFarmerRepo, prismaFarmerRepo);
+const shipmentRepo = createRepoProxy(mockShipmentRepo, prismaShipmentRepo);
 
 module.exports = {
   batchRepo,
   orderRepo,
   farmerRepo,
-  isMock,
+  shipmentRepo,
+  reservationPort,
+  get isMock() {
+    return isMockMode();
+  },
 };
