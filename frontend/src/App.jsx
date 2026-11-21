@@ -17,6 +17,12 @@ import FPODashboard       from './pages/fpo/FPODashboard';
 import BuyerDashboard     from './pages/buyer/BuyerDashboard';
 import LogisticsDashboard from './pages/logistics/LogisticsDashboard';
 import AdminDashboard     from './pages/admin/AdminDashboard';
+import AdminLayout        from './pages/admin/AdminLayout';
+import AdminOverviewPage  from './pages/admin/AdminOverviewPage';
+import AdminFleetPage     from './pages/admin/AdminFleetPage';
+import AdminUsersPage     from './pages/admin/AdminUsersPage';
+import AdminDisputesPage  from './pages/admin/AdminDisputesPage';
+import AdminAuditLogsPage from './pages/admin/AdminAuditLogsPage';
 import MarketIntelligencePage from './pages/MarketIntelligencePage';
 
 // Buyer auth pages (Phase 1)
@@ -118,13 +124,21 @@ export default function App() {
 
         {/* Admin — Members 1 (API) & 2 (UI) */}
         <Route
-          path="/admin/*"
+          path="/admin"
           element={
             <ProtectedRoute roles={['ADMIN']}>
-              <AdminDashboard />
+              <AdminLayout />
             </ProtectedRoute>
           }
-        />
+        >
+          <Route index element={<AdminOverviewPage />} />
+          <Route path="overview" element={<AdminOverviewPage />} />
+          <Route path="users" element={<AdminUsersPage />} />
+          <Route path="fleet" element={<AdminFleetPage />} />
+          <Route path="disputes" element={<AdminDisputesPage />} />
+          <Route path="audit-logs" element={<AdminAuditLogsPage />} />
+          <Route path="*" element={<Navigate to="/admin" replace />} />
+        </Route>
 
         {/* 404 */}
         <Route path="*" element={
