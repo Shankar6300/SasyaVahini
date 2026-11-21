@@ -19,6 +19,7 @@ const {
   refreshSchema,
   otpRequestSchema,
   otpVerifySchema,
+  googleLoginSchema,
 } = require('../schemas/auth.schema');
 const controller = require('../controllers/auth.controller');
 
@@ -26,6 +27,7 @@ const router = Router();
 
 router.post('/register', validate(registerSchema), controller.register);
 router.post('/login', validate(loginSchema), controller.login);
+router.post('/google', validate(googleLoginSchema), controller.googleLogin);
 router.post('/refresh', validate(refreshSchema), controller.refresh);
 router.post('/logout', authenticate, controller.logout);
 router.get('/me', authenticate, controller.me);

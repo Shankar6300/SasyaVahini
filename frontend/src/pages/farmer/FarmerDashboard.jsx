@@ -6,7 +6,8 @@ import {
   Package, Plus, TrendingUp, DollarSign, AlertCircle, Trash2, Edit3,
   CheckCircle, ChevronRight, ShieldCheck, MapPin, Eye, Search,
   Layers, Bell, UserCheck, Sparkles, Sliders, LayoutDashboard,
-  HandCoins, User, Wheat, Menu, X as XIcon, RefreshCw, ArrowUpRight, Info, Mic
+  HandCoins, User, Wheat, Menu, X as XIcon, RefreshCw, ArrowUpRight, Info, Mic,
+  Building, Check, Handshake, Truck, Receipt
 } from 'lucide-react';
 import MarketIntelligenceWidget from '../../components/ml/MarketIntelligenceWidget';
 
@@ -17,8 +18,13 @@ import AllocationConsentSection from '../../components/farmer/AllocationConsentS
 import FarmerEarningsSection from '../../components/farmer/FarmerEarningsSection';
 import FarmerNotificationsModal from '../../components/farmer/FarmerNotificationsModal';
 import SmartVoiceListingModal from '../../components/farmer/SmartVoiceListingModal';
+import FarmerFpoDirectorySection from '../../components/farmer/FarmerFpoDirectorySection';
+import FarmerContributionsSection from '../../components/farmer/FarmerContributionsSection';
+import FarmerPickupsSection from '../../components/farmer/FarmerPickupsSection';
+import FarmerSettlementsSection from '../../components/farmer/FarmerSettlementsSection';
 import LanguageSelector from '../../components/LanguageSelector';
 import VoiceAssistant from '../../components/VoiceAssistant';
+import NotificationBell from '../../components/NotificationBell';
 
 // ─── Status Badge ────────────────────────────────────────────────────────────
 const StatusBadge = ({ status }) => {
@@ -84,10 +90,46 @@ const FarmerDashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [produceListings, setProduceListings] = useState([]);
   const [proposalsCount, setProposalsCount] = useState(0);
+  const [pendingContributionsCount, setPendingContributionsCount] = useState(0);
+  const [pickupsCount, setPickupsCount] = useState(0);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [forecast, setForecast] = useState(null);
   const [priceRec, setPriceRec] = useState(null);
+  const [membershipInvites, setMembershipInvites] = useState([]);
+
+  const fetchInvitations = async () => {
+    try {
+      const res = await api.get('/farmers/membership/invitations');
+      const list = res.data?.data || res.data || [];
+      setMembershipInvites(list.filter(inv => inv.status === 'PENDING'));
+    } catch { /* non-fatal */ }
+  };
+
+  const handleAcceptInvite = async (inviteId) => {
+    try {
+      const res = await api.post(`/farmers/membership/invitations/${inviteId}/accept`);
+      alert(res.data?.data?.message || t('farmer.inviteAccepted', 'FPO membership accepted successfully!'));
+      await refreshUser();
+      fetchFarmerData();
+      fetchInvitations();
+    } catch (err) {
+      alert(err.response?.data?.error?.message || err.response?.data?.message || err.message);
+    }
+  };
+
+  const handleRejectInvite = async (inviteId) => {
+    if (!window.confirm(t('farmer.confirmRejectInvite', 'Are you sure you want to decline this FPO membership invitation? Your account will remain independent.'))) {
+      return;
+    }
+    try {
+      const res = await api.post(`/farmers/membership/invitations/${inviteId}/reject`);
+      alert(res.data?.data?.message || t('farmer.inviteRejected', 'Invitation declined.'));
+      fetchInvitations();
+    } catch (err) {
+      alert(err.response?.data?.error?.message || err.response?.data?.message || err.message);
+    }
+  };
 
   // Listing filters
   const [searchQuery, setSearchQuery] = useState('');
@@ -115,6 +157,18 @@ const FarmerDashboard = () => {
       } catch { /* non-fatal */ }
 
       try {
+        const contRes = await api.get('/farmers/contributions');
+        const contData = contRes.data?.data || contRes.data || {};
+        setPendingContributionsCount((contData.incomingRequests || []).length);
+      } catch { /* non-fatal */ }
+
+      try {
+        const pkRes = await api.get('/farmers/pickups');
+        const pkList = pkRes.data?.data || pkRes.data || [];
+        setPickupsCount(pkList.filter(p => p.status === 'PENDING' || p.status === 'ARRIVED').length);
+      } catch { /* non-fatal */ }
+
+      try {
         const notifRes = await api.get('/notifications');
         setUnreadCount(notifRes.data.filter(n => !n.isRead).length);
       } catch { /* non-fatal */ }
@@ -136,7 +190,10 @@ const FarmerDashboard = () => {
     }
   };
 
-  useEffect(() => { fetchFarmerData(); }, [user]);
+  useEffect(() => {
+    fetchFarmerData();
+    fetchInvitations();
+  }, [user]);
 
   const handleApplyVoiceParsed = (parsed) => {
     setSelectedListingForEdit({
@@ -205,6 +262,10 @@ const FarmerDashboard = () => {
     { key: 'INVENTORY',    label: t('farmer.inventory', 'Inventory'),                 icon: Layers },
     { key: 'PROPOSALS',    label: t('farmer.proposals', 'Allocation Requests'),       icon: HandCoins, badge: proposalsCount },
     { key: 'EARNINGS',     label: t('farmer.earnings', 'Earnings'),                  icon: TrendingUp },
+    { key: 'SETTLEMENTS',  label: t('farmer.settlementsNav', 'FPO Settlements'),       icon: Receipt },
+    { key: 'CONTRIBUTIONS', label: t('farmer.fpoContributions', 'FPO Contributions'), icon: Handshake, badge: pendingContributionsCount },
+    { key: 'PICKUPS',      label: t('farmer.pickups', 'Produce Pickups'),             icon: Truck,     badge: pickupsCount },
+    { key: 'FPO_DIRECTORY', label: t('farmer.fpoDirectory', 'FPO Directory / Join'), icon: Building, badge: membershipInvites.length },
     { key: 'PROFILE',      label: t('farmer.profile', 'Profile'),                   icon: User },
   ];
 
@@ -264,19 +325,66 @@ const FarmerDashboard = () => {
         <div className="flex items-center gap-2">
           <VoiceAssistant guideType="farmer" />
           <LanguageSelector />
-          <button onClick={() => setNotificationsModalOpen(true)}
-            className="relative p-2.5 bg-white border border-[#E2E8F0] rounded-xl text-[#64748B] hover:text-[#07875B] hover:border-[#07875B]/30 transition-all cursor-pointer">
-            <Bell className="w-4 h-4" />
-            {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 w-4 h-4 bg-amber-500 text-white text-[9px] font-black rounded-full flex items-center justify-center">{unreadCount}</span>
-            )}
-          </button>
+          <NotificationBell />
           <button onClick={() => setProfileModalOpen(true)}
             className="flex items-center gap-1.5 px-3 py-2.5 bg-white border border-[#E2E8F0] rounded-xl text-xs font-semibold text-[#64748B] hover:border-[#07875B]/30 transition-all cursor-pointer">
             <UserCheck className="w-3.5 h-3.5" /> {t('farmer.profile', 'Profile')}
           </button>
         </div>
       </div>
+
+      {/* FPO Membership Invitations (Fix 1 — Consent Workflow) */}
+      {membershipInvites.length > 0 && (
+        <div className="space-y-3">
+          {membershipInvites.map((inv) => (
+            <div
+              key={inv.id}
+              className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 border-2 border-emerald-300 rounded-2xl shadow-sm"
+            >
+              <div className="flex items-start gap-3">
+                <div className="p-2.5 bg-emerald-600 text-white rounded-xl shadow-xs">
+                  <Building className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] uppercase font-black tracking-wider bg-emerald-200/80 text-emerald-900 px-2 py-0.5 rounded-full">
+                      {t('farmer.fpoInviteBadge', 'FPO Membership Invitation')}
+                    </span>
+                    {inv.registrationNo && (
+                      <span className="text-[11px] text-slate-500 font-medium">
+                        Reg: {inv.registrationNo}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-sm font-extrabold text-slate-900 mt-1">
+                    {inv.fpoName || 'Regional Farmer Producer Organization'}
+                  </p>
+                  <p className="text-xs text-slate-600 mt-0.5">
+                    {t('farmer.fpoInviteDescription', 'You have been invited to affiliate with this cooperative to aggregate produce lots, access bulk buyer contracts, and increase collective bargaining power.')}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 w-full sm:w-auto justify-end pt-2 sm:pt-0">
+                <button
+                  type="button"
+                  onClick={() => handleRejectInvite(inv.id)}
+                  className="px-3.5 py-1.5 bg-white hover:bg-slate-100 text-slate-700 font-bold rounded-xl border border-slate-300 transition-colors text-xs cursor-pointer"
+                >
+                  {t('farmer.declineInvite', 'Decline')}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleAcceptInvite(inv.id)}
+                  className="px-4 py-1.5 bg-[#07875B] hover:bg-[#066e4a] text-white font-bold rounded-xl shadow-md transition-all text-xs inline-flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Check className="w-3.5 h-3.5" />
+                  <span>{t('farmer.acceptMembership', 'Accept & Join')}</span>
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Action needed */}
       {proposalsCount > 0 && (
@@ -657,6 +765,26 @@ const FarmerDashboard = () => {
           {activeSection === 'INVENTORY'  && <InventorySection />}
           {activeSection === 'PROPOSALS'  && <AllocationConsentSection onAllocationStatusChanged={fetchFarmerData} />}
           {activeSection === 'EARNINGS'   && <FarmerEarningsSection />}
+          {activeSection === 'SETTLEMENTS' && <FarmerSettlementsSection />}
+          {activeSection === 'CONTRIBUTIONS' && (
+            <FarmerContributionsSection
+              user={user}
+              onContributionAction={() => {
+                fetchFarmerData();
+              }}
+            />
+          )}
+          {activeSection === 'PICKUPS' && <FarmerPickupsSection />}
+          {activeSection === 'FPO_DIRECTORY' && (
+            <FarmerFpoDirectorySection
+              user={user}
+              onMembershipChange={() => {
+                refreshUser();
+                fetchFarmerData();
+                fetchInvitations();
+              }}
+            />
+          )}
           {activeSection === 'PROFILE'    && <ProfileSection />}
         </div>
       </div>

@@ -111,7 +111,33 @@ const registerSchema = z.object({
   taxNumber: z.string().optional(),
   taxDocUrl: z.string().optional(),
   taxExpiry: z.string().optional(),
-}).passthrough();
+}).passthrough().superRefine((data, ctx) => {
+  if (data.role === 'FARMER') {
+    if (!data.district || !String(data.district).trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'District is required for farmer registration',
+        path: ['district'],
+      });
+    }
+  }
+  if (data.role === 'FPO') {
+    if (!data.fpoName || !String(data.fpoName).trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'FPO organization name is required',
+        path: ['fpoName'],
+      });
+    }
+    if (!data.registrationNo || !String(data.registrationNo).trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Registration number is required for FPO',
+        path: ['registrationNo'],
+      });
+    }
+  }
+});
 
 const loginSchema = z.object({
   email: z.string().trim().toLowerCase().email(),
@@ -123,14 +149,27 @@ const refreshSchema = z.object({
 });
 
 const otpRequestSchema = z.object({
-  phone: z.string().regex(/^\+?[0-9]{10,15}$/),
-  purpose: z.enum(['LOGIN', 'PHONE_VERIFY', 'PASSWORD_RESET']),
+  identifier: z.string().min(3).optional(),
+  phone: z.string().regex(/^\+?[0-9]{10,15}$/).optional(),
+  email: z.string().email().optional(),
+  purpose: z.enum(['LOGIN', 'PHONE_VERIFY', 'EMAIL_VERIFY', 'PASSWORD_RESET']).default('LOGIN'),
+}).refine(data => data.identifier || data.phone || data.email, {
+  message: 'Either identifier, phone, or email is required',
 });
 
 const otpVerifySchema = z.object({
-  phone: z.string().regex(/^\+?[0-9]{10,15}$/),
-  code: z.string().length(6),
-  purpose: z.enum(['LOGIN', 'PHONE_VERIFY', 'PASSWORD_RESET']),
+  identifier: z.string().min(3).optional(),
+  phone: z.string().regex(/^\+?[0-9]{10,15}$/).optional(),
+  email: z.string().email().optional(),
+  code: z.string().min(4).max(8),
+  purpose: z.enum(['LOGIN', 'PHONE_VERIFY', 'EMAIL_VERIFY', 'PASSWORD_RESET']).default('LOGIN'),
+}).refine(data => data.identifier || data.phone || data.email, {
+  message: 'Either identifier, phone, or email is required',
+});
+
+const googleLoginSchema = z.object({
+  idToken: z.string().min(10, 'Google ID token is required'),
+  role: z.enum(['FARMER', 'FPO', 'BUYER', 'LOGISTICS']).optional(),
 });
 
 module.exports = {
@@ -139,4 +178,5 @@ module.exports = {
   refreshSchema,
   otpRequestSchema,
   otpVerifySchema,
+  googleLoginSchema,
 };

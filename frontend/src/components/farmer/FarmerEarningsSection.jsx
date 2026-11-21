@@ -180,6 +180,10 @@ const FarmerEarningsSection = () => {
                         <span className="bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full text-[10px] font-extrabold border border-emerald-300">
                           {t('status.SETTLED', 'SETTLED')}
                         </span>
+                      ) : item.status === 'PARTIALLY_SETTLED' ? (
+                        <span className="bg-blue-100 text-blue-800 px-2.5 py-1 rounded-full text-[10px] font-extrabold border border-blue-300">
+                          {t('status.PARTIALLY_SETTLED', 'PARTIALLY PAID')}
+                        </span>
                       ) : (
                         <span className="bg-amber-100 text-amber-800 px-2.5 py-1 rounded-full text-[10px] font-extrabold border border-amber-300">
                           {t('status.ESCROW_HELD', 'ESCROW HELD')}

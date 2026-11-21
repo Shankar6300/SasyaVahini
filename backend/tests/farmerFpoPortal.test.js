@@ -1,6 +1,6 @@
 /**
  * SasyaVahini — Farmer & FPO End-to-End API Integration Tests
- * 
+ *
  * Tests real authentication, authorization, Farmer features,
  * FPO features, and ACID inventory business rules against Neon PostgreSQL.
  */
@@ -10,6 +10,7 @@ const app = require('../src/app');
 const prisma = require('../src/lib/prisma');
 
 process.env.NODE_ENV = 'test';
+jest.setTimeout(30000);
 
 describe('Farmer and FPO End-to-End Test Suite', () => {
   let farmerToken = null;
@@ -23,7 +24,7 @@ describe('Farmer and FPO End-to-End Test Suite', () => {
     const farmerRes = await request(app)
       .post('/api/auth/login')
       .send({ email: 'farmer@demo.sasyavahini.in', password: 'DemoPass1' });
-    
+
     expect(farmerRes.status).toBe(200);
     expect(farmerRes.body.success).toBe(true);
     farmerToken = farmerRes.body.data.accessToken;
@@ -115,7 +116,7 @@ describe('Farmer and FPO End-to-End Test Suite', () => {
       expect(res.body.success).toBe(true);
       expect(Array.isArray(res.body.data)).toBe(true);
       expect(res.body.data.length).toBeGreaterThan(0);
-      
+
       const tomato = res.body.data.find(l => l.cropName === 'Tomato');
       expect(tomato).toBeDefined();
       expect(tomato.totalQuantityKg).toBe(2000);
@@ -372,4 +373,3 @@ describe('Farmer and FPO End-to-End Test Suite', () => {
     });
   });
 });
-

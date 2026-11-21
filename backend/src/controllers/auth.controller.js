@@ -52,8 +52,9 @@ const logout = async (req, res, next) => {
 
 const requestOtp = async (req, res, next) => {
   try {
-    const { phone, purpose } = req.body;
-    const result = await authService.requestOtp(phone, purpose);
+    const { phone, email, identifier, purpose } = req.body;
+    const target = identifier || phone || email;
+    const result = await authService.requestOtp(target, purpose);
     return sendSuccess(res, result);
   } catch (err) {
     next(err);
@@ -62,8 +63,22 @@ const requestOtp = async (req, res, next) => {
 
 const verifyOtp = async (req, res, next) => {
   try {
-    const { phone, code, purpose } = req.body;
-    const result = await authService.verifyOtp(phone, code, purpose);
+    const { phone, email, identifier, code, purpose } = req.body;
+    const target = identifier || phone || email;
+    const result = await authService.verifyOtp(target, code, purpose);
+    return sendSuccess(res, result);
+  } catch (err) {
+    next(err);
+  }
+};
+
+const googleLogin = async (req, res, next) => {
+  try {
+    const { idToken, role } = req.body;
+    const result = await authService.googleLogin(idToken, role, {
+      userAgent: req.headers['user-agent'],
+      ipAddress: req.ip,
+    });
     return sendSuccess(res, result);
   } catch (err) {
     next(err);
@@ -79,4 +94,4 @@ const me = async (req, res, next) => {
   }
 };
 
-module.exports = { register, login, refresh, logout, requestOtp, verifyOtp, me };
+module.exports = { register, login, refresh, logout, requestOtp, verifyOtp, googleLogin, me };

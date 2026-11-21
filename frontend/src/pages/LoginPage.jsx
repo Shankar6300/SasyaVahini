@@ -1,24 +1,32 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Leaf } from 'lucide-react';
+import { Leaf, KeyRound } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import FormField from '../components/FormField';
 import Button from '../components/Button';
 import Alert from '../components/Alert';
 import LanguageSelector from '../components/LanguageSelector';
+import GoogleLoginButton from '../components/GoogleLoginButton';
+import OtpVerificationModal from '../components/OtpVerificationModal';
+import api from '../services/api';
 
 export default function LoginPage() {
-  const { login } = useAuth();
+  const { login, loginWithOtpSession } = useAuth();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from?.pathname || null;
+  const searchParams = new URLSearchParams(location.search);
+  const activeRole = searchParams.get('role')?.toUpperCase() === 'FPO' ? 'FPO' : 'FARMER';
 
   const [form, setForm] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState({});
   const [apiError, setApiError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [otpModalOpen, setOtpModalOpen] = useState(false);
+  const [otpTarget, setOtpTarget] = useState('');
+  const [otpLoading, setOtpLoading] = useState(false);
 
   const ROLE_REDIRECTS = {
     FARMER:    '/farmer',
@@ -61,6 +69,36 @@ export default function LoginPage() {
     }
   };
 
+  const handleRequestOtpLogin = async () => {
+    const trimmedEmail = (form.email || '').trim();
+    if (!trimmedEmail) {
+      setErrors((prev) => ({ ...prev, email: t('auth.emailRequired', 'Email is required') }));
+      return;
+    }
+    setOtpLoading(true);
+    setApiError('');
+    try {
+      await api.post('/auth/otp/request', {
+        identifier: trimmedEmail,
+        purpose: 'LOGIN'
+      });
+      setOtpTarget(trimmedEmail);
+      setOtpModalOpen(true);
+    } catch (err) {
+      setApiError(err.response?.data?.message || err.message || t('otp.requestFailed', 'Failed to send OTP'));
+    } finally {
+      setOtpLoading(false);
+    }
+  };
+
+  const handleOtpVerified = (data) => {
+    if (data?.user && data?.accessToken) {
+      loginWithOtpSession(data);
+      const dest = from || ROLE_REDIRECTS[data.user.role] || '/';
+      navigate(dest, { replace: true });
+    }
+  };
+
   return (
     <div className="auth-page">
       <div className="auth-card relative">
@@ -77,8 +115,14 @@ export default function LoginPage() {
           </span>
         </div>
 
-        <h1 className="auth-title">🌾 {t('auth.farmerLoginTitle', 'Farmer & Partner Portal')}</h1>
-        <p className="auth-subtitle">{t('auth.farmerLoginSubtitle', 'Sign in to access your farm dashboard, listings, and orders')}</p>
+        <h1 className="auth-title">
+          {activeRole === 'FPO' ? '🤝 ' + t('auth.fpoLoginTitle', 'FPO & Cooperative Portal') : '🌾 ' + t('auth.farmerLoginTitle', 'Farmer & Partner Portal')}
+        </h1>
+        <p className="auth-subtitle">
+          {activeRole === 'FPO'
+            ? t('auth.fpoLoginSubtitle', 'Sign in to access your producer organization dashboard and member aggregation')
+            : t('auth.farmerLoginSubtitle', 'Sign in to access your farm dashboard, listings, and orders')}
+        </p>
 
         {apiError && (
           <Alert variant="error" className="mb-6">{apiError}</Alert>
@@ -123,11 +167,37 @@ export default function LoginPage() {
           >
             {t('auth.signIn', 'Sign In')}
           </Button>
+
+          <button
+            type="button"
+            onClick={handleRequestOtpLogin}
+            disabled={otpLoading}
+            className="w-full mt-3 py-2 px-4 rounded-xl border border-emerald-300 bg-emerald-50/60 hover:bg-emerald-100 text-[#07875B] text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-xs"
+          >
+            <KeyRound size={15} />
+            <span>{otpLoading ? t('common.loading', 'Sending...') : t('auth.signInWithOtp', 'Sign In with One-Time Password (OTP)')}</span>
+          </button>
         </form>
+
+        <div className="my-5 flex items-center gap-3">
+          <div className="flex-1 h-px bg-slate-200" />
+          <span className="text-xs text-slate-400 font-semibold uppercase tracking-wider">{t('common.or', 'or')}</span>
+          <div className="flex-1 h-px bg-slate-200" />
+        </div>
+
+        <GoogleLoginButton role={activeRole} />
+
+        <OtpVerificationModal
+          isOpen={otpModalOpen}
+          onClose={() => setOtpModalOpen(false)}
+          identifier={otpTarget}
+          purpose="LOGIN"
+          onVerified={handleOtpVerified}
+        />
 
         <p style={{ textAlign: 'center', fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', marginTop: 'var(--space-6)' }}>
           {t('auth.dontHaveAccount', "Don't have an account?")}{' '}
-          <Link to="/register" style={{ color: 'var(--color-primary)', fontWeight: 600 }}>
+          <Link to={activeRole === 'FPO' ? '/register?role=FPO' : '/register?role=FARMER'} style={{ color: 'var(--color-primary)', fontWeight: 600 }}>
             {t('auth.createAccount', 'Create account')}
           </Link>
         </p>

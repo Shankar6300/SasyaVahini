@@ -196,7 +196,22 @@ export default function useSpeechSynthesis() {
       };
 
       audio.onerror = (err) => {
-        console.warn('Audio fallback error:', err);
+        console.warn('Audio fallback error, attempting browser SpeechSynthesis:', err);
+        try {
+          if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+            window.speechSynthesis.resume();
+            const fallbackUtterance = new SpeechSynthesisUtterance(text);
+            fallbackUtterance.lang = localeToUse;
+            fallbackUtterance.rate = rate;
+            fallbackUtterance.pitch = pitch;
+            fallbackUtterance.onstart = () => { setIsSpeaking(true); setIsPaused(false); };
+            fallbackUtterance.onend = () => { setIsSpeaking(false); setIsPaused(false); };
+            fallbackUtterance.onerror = () => { setIsSpeaking(false); setIsPaused(false); };
+            window.speechSynthesis.speak(fallbackUtterance);
+            return;
+          }
+        } catch (_e) {}
         setIsSpeaking(false);
         setIsPaused(false);
         audioRef.current = null;
