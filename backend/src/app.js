@@ -127,6 +127,9 @@ app.use('/api/logistics', require('./routes/logistics.routes'));
 app.use('/api/ml', mlRoutes);
 app.use('/api/forecast', mlRoutes);
 
+// Member 1 Routes: Admin & Governance Platform
+app.use('/api/admin', require('./routes/admin.routes'));
+
 // RBAC demo / stubs for remaining roles (buyer, admin)
 app.use('/api', roleDemoRoutes);
 // app.use('/api/notifications', require('./routes/notification.routes'));
