@@ -19,7 +19,13 @@ const twoTierLogisticsService = require('./twoTierLogistics.service');
 const routingService = require('./routing.service');
 const logisticsEvents = require('../events/logisticsEvents');
 const { recordOutboxEvent } = require('../events/outboxDispatcher');
-const { NotFoundError, ConflictError, BusinessRuleError, ValidationError } = require('../utils/errors');
+const {
+  NotFoundError,
+  ConflictError,
+  BusinessRuleError,
+  ValidationError,
+  AuthorizationError,
+} = require('../utils/errors');
 const { generateDeliveryOtp, verifyDeliveryOtp } = require('../utils/cryptoOtp');
 const { haversineKm } = require('../utils/geo');
 const logger = require('../utils/logger');
@@ -142,10 +148,16 @@ class LogisticsService {
     return { quoteId, offerCount: offers.length, expiresAt };
   }
 
-  async acceptOffer(offerId, vehicleId) {
+  async acceptOffer(offerId, vehicleId, user) {
     return prisma.$transaction(async (tx) => {
       const offer = await tx.logisticsOffer.findUnique({ where: { id: offerId } });
       if (!offer || offer.vehicleId !== vehicleId) throw new NotFoundError(`Offer ${offerId}`);
+      if (user?.role === 'LOGISTICS') {
+        const vehicle = await tx.vehicle.findUnique({ where: { id: vehicleId }, select: { logistics: { select: { userId: true } } } });
+        if (!vehicle || vehicle.logistics?.userId !== user.id) {
+          throw new AuthorizationError('You do not own the vehicle assigned to this offer');
+        }
+      }
       if (offer.expiresAt <= new Date()) throw new ConflictError('Offer has expired');
       const claimed = await tx.logisticsOffer.updateMany({
         where: { id: offerId, status: 'PENDING', expiresAt: { gt: new Date() } },
@@ -257,10 +269,24 @@ class LogisticsService {
     };
   }
 
-  async recordHandover({ transferPointId, shipmentId, feederDriverId, linehaulDriverId, feederKg, linehaulKg, feederOtp, linehaulOtp }) {
+  async recordHandover({ transferPointId, shipmentId, feederDriverId, linehaulDriverId, feederKg, linehaulKg, feederOtp, linehaulOtp, user }) {
+    const shipment = await shipmentRepo.findById(shipmentId);
+    if (!shipment) throw new NotFoundError(`Shipment ${shipmentId}`);
+    const validTransferPoint = await prisma.shipmentLeg.findFirst({
+      where: { shipmentId, transferPointId },
+      select: { id: true },
+    });
+    if (!validTransferPoint) {
+      throw new AuthorizationError('Transfer point is not associated with this shipment');
+    }
+    if (user?.role === 'LOGISTICS' && shipment.vehicleId) {
+      await vehicleService.findById(shipment.vehicleId, user);
+    }
+    verifyDeliveryOtp(shipmentId, feederOtp, shipment.deliveryOtp, shipment.deliveryOtpExpiresAt);
+    verifyDeliveryOtp(shipmentId, linehaulOtp, shipment.deliveryOtp, shipment.deliveryOtpExpiresAt);
     const toleranceKg = Math.max(feederKg, linehaulKg) * config.twoTier.kgTolerancePct;
     const mismatchKg = Math.abs(feederKg - linehaulKg);
-    const status = mismatchKg <= toleranceKg && feederOtp && linehaulOtp ? 'COMPLETED' : 'DISPUTED';
+    const status = mismatchKg <= toleranceKg ? 'COMPLETED' : 'DISPUTED';
     const event = await prisma.transferEvent.create({
       data: {
         transferPointId,
@@ -501,7 +527,7 @@ class LogisticsService {
   /**
    * Accept shipment and assign vehicle
    */
-  async acceptShipment(shipmentId, { vehicleId, driverNotes = '' }, userId = 'logistics_operator') {
+  async acceptShipment(shipmentId, { vehicleId, driverNotes = '' }, user = 'logistics_operator') {
     const shipment = await shipmentRepo.findById(shipmentId);
     if (!shipment) throw new NotFoundError(`Shipment ${shipmentId}`);
 
@@ -509,7 +535,11 @@ class LogisticsService {
       throw new ConflictError('Shipment is already assigned to a vehicle');
     }
 
-    const vehicle = await vehicleService.findById(vehicleId);
+    const userId = typeof user === 'string' ? user : user?.id || 'logistics_operator';
+    const vehicle = await vehicleService.findById(
+      vehicleId,
+      typeof user === 'string' ? { id: user, role: 'LOGISTICS' } : user,
+    );
     if (!vehicle) {
       throw new NotFoundError(`Vehicle ${vehicleId}`);
     }

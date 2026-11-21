@@ -446,7 +446,10 @@ class VehicleService {
   /**
    * Record location telemetry ping
    */
-  async recordLocation(vehicleId, { latitude, longitude, speedKmh = 0, temperatureC = null }) {
+  async recordLocation(vehicleId, { latitude, longitude, speedKmh = 0, temperatureC = null }, user = null) {
+    if (user?.role === 'LOGISTICS') {
+      await this.findById(vehicleId, user);
+    }
     const vehicle = inMemoryFleet.find((v) => v.id === vehicleId || v.vehicleNumber === vehicleId);
     if (vehicle) {
       vehicle.currentLatitude = latitude;

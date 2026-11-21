@@ -237,7 +237,7 @@ router.get(
 router.get(
   '/admin/verification-queue',
   authenticate,
-  requireRole(['ADMIN', 'LOGISTICS']),
+  requireRole(['ADMIN']),
   controller.getAdminVerificationQueue,
 );
 

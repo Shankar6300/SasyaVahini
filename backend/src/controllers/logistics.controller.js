@@ -33,12 +33,9 @@ const checkLogisticsVerified = async (user) => {
   }
 };
 
-const checkVehicleAllocationEligibility = async (vehicleId) => {
+const checkVehicleAllocationEligibility = async (vehicleId, user) => {
   if (!vehicleId || !prisma.vehicle) return;
-  const vehicle = await prisma.vehicle.findUnique({
-    where: { id: vehicleId },
-    include: { documents: true },
-  });
+  const vehicle = await vehicleService.findById(vehicleId, user);
   if (!vehicle) return;
 
   const now = new Date();
@@ -90,9 +87,9 @@ const acceptShipment = async (req, res, next) => {
   try {
     await checkLogisticsVerified(req.user);
     if (req.body?.vehicleId) {
-      await checkVehicleAllocationEligibility(req.body.vehicleId);
+      await checkVehicleAllocationEligibility(req.body.vehicleId, req.user);
     }
-    const result = await logisticsService.acceptShipment(req.params.id, req.body, req.user?.id);
+    const result = await logisticsService.acceptShipment(req.params.id, req.body, req.user);
     return sendSuccess(res, result);
   } catch (err) {
     next(err);
@@ -205,9 +202,9 @@ const acceptOffer = async (req, res, next) => {
   try {
     await checkLogisticsVerified(req.user);
     if (req.body?.vehicleId) {
-      await checkVehicleAllocationEligibility(req.body.vehicleId);
+      await checkVehicleAllocationEligibility(req.body.vehicleId, req.user);
     }
-    return sendSuccess(res, await logisticsService.acceptOffer(req.params.offerId, req.body.vehicleId));
+    return sendSuccess(res, await logisticsService.acceptOffer(req.params.offerId, req.body.vehicleId, req.user));
   } catch (err) {
     next(err);
   }
@@ -215,9 +212,12 @@ const acceptOffer = async (req, res, next) => {
 
 const recordHandover = async (req, res, next) => {
   try {
+    const shipment = await logisticsService.getShipmentById(req.body.shipmentId);
+    await checkShipmentAccess(req.user, shipment, { requireTransporter: true });
     return sendSuccess(res, await logisticsService.recordHandover({
       ...req.body,
       transferPointId: req.params.transferPointId,
+      user: req.user,
     }));
   } catch (err) {
     next(err);
@@ -263,7 +263,7 @@ const listVehicles = async (req, res, next) => {
 
 const updateVehicleLocation = async (req, res, next) => {
   try {
-    const result = await vehicleService.recordLocation(req.params.id, req.body);
+    const result = await vehicleService.recordLocation(req.params.id, req.body, req.user);
     return sendSuccess(res, result);
   } catch (err) {
     next(err);

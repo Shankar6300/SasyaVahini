@@ -43,6 +43,19 @@ function validateEnv() {
     process.exit(1);
   }
 
+  if (process.env.NODE_ENV === 'production') {
+    const weakSecrets = ['REPLACE_WITH_LONG_RANDOM_ACCESS_SECRET', 'REPLACE_WITH_LONG_RANDOM_REFRESH_SECRET'];
+    const invalidSecrets = ['JWT_ACCESS_SECRET', 'JWT_REFRESH_SECRET'].filter(
+      (key) => weakSecrets.includes(process.env[key]) || String(process.env[key]).length < 32,
+    );
+    if (invalidSecrets.length > 0) {
+      logger.error('Production JWT secrets must be explicitly configured with at least 32 characters.', {
+        invalidSecrets,
+      });
+      process.exit(1);
+    }
+  }
+
   // Apply defaults for optional vars
   for (const [key, defaultValue] of Object.entries(OPTIONAL_WITH_DEFAULTS)) {
     if (!process.env[key]) {
