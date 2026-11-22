@@ -34,10 +34,12 @@ const updateMilestoneSchema = z.object({
   temperatureC: z.number().optional(),
   notes: z.string().optional(),
   deliveryOtp: z.string().length(6, 'Delivery OTP must be exactly 6 digits').optional(),
+  geofenceOverrideReason: z.enum(['GPS_INACCURATE', 'ACCESS_ROAD_BLOCKED', 'SECURITY_GATE_DELIVERY', 'OTHER']).optional(),
 });
 
 const createShipmentSchema = z.object({
   orderId: z.string().min(1, 'Order ID is required'),
+  quoteId: z.string().optional(),
   planId: z.string().optional(),
   planData: z.record(z.any()).optional(),
 });
@@ -49,15 +51,37 @@ const updateLocationSchema = z.object({
   temperatureC: z.number().optional(),
 });
 
-const createVehicleSchema = z.object({
-  vehicleNumber: z.string().min(3),
-  vehicleType: z.string().min(2),
-  capacityKg: z.number().positive(),
-  driverName: z.string().min(2),
-  driverPhone: z.string().regex(/^\+?[0-9]{10,15}$/, 'Invalid phone number'),
-  currentLatitude: z.number().optional(),
-  currentLongitude: z.number().optional(),
-});
+const createVehicleSchema = z
+  .object({
+    vehicleNumber: z.string().min(3, 'Vehicle number must be at least 3 characters'),
+    vehicleType: z.string().optional(),
+    category: z.string().optional(),
+    make: z.string().optional(),
+    model: z.string().optional(),
+    fuelType: z.string().optional(),
+    capacityKg: z.coerce.number().positive('Capacity must be a positive number'),
+    mileageKmpl: z.coerce.number().optional(),
+    manufacturingYear: z.coerce.number().optional(),
+    dimensions: z.string().optional(),
+    driverName: z.string().optional(),
+    driverPhone: z
+      .string()
+      .optional()
+      .transform((val) => (val ? val.replace(/[\s-]/g, '') : val))
+      .refine(
+        (val) => !val || /^\+?[0-9]{10,15}$/.test(val),
+        'Invalid phone number (must be 10-15 digits)'
+      ),
+    currentLatitude: z.coerce.number().optional(),
+    currentLongitude: z.coerce.number().optional(),
+    isRefrigerated: z.boolean().optional(),
+    minTempC: z.coerce.number().optional(),
+    maxTempC: z.coerce.number().optional(),
+    baseHub: z.string().optional(),
+    operatingDistricts: z.union([z.array(z.string()), z.string()]).optional(),
+    documents: z.array(z.any()).optional(),
+  })
+  .passthrough();
 
 const patchVehicleSchema = z.object({
   status: z.enum(['AVAILABLE', 'ASSIGNED', 'IN_TRANSIT', 'MAINTENANCE']).optional(),
@@ -73,6 +97,51 @@ const listShipmentsQuerySchema = z.object({
   status: z.string().optional(),
 });
 
+const recordHandoverSchema = z.object({
+  shipmentId: z.string().min(1, 'Shipment ID is required'),
+  feederDriverId: z.string().min(1, 'Feeder driver ID is required'),
+  linehaulDriverId: z.string().min(1, 'Linehaul driver ID is required'),
+  feederKg: z.number().positive('Feeder weight in kg must be positive'),
+  linehaulKg: z.number().positive('Linehaul weight in kg must be positive'),
+  feederOtp: z.string().length(6, 'Feeder OTP must be 6 digits'),
+  linehaulOtp: z.string().length(6, 'Linehaul OTP must be 6 digits'),
+});
+
+const selectRouteSchema = z.object({
+  selectedRouteIndex: z.number().int().min(0).max(2, 'Route index must be 0, 1, or 2'),
+  deviationReason: z.enum(['ROAD_CLOSED', 'FLOOD', 'ACCIDENT', 'WEIGHT_LIMIT', 'OTHER']).optional(),
+});
+
+const verifyDeliveryOtpSchema = z.object({
+  otp: z.string().length(6, 'Delivery OTP must be exactly 6 digits'),
+});
+
+const legPingSchema = z.object({
+  latitude: z.number().min(-90).max(90),
+  longitude: z.number().min(-180).max(180),
+  speedKmh: z.number().min(0).optional().default(0),
+  temperatureC: z.number().optional(),
+});
+
+const uploadDocumentSchema = z.object({
+  documentType: z.enum(['RC', 'INSURANCE', 'FITNESS', 'PERMIT', 'PUC', 'ROAD_TAX']).optional(),
+  docType: z.enum(['RC', 'INSURANCE', 'FITNESS', 'PERMIT', 'PUC', 'ROAD_TAX']).optional(),
+  documentNumber: z.string().optional(),
+  docNumber: z.string().optional(),
+  documentUrl: z.string().url('Document URL must be a valid URL').optional(),
+  fileUrl: z.string().url('File URL must be a valid URL').optional(),
+  validUntil: z.string().optional(),
+  expiryDate: z.string().optional(),
+}).refine(
+  (data) => (data.documentType || data.docType) && (data.documentUrl || data.fileUrl),
+  { message: 'Document type and URL are required' }
+);
+
+const adminVerifySchema = z.object({
+  status: z.enum(['VERIFIED', 'REJECTED']),
+  rejectionReason: z.string().optional(),
+});
+
 module.exports = {
   planOrderSchema,
   acceptShipmentSchema,
@@ -82,4 +151,10 @@ module.exports = {
   createVehicleSchema,
   patchVehicleSchema,
   listShipmentsQuerySchema,
+  recordHandoverSchema,
+  selectRouteSchema,
+  verifyDeliveryOtpSchema,
+  legPingSchema,
+  uploadDocumentSchema,
+  adminVerifySchema,
 };

@@ -1041,7 +1041,7 @@ model PlanQuote {
   quoteId         String   @unique
   crop            String
   requestedQtyKg  Float
-  maxBudget       Float
+  maxBudget       Float?
   radiusUsedKm    Float?
   ringsTried      Json
   payload         Json
@@ -1076,6 +1076,15 @@ model ShipmentLeg {
   cost             Float
   kg               Float
   status           String          @default("PLANNED")
+  routeOptionsJson Json?
+  selectedRouteIndex Int?
+  routeLockedAt    DateTime?
+  plannedCostRs    Float?
+  plannedFuelLitres Float?
+  plannedEtaMin    Int?
+  legPayoutRs      Float?
+  deviationReason  String?
+  actualCostRs     Float?
   createdAt        DateTime        @default(now())
   updatedAt        DateTime        @updatedAt
 
@@ -1371,7 +1380,7 @@ model SettlementPaymentRecord {
 
   amount           Float
   paymentMode      SettlementPaymentMode @default(BANK_TRANSFER)
-  transactionRef   String                // UTR, Bank transaction ref, Cheque #
+  transactionRef   String                // patriotic / UTR / Bank transaction ref
   paymentDate      DateTime              @default(now())
   recordedBy       String                // FPO user ID
   receiptUrl       String?
@@ -1381,4 +1390,29 @@ model SettlementPaymentRecord {
 
   @@index([settlementId])
   @@index([transactionRef])
+}
+
+// =============================================================================
+// TRANSACTIONAL OUTBOX (TASK 12)
+// =============================================================================
+
+model OutboxEvent {
+  id            String    @id @default(uuid())
+  aggregateType String    // "SHIPMENT" | "VEHICLE" | "LEG" | "OFFER"
+  aggregateId   String
+  eventType     String    // "shipment.created", "shipment.milestone", "shipment.delivered", etc.
+  payload       Json
+  status        String    @default("PENDING") // "PENDING" | "PROCESSING" | "SENT" | "FAILED"
+  retryCount    Int       @default(0)
+  maxRetries    Int       @default(5)
+  lastError     String?
+  scheduledFor  DateTime  @default(now())
+  processedAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([status, scheduledFor])
+  @@index([aggregateType, aggregateId])
+  @@index([createdAt])
+}
 }

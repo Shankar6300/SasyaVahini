@@ -202,12 +202,20 @@ export default function LoginPage() {
           </Link>
         </p>
 
-        {/* Portal switch link */}
-        <div className="mt-4 p-3 rounded-xl bg-slate-50 border border-slate-200 text-center text-xs text-slate-600">
-          Looking to purchase wholesale produce?{' '}
-          <Link to="/buyer/login" className="font-bold text-[#07875B] hover:underline">
-            Go to Buyer Portal →
-          </Link>
+        {/* Portal switch links */}
+        <div className="mt-4 p-3 rounded-xl bg-slate-50 border border-slate-200 text-center text-xs text-slate-600 flex flex-col gap-1.5">
+          <div>
+            Looking to purchase wholesale produce?{' '}
+            <Link to="/buyer/login" className="font-bold text-[#07875B] hover:underline">
+              Buyer Portal →
+            </Link>
+          </div>
+          <div>
+            Fleet operator or transport partner?{' '}
+            <Link to="/logistics/login" className="font-bold text-[#07875B] hover:underline">
+              Logistics & Fleet Portal →
+            </Link>
+          </div>
         </div>
       </div>
     </div>

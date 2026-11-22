@@ -12,6 +12,7 @@ const ACCESS_KEY  = 'sv_access_token';
 const REFRESH_KEY = 'sv_refresh_token';
 const USER_KEY    = 'sv_user';
 const PREVIEW_KEY = 'sv_logistics_preview';
+const PERSONA_KEY = 'sv_logistics_persona';
 
 export const getAccessToken  = () => sessionStorage.getItem(ACCESS_KEY);
 export const getRefreshToken = () => localStorage.getItem(REFRESH_KEY);
@@ -29,8 +30,17 @@ export const setStoredUser = (user) => {
   localStorage.setItem(USER_KEY, JSON.stringify(user));
 };
 
-export const setPreviewSession = () => {
+export const setPreviewSession = (persona = 'VEHICLE_OWNER') => {
   sessionStorage.setItem(PREVIEW_KEY, 'true');
+  sessionStorage.setItem(PERSONA_KEY, persona);
+};
+
+export const getPreviewPersona = () => {
+  return sessionStorage.getItem(PERSONA_KEY) || 'VEHICLE_OWNER';
+};
+
+export const setPreviewPersona = (persona) => {
+  sessionStorage.setItem(PERSONA_KEY, persona);
 };
 
 export const isPreviewSession = () => sessionStorage.getItem(PREVIEW_KEY) === 'true';
@@ -38,6 +48,7 @@ export const isPreviewSession = () => sessionStorage.getItem(PREVIEW_KEY) === 't
 export const clearSession = () => {
   sessionStorage.removeItem(ACCESS_KEY);
   sessionStorage.removeItem(PREVIEW_KEY);
+  sessionStorage.removeItem(PERSONA_KEY);
   localStorage.removeItem(REFRESH_KEY);
   localStorage.removeItem(USER_KEY);
 };

@@ -31,9 +31,9 @@ class PrismaBatchRepo {
       return listings
         .map((l) => {
           const availableQuantityKg = Math.max(0, l.totalQuantityKg - l.reservedQty - l.soldQty);
-          // Derivation/fallback for coordinates
-          const latitude = l.latitude || l.farmer?.latitude || 18.7606; // Fallback to Chakan centroid
-          const longitude = l.longitude || l.farmer?.longitude || 73.8636;
+          // TODO: Member 2 (Farmer Lead) - produce listings and farmer profiles must mandate validated GPS coordinates upon registration
+          const latitude = l.latitude != null ? l.latitude : (l.farmer?.latitude != null ? l.farmer.latitude : null);
+          const longitude = l.longitude != null ? l.longitude : (l.farmer?.longitude != null ? l.farmer.longitude : null);
           // Derived reliability: Aadhaar + Bank verified gives 0.92, else 0.85
           const verified = l.farmer?.aadhaarVerified && l.farmer?.bankAccountVerified;
           const farmerReliability = verified ? 0.92 : 0.85;
@@ -58,7 +58,7 @@ class PrismaBatchRepo {
             fpoId: l.fpoId,
           };
         })
-        .filter((item) => item.availableQuantityKg > 0);
+        .filter((item) => item.availableQuantityKg > 0 && item.latitude != null && item.longitude != null);
     } catch (err) {
       logger.error('PrismaBatchRepo error querying produce listings', { error: err.message });
       throw err;

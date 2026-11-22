@@ -31,9 +31,16 @@ const sweeperInterval = setInterval(() => {
 const shutdown = async (signal) => {
   logger.info(`${signal} received — shutting down gracefully`);
   clearInterval(sweeperInterval);
+  if (server && typeof server.closeIdleConnections === 'function') {
+    server.closeIdleConnections();
+  }
   server.close(async () => {
-    await prisma.$disconnect();
-    logger.info('Database connection closed. Process exiting.');
+    try {
+      await prisma.$disconnect();
+      logger.info('Database connection closed cleanly. Process exiting.');
+    } catch (err) {
+      logger.warn('Error closing database connection', { error: err.message });
+    }
     process.exit(0);
   });
 

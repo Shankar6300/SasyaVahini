@@ -101,23 +101,23 @@ export default function RegisterPage() {
 
     // Payout / Bank Account Info
     accountHolderName: '',
-    bankName: 'State Bank of India',
-    accountNumber: '394810294819',
-    ifscCode: 'SBIN0001423',
+    bankName: '',
+    accountNumber: '',
+    ifscCode: '',
 
-    // Vehicle Specifications
-    vehicleNumber: 'MH-14-AZ-8899',
-    make: 'Tata',
-    model: 'Intra V30',
-    manufacturingYear: '2023',
-    category: 'SCV', // "SCV" | "MCV" | "HCV"
-    fuelType: 'DIESEL', // "DIESEL" | "PETROL" | "CNG" | "ELECTRIC"
-    capacityKg: '1500',
-    gvwKg: '2565',
-    mileageKmpl: '14.5',
-    dimensions: '8.8ft x 5.3ft x 5.0ft',
-    baseHub: 'Chakan Agri Logistics Hub',
-    serviceDistricts: 'Pune, Nashik, Ahmednagar',
+    // Vehicle Specifications (Added inside the portal after onboarding)
+    vehicleNumber: '',
+    make: '',
+    model: '',
+    manufacturingYear: '',
+    category: '',
+    fuelType: '',
+    capacityKg: '',
+    gvwKg: '',
+    mileageKmpl: '',
+    dimensions: '',
+    baseHub: '',
+    serviceDistricts: '',
     isRefrigerated: false,
     minTempC: '10',
     maxTempC: '16',
@@ -127,24 +127,24 @@ export default function RegisterPage() {
     photoRearUrl: '',
     photoSideUrl: '',
 
-    // Mandatory Vehicle Document Uploads
-    rcNumber: 'MH-14-AZ-8899-RC',
-    rcExpiry: '2038-04-10',
+    // Vehicle Document Uploads
+    rcNumber: '',
+    rcExpiry: '',
     rcDocUrl: '',
-    insuranceNumber: 'NIC-COMM-8892147',
-    insuranceExpiry: '2027-03-31',
+    insuranceNumber: '',
+    insuranceExpiry: '',
     insuranceDocUrl: '',
-    fitnessNumber: 'MH-FIT-2024-551',
-    fitnessExpiry: '2026-08-20',
+    fitnessNumber: '',
+    fitnessExpiry: '',
     fitnessDocUrl: '',
-    permitNumber: 'MH-AITP-9921',
-    permitExpiry: '2029-01-15',
+    permitNumber: '',
+    permitExpiry: '',
     permitDocUrl: '',
-    pucNumber: 'PUC-MH-2024-9988',
-    pucExpiry: '2025-11-30',
+    pucNumber: '',
+    pucExpiry: '',
     pucDocUrl: '',
-    taxNumber: 'MH-TAX-2024-001',
-    taxExpiry: '2026-12-31',
+    taxNumber: '',
+    taxExpiry: '',
     taxDocUrl: '',
   });
 
@@ -258,14 +258,8 @@ export default function RegisterPage() {
       if (!form.fpoName.trim()) errs.fpoName = t('auth.fpoNameRequired', 'FPO organization name is required');
       if (!form.registrationNo.trim()) errs.registrationNo = t('auth.fpoRegNoRequired', 'FPO registration number is required');
     } else if (form.role === 'LOGISTICS') {
-      if (form.partnerType === 'DRIVER') {
-        if (!form.drivingLicenceNo.trim()) errs.drivingLicenceNo = 'Driving licence number is required';
-      } else if (form.partnerType === 'VEHICLE_OWNER') {
-        if (!form.vehicleNumber.trim()) errs.vehicleNumber = 'Vehicle registration number is required';
-        if (!form.capacityKg || Number(form.capacityKg) <= 0) errs.capacityKg = 'Valid payload capacity is required';
-      } else if (form.partnerType === 'FLEET_OPERATOR') {
-        if (!form.companyName.trim()) errs.companyName = 'Fleet operator enterprise name is required';
-        if (!form.vehicleNumber.trim()) errs.vehicleNumber = 'Primary vehicle registration number is required';
+      if (form.partnerType === 'FLEET_OPERATOR' && !form.companyName.trim()) {
+        errs.companyName = 'Fleet enterprise / Company name is required';
       }
     }
 
@@ -374,17 +368,17 @@ export default function RegisterPage() {
         businessRegNo: form.businessRegNo,
         businessCertUrl: form.businessCertUrl,
         ownershipType: form.ownershipType,
-        accountHolderName: form.accountHolderName,
-        bankName: form.bankName,
-        accountNumber: form.accountNumber,
-        ifscCode: form.ifscCode,
-        vehicleNumber: form.vehicleNumber,
-        vehicleType: form.vehicleType,
-        make: form.make,
-        model: form.model,
-        category: form.category,
-        fuelType: form.fuelType,
-        dimensions: form.dimensions,
+        accountHolderName: form.accountHolderName?.trim() || undefined,
+        bankName: form.bankName?.trim() || undefined,
+        accountNumber: form.accountNumber?.trim() || undefined,
+        ifscCode: form.ifscCode?.trim() || undefined,
+        vehicleNumber: form.vehicleNumber?.trim() ? form.vehicleNumber.trim().toUpperCase() : undefined,
+        vehicleType: form.vehicleType?.trim() || undefined,
+        make: form.make?.trim() || undefined,
+        model: form.model?.trim() || undefined,
+        category: form.category?.trim() || undefined,
+        fuelType: form.fuelType?.trim() || undefined,
+        dimensions: form.dimensions?.trim() || undefined,
         isRefrigerated: form.isRefrigerated,
         baseHub: form.baseHub,
         capacityKg: form.capacityKg ? parseFloat(form.capacityKg) : undefined,
@@ -600,6 +594,21 @@ export default function RegisterPage() {
                   </p>
                 </button>
               </div>
+
+              {form.partnerType === 'FLEET_OPERATOR' && (
+                <div className="mt-3 pt-3 border-t border-teal-200">
+                  <FormField
+                    id="reg-company-name"
+                    label="Fleet Enterprise / Company Name *"
+                    name="companyName"
+                    value={form.companyName}
+                    onChange={handleChange}
+                    error={errors.companyName}
+                    placeholder="e.g. Sahyadri Agro Freight Pvt Ltd"
+                    required
+                  />
+                </div>
+              )}
             </div>
           )}
 
@@ -919,637 +928,20 @@ export default function RegisterPage() {
             )}
 
             {/* ═════════════════════════════════════════════════════════════════ */}
-            {/* LOGISTICS ENRICHED MODULE: DRIVER, OWNER, FLEET OPERATOR          */}
+            {/* LOGISTICS PROGRESSIVE ONBOARDING BANNER                           */}
             {/* ═════════════════════════════════════════════════════════════════ */}
             {isLogistics && (
-              <div className="space-y-5">
-                {/* ── Sub-Role A: INDIVIDUAL DRIVER SPECIFICS ── */}
-                {form.partnerType === 'DRIVER' && (
-                  <div className="p-4 rounded-xl bg-sky-50/70 border border-sky-200 space-y-4">
-                    <div className="flex items-center gap-2">
-                      <UserCheck size={20} className="text-sky-700" />
-                      <h3 className="text-xs font-bold uppercase tracking-wider text-sky-900">
-                        Driver Licence & Personal Credentials
-                      </h3>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <FormField
-                        id="reg-dob"
-                        label="Date of Birth *"
-                        name="dob"
-                        type="date"
-                        value={form.dob}
-                        onChange={handleChange}
-                      />
-                      <FormField
-                        id="reg-pincode"
-                        label="Residential PIN Code *"
-                        name="pincode"
-                        value={form.pincode}
-                        onChange={handleChange}
-                        placeholder="e.g. 411005"
-                      />
-                    </div>
-
-                    <FormField
-                      id="reg-address"
-                      label="Residential Street Address *"
-                      name="residentialAddress"
-                      value={form.residentialAddress}
-                      onChange={handleChange}
-                      placeholder="e.g. House No. 24, Near Gram Panchayat, Chakan"
-                    />
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <FormField
-                        id="reg-emerg-name"
-                        label="Emergency Contact Person *"
-                        name="emergencyContactName"
-                        value={form.emergencyContactName}
-                        onChange={handleChange}
-                        placeholder="e.g. Brother / Spouse Name"
-                      />
-                      <FormField
-                        id="reg-emerg-phone"
-                        label="Emergency Mobile Number *"
-                        name="emergencyContactPhone"
-                        value={form.emergencyContactPhone}
-                        onChange={handleChange}
-                        placeholder="+919800000000"
-                      />
-                    </div>
-
-                    {/* Driving Licence Section */}
-                    <div className="p-3 bg-white rounded-lg border border-sky-200 space-y-3">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <FormField
-                          id="reg-dl-no"
-                          label="Commercial Driving Licence No. *"
-                          name="drivingLicenceNo"
-                          value={form.drivingLicenceNo}
-                          onChange={handleChange}
-                          error={errors.drivingLicenceNo}
-                          placeholder="e.g. MH-12-20160089124"
-                        />
-                        <FormField
-                          id="reg-dl-exp"
-                          label="Licence Expiry Date *"
-                          name="licenceExpiry"
-                          type="date"
-                          value={form.licenceExpiry}
-                          onChange={handleChange}
-                        />
-                      </div>
-
-                      {/* Permitted Vehicle Classes */}
-                      <div>
-                        <label className="text-xs font-semibold text-gray-700 block mb-1.5">
-                          Permitted Commercial Vehicle Classes
-                        </label>
-                        <div className="flex flex-wrap gap-2">
-                          {['LMV', 'LMV-TR', 'HGMV', 'HTV', 'HPMV'].map((cls) => (
-                            <button
-                              key={cls}
-                              type="button"
-                              onClick={() => togglePermittedClass(cls)}
-                              className={`px-3 py-1 rounded-md text-xs font-bold border transition-colors ${
-                                form.permittedClasses.includes(cls)
-                                  ? 'bg-sky-600 text-white border-sky-600'
-                                  : 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'
-                              }`}
-                            >
-                              {cls} {form.permittedClasses.includes(cls) ? '✓' : ''}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Driving Licence Image Uploads */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-                        <div className="border-2 border-dashed border-sky-300 rounded-lg p-3 text-center bg-sky-50/50">
-                          <UploadCloud size={20} className="mx-auto text-sky-600 mb-1" />
-                          <p className="text-xs font-bold text-gray-800">Licence Front Photo *</p>
-                          <p className="text-[10px] text-secondary mb-2">JPG, PNG or PDF (Max 5MB)</p>
-                          <input
-                            type="file"
-                            accept="image/*,.pdf"
-                            onChange={(e) => handleFileUpload('licenceFrontUrl', e.target.files[0])}
-                            className="text-[11px] text-gray-600 w-full"
-                          />
-                          {form.licenceFrontUrl && (
-                            <span className="inline-block mt-1 text-[11px] font-bold text-emerald-700">
-                              ✓ Front Uploaded
-                            </span>
-                          )}
-                        </div>
-
-                        <div className="border-2 border-dashed border-sky-300 rounded-lg p-3 text-center bg-sky-50/50">
-                          <UploadCloud size={20} className="mx-auto text-sky-600 mb-1" />
-                          <p className="text-xs font-bold text-gray-800">Licence Back Photo *</p>
-                          <p className="text-[10px] text-secondary mb-2">JPG, PNG or PDF (Max 5MB)</p>
-                          <input
-                            type="file"
-                            accept="image/*,.pdf"
-                            onChange={(e) => handleFileUpload('licenceBackUrl', e.target.files[0])}
-                            className="text-[11px] text-gray-600 w-full"
-                          />
-                          {form.licenceBackUrl && (
-                            <span className="inline-block mt-1 text-[11px] font-bold text-emerald-700">
-                              ✓ Back Uploaded
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* ── Sub-Role C: FLEET OPERATOR SPECIFICS ── */}
-                {form.partnerType === 'FLEET_OPERATOR' && (
-                  <div className="p-4 rounded-xl bg-purple-50/70 border border-purple-200 space-y-3">
-                    <div className="flex items-center gap-2">
-                      <Building size={20} className="text-purple-700" />
-                      <h3 className="text-xs font-bold uppercase tracking-wider text-purple-900">
-                        Fleet Enterprise & Business Credentials
-                      </h3>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <FormField
-                        id="reg-companyName"
-                        label="Logistics Company Name *"
-                        name="companyName"
-                        value={form.companyName}
-                        onChange={handleChange}
-                        error={errors.companyName}
-                        placeholder="e.g. Sahyadri Agri Freight Logistics Pvt Ltd"
-                      />
-                      <FormField
-                        id="reg-cin"
-                        label="CIN / Business Registration No."
-                        name="businessRegNo"
-                        value={form.businessRegNo}
-                        onChange={handleChange}
-                        placeholder="CIN-U60200PN2021PTC198822"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <FormField
-                        id="reg-pan"
-                        label="Company PAN *"
-                        name="panNumber"
-                        value={form.panNumber}
-                        onChange={handleChange}
-                        placeholder="AABCS1234D"
-                      />
-                      <FormField
-                        id="reg-gstin"
-                        label="GSTIN *"
-                        name="gstin"
-                        value={form.gstin}
-                        onChange={handleChange}
-                        placeholder="27AABCS1234D1ZP"
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {/* ── BANK DETAILS (For Vehicle Owners & Fleet Operators) ── */}
-                {(form.partnerType === 'VEHICLE_OWNER' || form.partnerType === 'FLEET_OPERATOR') && (
-                  <div className="p-4 rounded-xl bg-amber-50/70 border border-amber-200 space-y-3">
-                    <div className="flex items-center gap-2">
-                      <CreditCard size={18} className="text-amber-800" />
-                      <h3 className="text-xs font-bold uppercase tracking-wider text-amber-900">
-                        Freight Payment & Direct Bank Settlement Details
-                      </h3>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <FormField
-                        id="reg-acc-name"
-                        label="Bank Account Holder Name *"
-                        name="accountHolderName"
-                        value={form.accountHolderName || form.name}
-                        onChange={handleChange}
-                        placeholder="As written in bank passbook"
-                      />
-                      <FormField
-                        id="reg-bank-name"
-                        label="Bank Name *"
-                        name="bankName"
-                        value={form.bankName}
-                        onChange={handleChange}
-                        placeholder="e.g. State Bank of India, HDFC Bank"
-                      />
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <FormField
-                        id="reg-acc-no"
-                        label="Account Number *"
-                        name="accountNumber"
-                        value={form.accountNumber}
-                        onChange={handleChange}
-                        placeholder="e.g. 394810294819"
-                      />
-                      <FormField
-                        id="reg-ifsc"
-                        label="IFSC Code *"
-                        name="ifscCode"
-                        value={form.ifscCode}
-                        onChange={handleChange}
-                        placeholder="e.g. SBIN0001423"
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {/* ═════════════════════════════════════════════════════════════ */}
-                {/* 2. PRIMARY COMMERCIAL VEHICLE REGISTRATION                   */}
-                {/* ═════════════════════════════════════════════════════════════ */}
-                {(form.partnerType === 'VEHICLE_OWNER' || form.partnerType === 'FLEET_OPERATOR') && (
-                  <div className="p-4 rounded-xl bg-teal-50/70 border border-teal-200 space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Truck size={20} className="text-teal-700" />
-                        <h3 className="text-xs font-bold uppercase tracking-wider text-teal-900">
-                          Primary Commercial Goods Vehicle Specifications
-                        </h3>
-                      </div>
-                      <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-teal-200 text-teal-900">
-                        Immediate Fleet Listing
-                      </span>
-                    </div>
-
-                    {/* Vehicle Category Selector */}
-                    <div>
-                      <label className="text-xs font-semibold text-gray-700 block mb-1.5">
-                        Vehicle Commercial Category *
-                      </label>
-                      <div className="grid grid-cols-3 gap-2">
-                        {[
-                          { id: 'SCV', name: 'SCV (Small Commercial)', desc: 'Tata Intra / Ace / Bolero (< 2.5T)' },
-                          { id: 'MCV', name: 'MCV (Medium Commercial)', desc: 'Tata 407 / Eicher Pro (2.5T - 9T)' },
-                          { id: 'HCV', name: 'HCV (Heavy Commercial)', desc: 'Ashok Leyland 1615 (> 9T)' },
-                        ].map((cat) => (
-                          <button
-                            key={cat.id}
-                            type="button"
-                            onClick={() =>
-                              setForm((f) => ({
-                                ...f,
-                                category: cat.id,
-                                capacityKg: cat.id === 'SCV' ? '1500' : cat.id === 'MCV' ? '3500' : '9000',
-                                mileageKmpl: cat.id === 'SCV' ? '14.5' : cat.id === 'MCV' ? '8.5' : '4.5',
-                              }))
-                            }
-                            className={`p-2.5 rounded-lg border text-left transition-all ${
-                              form.category === cat.id
-                                ? 'bg-teal-700 text-white border-teal-700 shadow-sm'
-                                : 'bg-white text-gray-800 border-gray-200 hover:border-teal-400'
-                            }`}
-                          >
-                            <div className="font-bold text-xs">{cat.name}</div>
-                            <div className={`text-[10px] ${form.category === cat.id ? 'text-teal-100' : 'text-gray-500'}`}>
-                              {cat.desc}
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Specs Grid */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      <FormField
-                        id="reg-veh-no"
-                        label="Vehicle Reg. Number *"
-                        name="vehicleNumber"
-                        value={form.vehicleNumber}
-                        onChange={handleChange}
-                        error={errors.vehicleNumber}
-                        placeholder="e.g. MH-14-AZ-8899"
-                      />
-                      <FormField
-                        id="reg-make"
-                        label="Manufacturer (Make) *"
-                        name="make"
-                        value={form.make}
-                        onChange={handleChange}
-                        placeholder="e.g. Tata Motors, Mahindra"
-                      />
-                      <FormField
-                        id="reg-model"
-                        label="Model Name *"
-                        name="model"
-                        value={form.model}
-                        onChange={handleChange}
-                        placeholder="e.g. Intra V30, 407 Gold"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-                      <FormField
-                        id="reg-year"
-                        label="Manufacturing Year"
-                        name="manufacturingYear"
-                        type="number"
-                        value={form.manufacturingYear}
-                        onChange={handleChange}
-                        placeholder="2023"
-                      />
-                      <div className="form-group">
-                        <label className="form-label">Fuel Type</label>
-                        <select
-                          name="fuelType"
-                          className="form-select text-xs"
-                          value={form.fuelType}
-                          onChange={handleChange}
-                        >
-                          <option value="DIESEL">Diesel</option>
-                          <option value="CNG">CNG</option>
-                          <option value="ELECTRIC">Electric (EV)</option>
-                          <option value="PETROL">Petrol</option>
-                        </select>
-                      </div>
-                      <FormField
-                        id="reg-payload"
-                        label="Legal Payload (kg) *"
-                        name="capacityKg"
-                        type="number"
-                        value={form.capacityKg}
-                        onChange={handleChange}
-                        error={errors.capacityKg}
-                        placeholder="1500"
-                      />
-                      <FormField
-                        id="reg-gvw"
-                        label="Gross Vehicle Wt (GVW kg)"
-                        name="gvwKg"
-                        type="number"
-                        value={form.gvwKg}
-                        onChange={handleChange}
-                        placeholder="2565"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      <FormField
-                        id="reg-mileage"
-                        label="Fuel Mileage (km/L) *"
-                        name="mileageKmpl"
-                        type="number"
-                        step="0.5"
-                        value={form.mileageKmpl}
-                        onChange={handleChange}
-                        placeholder="14.5"
-                        hint="Actual tested mileage under freight load"
-                      />
-                      <FormField
-                        id="reg-dim"
-                        label="Cargo Dimensions (L x W x H)"
-                        name="dimensions"
-                        value={form.dimensions}
-                        onChange={handleChange}
-                        placeholder="e.g. 8.8ft x 5.3ft x 5.0ft"
-                      />
-                      <FormField
-                        id="reg-hub"
-                        label="Home Base Hub / Depot *"
-                        name="baseHub"
-                        value={form.baseHub}
-                        onChange={handleChange}
-                        placeholder="e.g. Chakan Agri Hub"
-                      />
-                    </div>
-
-                    <FormField
-                      id="reg-districts"
-                      label="Operating Districts & Freight Corridors *"
-                      name="serviceDistricts"
-                      value={form.serviceDistricts}
-                      onChange={handleChange}
-                      placeholder="e.g. Pune, Nashik, Ahmednagar, Mumbai"
-                    />
-
-                    {/* Cold Chain Refrigeration Toggle */}
-                    <div className="p-3 bg-white rounded-lg border border-teal-200">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Thermometer size={18} className="text-cyan-600" />
-                          <div>
-                            <span className="font-bold text-xs text-gray-800">
-                              Refrigerated Reefer Container / Cold Chain Support
-                            </span>
-                            <p className="text-[10px] text-secondary">
-                              Enable for temperature-sensitive perishable produce (Berries, Herbs, Dairy)
-                            </p>
-                          </div>
-                        </div>
-                        <label className="relative inline-flex items-center cursor-pointer">
-                          <input
-                            type="checkbox"
-                            name="isRefrigerated"
-                            checked={form.isRefrigerated}
-                            onChange={handleChange}
-                            className="sr-only peer"
-                          />
-                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-600"></div>
-                        </label>
-                      </div>
-
-                      {form.isRefrigerated && (
-                        <div className="mt-3 pt-3 border-t border-gray-100 grid grid-cols-2 gap-3">
-                          <FormField
-                            id="reg-min-temp"
-                            label="Min Temp (°C)"
-                            name="minTempC"
-                            type="number"
-                            value={form.minTempC}
-                            onChange={handleChange}
-                            placeholder="4"
-                          />
-                          <FormField
-                            id="reg-max-temp"
-                            label="Max Temp (°C)"
-                            name="maxTempC"
-                            type="number"
-                            value={form.maxTempC}
-                            onChange={handleChange}
-                            placeholder="12"
-                          />
-                        </div>
-                      )}
-                    </div>
-
-                    {/* ═════════════════════════════════════════════════════════ */}
-                    {/* 3. MANDATORY VEHICLE DOCUMENT UPLOADS                     */}
-                    {/* ═════════════════════════════════════════════════════════ */}
-                    <div className="p-4 bg-white rounded-xl border border-teal-300 space-y-3">
-                      <div className="flex items-center gap-2">
-                        <FileText size={18} className="text-teal-700" />
-                        <h4 className="text-xs font-bold uppercase tracking-wider text-teal-900">
-                          Mandatory Vehicle Documents & Statutory Compliance (RTO / MVA)
-                        </h4>
-                      </div>
-                      <p className="text-[11px] text-secondary">
-                        Upload official motor vehicle certificates for DoCA verification. Supports PDF, JPG, PNG.
-                      </p>
-
-                      <div className="space-y-3">
-                        {/* 1. Registration Certificate (RC) */}
-                        <div className="p-3 rounded-lg border border-gray-200 bg-gray-50/70 grid grid-cols-1 sm:grid-cols-3 gap-2 items-center">
-                          <div>
-                            <span className="font-bold text-xs text-gray-800">1. Registration Certificate (RC) *</span>
-                            <p className="text-[10px] text-secondary">Form 23 Commercial RC</p>
-                          </div>
-                          <input
-                            type="text"
-                            placeholder="RC Number"
-                            name="rcNumber"
-                            value={form.rcNumber}
-                            onChange={handleChange}
-                            className="form-input text-xs"
-                          />
-                          <div className="flex items-center gap-2">
-                            <input
-                              type="file"
-                              accept="image/*,.pdf"
-                              onChange={(e) => handleFileUpload('rcDocUrl', e.target.files[0])}
-                              className="text-[10px] text-gray-600 w-full"
-                            />
-                            {form.rcDocUrl && <span className="text-xs font-bold text-emerald-700">✓</span>}
-                          </div>
-                        </div>
-
-                        {/* 2. Commercial Insurance */}
-                        <div className="p-3 rounded-lg border border-gray-200 bg-gray-50/70 grid grid-cols-1 sm:grid-cols-3 gap-2 items-center">
-                          <div>
-                            <span className="font-bold text-xs text-gray-800">2. Commercial Insurance *</span>
-                            <p className="text-[10px] text-secondary">Goods Vehicle Comprehensive</p>
-                          </div>
-                          <input
-                            type="text"
-                            placeholder="Policy Number"
-                            name="insuranceNumber"
-                            value={form.insuranceNumber}
-                            onChange={handleChange}
-                            className="form-input text-xs"
-                          />
-                          <div className="flex items-center gap-2">
-                            <input
-                              type="file"
-                              accept="image/*,.pdf"
-                              onChange={(e) => handleFileUpload('insuranceDocUrl', e.target.files[0])}
-                              className="text-[10px] text-gray-600 w-full"
-                            />
-                            {form.insuranceDocUrl && <span className="text-xs font-bold text-emerald-700">✓</span>}
-                          </div>
-                        </div>
-
-                        {/* 3. Fitness Certificate */}
-                        <div className="p-3 rounded-lg border border-gray-200 bg-gray-50/70 grid grid-cols-1 sm:grid-cols-3 gap-2 items-center">
-                          <div>
-                            <span className="font-bold text-xs text-gray-800">3. Fitness Certificate</span>
-                            <p className="text-[10px] text-secondary">Form 38 Valid Fitness</p>
-                          </div>
-                          <input
-                            type="text"
-                            placeholder="Fitness Cert No."
-                            name="fitnessNumber"
-                            value={form.fitnessNumber}
-                            onChange={handleChange}
-                            className="form-input text-xs"
-                          />
-                          <div className="flex items-center gap-2">
-                            <input
-                              type="file"
-                              accept="image/*,.pdf"
-                              onChange={(e) => handleFileUpload('fitnessDocUrl', e.target.files[0])}
-                              className="text-[10px] text-gray-600 w-full"
-                            />
-                            {form.fitnessDocUrl && <span className="text-xs font-bold text-emerald-700">✓</span>}
-                          </div>
-                        </div>
-
-                        {/* 4. Goods Carriage Permit */}
-                        <div className="p-3 rounded-lg border border-gray-200 bg-gray-50/70 grid grid-cols-1 sm:grid-cols-3 gap-2 items-center">
-                          <div>
-                            <span className="font-bold text-xs text-gray-800">4. Goods Carriage Permit</span>
-                            <p className="text-[10px] text-secondary">State / National Permit</p>
-                          </div>
-                          <input
-                            type="text"
-                            placeholder="Permit Number"
-                            name="permitNumber"
-                            value={form.permitNumber}
-                            onChange={handleChange}
-                            className="form-input text-xs"
-                          />
-                          <div className="flex items-center gap-2">
-                            <input
-                              type="file"
-                              accept="image/*,.pdf"
-                              onChange={(e) => handleFileUpload('permitDocUrl', e.target.files[0])}
-                              className="text-[10px] text-gray-600 w-full"
-                            />
-                            {form.permitDocUrl && <span className="text-xs font-bold text-emerald-700">✓</span>}
-                          </div>
-                        </div>
-
-                        {/* 5. PUC */}
-                        <div className="p-3 rounded-lg border border-gray-200 bg-gray-50/70 grid grid-cols-1 sm:grid-cols-3 gap-2 items-center">
-                          <div>
-                            <span className="font-bold text-xs text-gray-800">5. PUC Certificate</span>
-                            <p className="text-[10px] text-secondary">Pollution Under Control</p>
-                          </div>
-                          <input
-                            type="text"
-                            placeholder="PUC Number"
-                            name="pucNumber"
-                            value={form.pucNumber}
-                            onChange={handleChange}
-                            className="form-input text-xs"
-                          />
-                          <div className="flex items-center gap-2">
-                            <input
-                              type="file"
-                              accept="image/*,.pdf"
-                              onChange={(e) => handleFileUpload('pucDocUrl', e.target.files[0])}
-                              className="text-[10px] text-gray-600 w-full"
-                            />
-                            {form.pucDocUrl && <span className="text-xs font-bold text-emerald-700">✓</span>}
-                          </div>
-                        </div>
-
-                        {/* 6. Road Tax */}
-                        <div className="p-3 rounded-lg border border-gray-200 bg-gray-50/70 grid grid-cols-1 sm:grid-cols-3 gap-2 items-center">
-                          <div>
-                            <span className="font-bold text-xs text-gray-800">6. Road Tax Token / Receipt</span>
-                            <p className="text-[10px] text-secondary">Commercial Goods Tax Receipt</p>
-                          </div>
-                          <input
-                            type="text"
-                            placeholder="Tax Receipt No."
-                            name="taxNumber"
-                            value={form.taxNumber}
-                            onChange={handleChange}
-                            className="form-input text-xs"
-                          />
-                          <div className="flex items-center gap-2">
-                            <input
-                              type="file"
-                              accept="image/*,.pdf"
-                              onChange={(e) => handleFileUpload('taxDocUrl', e.target.files[0])}
-                              className="text-[10px] text-gray-600 w-full"
-                            />
-                            {form.taxDocUrl && <span className="text-xs font-bold text-emerald-700">✓</span>}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
+              <div className="p-4 rounded-xl bg-teal-50/80 border border-teal-200 space-y-2">
+                <div className="flex items-center gap-2 text-teal-900 font-bold text-xs">
+                  <ShieldCheck size={18} className="text-teal-700" />
+                  <span>Fast 30-Second Registration</span>
+                </div>
+                <p className="text-xs text-teal-800 leading-relaxed">
+                  You do not need to upload your Driving Licence, RC, or commercial insurance right now. Once your account is created, you can submit your vehicle specifications and documents at your own pace inside the partner portal.
+                </p>
+                <div className="text-[11px] text-teal-700 font-medium">
+                  🔒 <strong>Note:</strong> Farmer shipments are unlocked as soon as your submitted documents are verified by DoCA compliance officers.
+                </div>
               </div>
             )}
 

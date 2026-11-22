@@ -12,121 +12,27 @@
 
 const { v4: uuidv4 } = require('uuid');
 const config = require('../config/logistics.config');
-const { orderRepo } = require('../adapters');
+const { orderRepo, shipmentRepo, reservationPort } = require('../adapters');
 const vehicleService = require('./vehicle.service');
 const sourcingService = require('./sourcing.service');
 const twoTierLogisticsService = require('./twoTierLogistics.service');
 const routingService = require('./routing.service');
 const logisticsEvents = require('../events/logisticsEvents');
-const { NotFoundError, ConflictError, BusinessRuleError } = require('../utils/errors');
+const { recordOutboxEvent } = require('../events/outboxDispatcher');
+const {
+  NotFoundError,
+  ConflictError,
+  BusinessRuleError,
+  ValidationError,
+  AuthorizationError,
+} = require('../utils/errors');
+const { generateDeliveryOtp, verifyDeliveryOtp } = require('../utils/cryptoOtp');
+const { haversineKm } = require('../utils/geo');
 const logger = require('../utils/logger');
 const prisma = require('../lib/prisma');
 
-// In-memory shipment store (for Standalone / Mock mode and unit/integration tests)
-const inMemoryShipments = new Map();
-const quoteCache = new Map();
-
-// Seed initial mock shipment for immediate testing
-const initMockShipment = () => {
-  const mockId = 'shp_demo_101';
-  inMemoryShipments.set(mockId, {
-    id: mockId,
-    trackingNumber: 'SV-SHP-2026-0001',
-    orderId: 'ord_demo_101',
-    vehicleId: 'veh_mh12_qx_4012',
-    vehicleNumber: 'MH-12-QX-4012',
-    driverName: 'Shivaji Mane',
-    driverPhone: '+919822014012',
-    status: 'TRANSIT',
-    deliveryOtp: '492810',
-    totalWeightKg: 2500,
-    totalDistanceKm: 78.5,
-    baselineDistanceKm: 142.0,
-    savedDistanceKm: 63.5,
-    estimatedFuelSavedRs: 1508.13,
-    utilizationPercent: 83.3,
-    estimatedMinutes: 110,
-    currentLocation: {
-      latitude: 18.7230,
-      longitude: 73.8910,
-      speedKmh: 44.0,
-      lastPingAt: new Date().toISOString(),
-    },
-    coldChain: {
-      currentTempC: 13.8,
-      status: 'OPTIMAL',
-      minTempC: 10.0,
-      maxTempC: 16.0,
-    },
-    stops: [
-      {
-        id: 'stop_1',
-        sequence: 1,
-        stopName: 'Farmer Ramesh Kulkarni (Manchar)',
-        farmerId: 'farmer_manchar_01',
-        latitude: 18.9880,
-        longitude: 73.9400,
-        quantityKg: 1500,
-        pricePerKg: 22.0,
-        grade: 'GRADE_A',
-        status: 'COMPLETED',
-        stopType: 'PICKUP',
-      },
-      {
-        id: 'stop_2',
-        sequence: 2,
-        stopName: 'Farmer Suresh Bhor (Khed)',
-        farmerId: 'farmer_khed_01',
-        latitude: 18.8470,
-        longitude: 73.9100,
-        quantityKg: 1000,
-        pricePerKg: 23.5,
-        grade: 'GRADE_A',
-        status: 'COMPLETED',
-        stopType: 'PICKUP',
-      },
-      {
-        id: 'stop_3',
-        sequence: 3,
-        stopName: 'FreshBasket Destination (Hadapsar)',
-        latitude: 18.5089,
-        longitude: 73.9260,
-        quantityKg: 2500,
-        status: 'PENDING',
-        stopType: 'DELIVERY',
-      },
-    ],
-    routeGeometry: {
-      type: 'LineString',
-      coordinates: [
-        [73.9400, 18.9880],
-        [73.9100, 18.8470],
-        [73.8636, 18.7606],
-        [73.9260, 18.5089],
-      ],
-    },
-    costBreakdown: {
-      productCost: 56500.0,
-      transportCost: 2840.0,
-      handlingCost: 1250.0,
-      platformFee: 1130.0,
-      aggregationFee: 350.0,
-      riskCost: 1130.0,
-      gst: 0.0,
-      totalCost: 63200.0,
-    },
-    milestoneHistory: [
-      { status: 'ASSIGNED', recordedAt: new Date(Date.now() - 3600000).toISOString(), notes: 'Assigned to Shivaji Mane' },
-      { status: 'PICKUP', recordedAt: new Date(Date.now() - 1800000).toISOString(), notes: 'Loaded at Manchar and Khed' },
-      { status: 'TRANSIT', recordedAt: new Date(Date.now() - 600000).toISOString(), notes: 'En route to Hadapsar' },
-    ],
-    createdAt: new Date(Date.now() - 3600000).toISOString(),
-    updatedAt: new Date().toISOString(),
-  });
-};
-if (config.dataSource === 'mock') {
-  initMockShipment();
-}
+// In-memory & Prisma persistence are unified through shipmentRepo
+// Mock initial state is managed by MockShipmentRepo
 
 class LogisticsService {
   /**
@@ -134,136 +40,124 @@ class LogisticsService {
    * Generates sourcing/logistics plans for an order requirement
    */
   async planOrder(params) {
+    const maxBudget = params.maxBudget === Infinity || params.maxBudget === undefined ? null : params.maxBudget;
     const result = await twoTierLogisticsService.planOrder({
       ...params,
-      maxBudget: params.maxBudget ?? Infinity,
+      maxBudget: maxBudget ?? Infinity,
     });
-    quoteCache.set(result.quoteId, {
-      params: { ...params, maxBudget: params.maxBudget ?? Infinity },
-      quote: result,
-      expiresAt: new Date(result.expiresAt),
+    // Persist plan quote at creation time (not just upon confirmation)
+    await shipmentRepo.savePlanQuote({
+      quoteId: result.quoteId,
+      crop: params.crop,
+      requestedQtyKg: params.qtyKg,
+      maxBudget,
+      radiusUsedKm: result.radiusUsedKm,
+      ringsTried: result.ringsTried,
+      payload: result,
+      explanation: result.explanation,
+      expiresAt: result.expiresAt,
     });
     return result;
   }
 
-  async confirmPlan(quoteId) {
-    const cached = quoteCache.get(quoteId);
-    if (!cached || cached.expiresAt <= new Date()) {
+  async confirmPlan(quoteId, planId = null) {
+    const quote = await shipmentRepo.findPlanQuote(quoteId);
+    if (!quote) {
+      throw new NotFoundError(`Plan quote with ID ${quoteId}`);
+    }
+    if (new Date(quote.expiresAt) <= new Date()) {
       throw new ConflictError('Quote has expired; request a new plan before confirmation');
     }
-    const refreshed = await twoTierLogisticsService.planOrder(cached.params);
-    const plan = refreshed.plans[0];
+
+    if (quote.confirmedAt && quote.priceLocked) {
+      return quote.payload;
+    }
+
+    // Extract exact quoted plan by id, or first plan in quote without re-planning
+    const quotePayload = quote.payload || {};
+    const plans = quotePayload.plans || [];
+    const plan = (planId ? plans.find((p) => p.id === planId) : plans[0]) || plans[0];
+
     if (!plan) {
       throw new BusinessRuleError('The quoted stock is no longer available');
     }
-    if (plan.totalCost > cached.params.maxBudget) {
+
+    if (quote.maxBudget !== null && quote.maxBudget !== undefined && plan.totalCost > quote.maxBudget) {
       throw new BusinessRuleError(
-        `Current fulfillment cost ₹${plan.totalCost.toLocaleString('en-IN')} exceeds the buyer budget by ₹${(plan.totalCost - cached.params.maxBudget).toLocaleString('en-IN')}`,
+        `Current fulfillment cost ₹${plan.totalCost.toLocaleString('en-IN')} exceeds the buyer budget by ₹${(plan.totalCost - quote.maxBudget).toLocaleString('en-IN')}`,
       );
     }
+
     const confirmed = {
       ...plan,
       quoteId,
       confirmedAt: new Date().toISOString(),
       priceLocked: true,
     };
-    if (prisma.planQuote) {
-      if (confirmed.transferPoint) {
-        await prisma.transferPoint.upsert({
-          where: { id: confirmed.transferPoint.id },
-          update: {
-            name: confirmed.transferPoint.name,
-            latitude: confirmed.transferPoint.lat,
-            longitude: confirmed.transferPoint.lng,
-            roadAccess: confirmed.transferPoint.roadAccess || 'MAIN',
-            capacityKg: confirmed.transferPoint.capacityKg || confirmed.totalWeightKg,
-            handlingFeePerKg: confirmed.transferPoint.feePerKg || 0,
-            openHours: confirmed.transferPoint.openHours,
-            zone: confirmed.transferPoint.zone,
-          },
-          create: {
-            id: confirmed.transferPoint.id,
-            name: confirmed.transferPoint.name,
-            latitude: confirmed.transferPoint.lat,
-            longitude: confirmed.transferPoint.lng,
-            roadAccess: confirmed.transferPoint.roadAccess || 'MAIN',
-            capacityKg: confirmed.transferPoint.capacityKg || confirmed.totalWeightKg,
-            handlingFeePerKg: confirmed.transferPoint.feePerKg || 0,
-            openHours: confirmed.transferPoint.openHours,
-            zone: confirmed.transferPoint.zone,
-          },
-        });
-      }
-      await prisma.planQuote.upsert({
-        where: { quoteId },
-        update: {
-          payload: confirmed,
-          explanation: confirmed.explanation,
-          expiresAt: new Date(cached.quote.expiresAt),
-          confirmedAt: new Date(),
-          priceLocked: true,
-          radiusUsedKm: confirmed.radiusUsedKm,
-          ringsTried: cached.quote.ringsTried,
-        },
-        create: {
-          quoteId,
-          crop: cached.params.crop,
-          requestedQtyKg: cached.params.qtyKg,
-          maxBudget: cached.params.maxBudget,
-          radiusUsedKm: confirmed.radiusUsedKm,
-          ringsTried: cached.quote.ringsTried,
-          payload: confirmed,
-          explanation: confirmed.explanation,
-          expiresAt: new Date(cached.quote.expiresAt),
-          confirmedAt: new Date(),
-          priceLocked: true,
-          legs: {
-            create: confirmed.legs.map((leg, index) => ({
-              sequence: index + 1,
-              type: leg.type,
-              vehicleClass: leg.vehicleClass,
-              fromJson: leg.from,
-              toJson: leg.to,
-              km: leg.km,
-              etaMin: leg.etaMin,
-              cost: leg.cost,
-              kg: leg.kg,
-              transferPointId: leg.to?.transferPointId || leg.from?.transferPointId,
-            })),
-          },
-        },
-      });
-    }
-    quoteCache.delete(quoteId);
+
+    await shipmentRepo.confirmPlanQuote(quoteId, confirmed);
     return confirmed;
   }
 
   async dispatchPlan(quoteId) {
+    if (config.dataSource === 'mock') {
+      return { quoteId, offerCount: 2, expiresAt: new Date(Date.now() + 10 * 60000) };
+    }
     const quote = await prisma.planQuote.findUnique({ where: { quoteId }, include: { legs: true } });
-    if (!quote || quote.expiresAt <= new Date()) {
+    if (!quote || (quote.expiresAt && quote.expiresAt <= new Date())) {
       throw new ConflictError('Confirmed quote is missing or expired');
     }
-    const vehicles = await prisma.vehicle.findMany({ where: { status: 'AVAILABLE' } });
+
+    // Offer legs only to VERIFIED available vehicles of VERIFIED logistics partners
+    const vehicles = await prisma.vehicle.findMany({
+      where: {
+        status: 'AVAILABLE',
+        verificationStatus: 'VERIFIED',
+        logistics: {
+          verificationStatus: 'VERIFIED',
+          user: { status: 'ACTIVE' },
+        },
+      },
+      include: { logistics: true },
+    });
+
     if (vehicles.length === 0) {
       logisticsEvents.emit('logistics.admin_alert', { quoteId, reason: 'NO_AVAILABLE_VEHICLE' });
-      throw new BusinessRuleError('No available vehicle; radius widening and hub fallback exhausted. ADMIN alerted.');
+      throw new BusinessRuleError('No verified available vehicle found for dispatch. ADMIN alerted.');
     }
+
     const expiresAt = new Date(Date.now() + 10 * 60000);
     const offers = [];
     for (const leg of quote.legs) {
-      for (const vehicle of vehicles) {
+      // Filter vehicles matching capacity and road suitability
+      const eligibleVehicles = vehicles.filter((v) => {
+        if (leg.kg && v.capacityKg < leg.kg) return false;
+        return true;
+      });
+
+      const targets = eligibleVehicles.length > 0 ? eligibleVehicles : vehicles;
+      for (const vehicle of targets) {
         offers.push({ planQuoteId: quote.id, shipmentLegId: leg.id, vehicleId: vehicle.id, expiresAt });
       }
     }
-    await prisma.logisticsOffer.createMany({ data: offers });
+
+    if (offers.length > 0) {
+      await prisma.logisticsOffer.createMany({ data: offers });
+    }
     logisticsEvents.emit('logistics.offers.created', { quoteId, count: offers.length, expiresAt });
     return { quoteId, offerCount: offers.length, expiresAt };
   }
 
-  async acceptOffer(offerId, vehicleId) {
+  async acceptOffer(offerId, vehicleId, user) {
     return prisma.$transaction(async (tx) => {
       const offer = await tx.logisticsOffer.findUnique({ where: { id: offerId } });
       if (!offer || offer.vehicleId !== vehicleId) throw new NotFoundError(`Offer ${offerId}`);
+      if (user?.role === 'LOGISTICS') {
+        const vehicle = await tx.vehicle.findUnique({ where: { id: vehicleId }, select: { logistics: { select: { userId: true } } } });
+        if (!vehicle || vehicle.logistics?.userId !== user.id) {
+          throw new AuthorizationError('You do not own the vehicle assigned to this offer');
+        }
+      }
       if (offer.expiresAt <= new Date()) throw new ConflictError('Offer has expired');
       const claimed = await tx.logisticsOffer.updateMany({
         where: { id: offerId, status: 'PENDING', expiresAt: { gt: new Date() } },
@@ -280,10 +174,119 @@ class LogisticsService {
     });
   }
 
-  async recordHandover({ transferPointId, shipmentId, feederDriverId, linehaulDriverId, feederKg, linehaulKg, feederOtp, linehaulOtp }) {
+  /**
+   * Get 3 comparative route options for a shipment leg
+   */
+  async getLegRouteOptions(legId) {
+    const leg = await shipmentRepo.findLegById(legId);
+    if (!leg) throw new NotFoundError(`Shipment leg ${legId}`);
+
+    const from = typeof leg.fromJson === 'string' ? JSON.parse(leg.fromJson) : leg.fromJson;
+    const to = typeof leg.toJson === 'string' ? JSON.parse(leg.toJson) : leg.toJson;
+
+    const fromLat = from?.lat || from?.latitude;
+    const fromLng = from?.lng || from?.longitude;
+    const toLat = to?.lat || to?.latitude;
+    const toLng = to?.lng || to?.longitude;
+
+    const waypoints = [
+      { lat: fromLat, lng: fromLng, name: from?.name || 'Leg Origin' },
+      { lat: toLat, lng: toLng, name: to?.name || 'Leg Destination' },
+    ];
+
+    const basePayout = leg.legPayoutRs || leg.cost || 2500.0;
+    const routeData = await routingService.getRouteOptions(waypoints, { legPayoutRs: basePayout });
+
+    return {
+      legId: leg.id,
+      sequence: leg.sequence,
+      type: leg.type,
+      vehicleClass: leg.vehicleClass,
+      currentStatus: leg.status,
+      selectedRouteIndex: leg.selectedRouteIndex,
+      isLocked: leg.routeLockedAt != null,
+      routeLockedAt: leg.routeLockedAt,
+      legPayoutRs: basePayout,
+      deviationReason: leg.deviationReason,
+      ...routeData,
+    };
+  }
+
+  /**
+   * Lock selected route on a shipment leg server-side.
+   * If already locked, requires a verified deviationReason.
+   * Invariant: never modifies buyer price.
+   */
+  async selectLegRoute(legId, { selectedRouteIndex, deviationReason = null }, userId = 'driver') {
+    if (selectedRouteIndex == null || selectedRouteIndex < 0 || selectedRouteIndex > 2) {
+      throw new ValidationError('selectedRouteIndex must be 0 (Route 1), 1 (Route 2), or 2 (Route 3)');
+    }
+
+    const options = await this.getLegRouteOptions(legId);
+    const chosenRoute = options.routes[selectedRouteIndex] || options.routes[0];
+
+    const lockedLeg = await shipmentRepo.lockLegRoute(legId, {
+      selectedRouteIndex,
+      routeData: {
+        fuelCostRs: chosenRoute.fuelCostRs,
+        fuelLitres: chosenRoute.fuelLitres,
+        etaMin: chosenRoute.etaMin,
+        routeOptions: options.routes,
+      },
+      deviationReason,
+      lockedBy: userId,
+    });
+
+    logisticsEvents.emit('shipment.route_locked', {
+      legId,
+      shipmentId: lockedLeg.shipmentId,
+      selectedRouteIndex,
+      deviationReason,
+      plannedFuelLitres: lockedLeg.plannedFuelLitres,
+      plannedCostRs: lockedLeg.plannedCostRs,
+      lockedAt: lockedLeg.routeLockedAt,
+    });
+
+    recordOutboxEvent({
+      aggregateType: 'LEG',
+      aggregateId: legId,
+      eventType: 'shipment.route_locked',
+      payload: {
+        legId,
+        shipmentId: lockedLeg.shipmentId,
+        selectedRouteIndex,
+        deviationReason,
+        plannedFuelLitres: lockedLeg.plannedFuelLitres,
+        plannedCostRs: lockedLeg.plannedCostRs,
+        lockedAt: lockedLeg.routeLockedAt,
+      },
+    }).catch(() => {});
+
+    return {
+      ...lockedLeg,
+      selectedRoute: chosenRoute,
+      googleMapsUrl: options.googleMapsUrl,
+    };
+  }
+
+  async recordHandover({ transferPointId, shipmentId, feederDriverId, linehaulDriverId, feederKg, linehaulKg, feederOtp, linehaulOtp, user }) {
+    const shipment = await shipmentRepo.findById(shipmentId);
+    if (!shipment) throw new NotFoundError(`Shipment ${shipmentId}`);
+    const validTransferPoint = await prisma.shipmentLeg.findFirst({
+      where: { shipmentId, transferPointId },
+      select: { id: true },
+    });
+    if (!validTransferPoint) {
+      throw new AuthorizationError('Transfer point is not associated with this shipment');
+    }
+    if (user?.role === 'LOGISTICS' && shipment.vehicleId) {
+      await vehicleService.findById(shipment.vehicleId, user);
+    }
+    verifyDeliveryOtp(shipmentId, feederOtp, shipment.deliveryOtp, shipment.deliveryOtpExpiresAt);
+    verifyDeliveryOtp(shipmentId, linehaulOtp, shipment.deliveryOtp, shipment.deliveryOtpExpiresAt);
     const toleranceKg = Math.max(feederKg, linehaulKg) * config.twoTier.kgTolerancePct;
     const mismatchKg = Math.abs(feederKg - linehaulKg);
-    const status = mismatchKg <= toleranceKg && feederOtp && linehaulOtp ? 'COMPLETED' : 'DISPUTED';
+    const status = mismatchKg <= toleranceKg ? 'COMPLETED' : 'DISPUTED';
     const event = await prisma.transferEvent.create({
       data: {
         transferPointId,
@@ -324,9 +327,16 @@ class LogisticsService {
     }
 
     // Check if shipment already exists for this order
-    const existing = [...inMemoryShipments.values()].find((s) => s.orderId === orderId);
+    const existing = await shipmentRepo.findByOrderId(orderId);
     if (existing) {
-      return existing;
+      return this.toApiShipment(existing);
+    }
+
+    // TODO: Member 1 (Buyer Lead) - buyer delivery coordinates must be populated via BuyerAddress model geocoding rather than logistics fallback
+    if (order.deliveryLatitude == null || order.deliveryLongitude == null) {
+      throw new ValidationError(
+        `Order ${orderId} is missing deliveryLatitude/deliveryLongitude. Accurate geocoded delivery coordinates are required for route planning.`
+      );
     }
 
     // If no plan provided, run auto-plan with order details
@@ -335,8 +345,8 @@ class LogisticsService {
       const planResult = await sourcingService.planOrder({
         crop: order.cropName || 'Produce',
         qtyKg: order.totalQuantityKg,
-        buyerLat: order.deliveryLatitude || 18.5089,
-        buyerLng: order.deliveryLongitude || 73.9260,
+        buyerLat: order.deliveryLatitude,
+        buyerLng: order.deliveryLongitude,
         buyerAddress: order.deliveryAddress,
       });
 
@@ -346,24 +356,27 @@ class LogisticsService {
       plan = planResult.plans[0];
     }
 
-    // Generate random 6-digit delivery OTP
-    const deliveryOtp = Math.floor(100000 + Math.random() * 900000).toString();
+    // Generate cryptographically secure 6-digit delivery OTP
+    const { rawOtp, hashedOtp, expiresAt } = generateDeliveryOtp();
+    const deliveryOtp = config.dataSource === 'mock' ? rawOtp : hashedOtp;
 
     // Assign vehicle based on first pickup and load
-    const firstFarmer = plan.farmers[0];
-    const vehicle = await vehicleService.selectBestVehicle({
-      requiredCapacityKg: order.totalQuantityKg,
-      firstPickupLat: firstFarmer.lat,
-      firstPickupLng: firstFarmer.lng,
-    });
+    const firstFarmer = plan.farmers?.[0];
+    const vehicle = firstFarmer
+      ? await vehicleService.selectBestVehicle({
+          requiredCapacityKg: order.totalQuantityKg,
+          firstPickupLat: firstFarmer.lat,
+          firstPickupLng: firstFarmer.lng,
+        })
+      : null;
 
     const shipmentId = `shp_${uuidv4().slice(0, 8)}`;
     const trackingNumber = `SV-SHP-2026-${Math.floor(1000 + Math.random() * 9000)}`;
 
-    const stops = plan.farmers.map((f, idx) => ({
+    const stops = (plan.farmers || []).map((f, idx) => ({
       id: `stop_${idx + 1}`,
       sequence: idx + 1,
-      stopName: `Pickup: ${f.name} (${f.village})`,
+      stopName: `Pickup: ${f.name} (${f.village || ''})`,
       farmerId: f.farmerId,
       listingId: f.batchId,
       latitude: f.lat,
@@ -379,15 +392,30 @@ class LogisticsService {
     stops.push({
       id: `stop_${stops.length + 1}`,
       sequence: stops.length + 1,
-      stopName: `Delivery: ${order.buyerName}`,
-      latitude: order.deliveryLatitude || 18.5089,
-      longitude: order.deliveryLongitude || 73.9260,
+      stopName: `Delivery: ${order.buyerName || 'Buyer Hub'}`,
+      latitude: order.deliveryLatitude,
+      longitude: order.deliveryLongitude,
       quantityKg: order.totalQuantityKg,
       status: 'PENDING',
       stopType: 'DELIVERY',
     });
 
-    const newShipment = {
+    const legs = (plan.legs || []).map((l, idx) => ({
+      id: `leg_${idx + 1}`,
+      sequence: idx + 1,
+      type: l.type || 'DIRECT',
+      vehicleClass: l.vehicleClass || 'SCV',
+      fromJson: l.from,
+      toJson: l.to,
+      km: l.km,
+      etaMin: l.etaMin,
+      cost: l.cost,
+      kg: l.kg,
+      transferPointId: l.to?.transferPointId || l.from?.transferPointId || null,
+      status: 'PLANNED',
+    }));
+
+    const shipmentData = {
       id: shipmentId,
       trackingNumber,
       orderId: order.id,
@@ -406,125 +434,74 @@ class LogisticsService {
       estimatedMinutes: plan.etaMinutes || 90,
       routeGeometry: plan.routeGeometry || { type: 'LineString', coordinates: [] },
       costBreakdown: plan.costBreakdown || null,
-      currentLocation: vehicle
-        ? {
-            latitude: vehicle.currentLatitude,
-            longitude: vehicle.currentLongitude,
-            speedKmh: 0,
-            lastPingAt: new Date().toISOString(),
-          }
-        : null,
-      coldChain: {
-        currentTempC: 14.0,
-        status: 'OPTIMAL',
-        minTempC: 10.0,
-        maxTempC: 16.0,
-      },
-      stops,
-      milestoneHistory: [
-        {
-          status: vehicle ? 'ASSIGNED' : 'UNASSIGNED',
-          recordedAt: new Date().toISOString(),
-          notes: vehicle ? `Assigned to ${vehicle.vehicleNumber}` : 'Awaiting transporter assignment',
-        },
-      ],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
 
-    inMemoryShipments.set(shipmentId, newShipment);
+    // Atomic persistence of Shipment + ShipmentStop + ShipmentLeg
+    const created = await shipmentRepo.createShipmentWithStopsAndLegs({
+      shipment: shipmentData,
+      stops,
+      legs,
+    });
 
     // Emit event for Member 1 & 2
     logisticsEvents.emit('shipment.created', {
-      shipmentId,
+      shipmentId: created.id,
       orderId: order.id,
-      trackingNumber,
+      trackingNumber: created.trackingNumber,
       vehicleId: vehicle?.id,
       totalWeightKg: order.totalQuantityKg,
     });
 
-    return newShipment;
+    recordOutboxEvent({
+      aggregateType: 'SHIPMENT',
+      aggregateId: created.id,
+      eventType: 'shipment.created',
+      payload: {
+        shipmentId: created.id,
+        orderId: order.id,
+        trackingNumber: created.trackingNumber,
+        vehicleId: vehicle?.id,
+        totalWeightKg: order.totalQuantityKg,
+      },
+    }).catch(() => {});
+
+    return this.toApiShipment(created);
   }
 
   /**
    * List available shipments for transporter bidding / assignment
    */
   async listAvailableShipments(query = {}) {
-    const list = [...inMemoryShipments.values()].filter(
-      (s) => s.status === 'UNASSIGNED' || !s.vehicleId,
-    );
-    return list;
+    const list = await shipmentRepo.listAvailableShipments(query);
+    return Promise.all(list.map((s) => this.toApiShipment(s)));
   }
 
   /**
    * List all shipments with pagination
    */
-  async listShipments({ page = 1, limit = 20, status = null } = {}) {
-    if (config.dataSource === 'prisma') {
-      const where = status ? { status: status.toUpperCase() } : undefined;
-      const [shipments, total] = await Promise.all([
-        prisma.shipment.findMany({
-          where,
-          include: {
-            stops: { orderBy: { sequence: 'asc' } },
-            locationPings: { orderBy: { recordedAt: 'desc' }, take: 1 },
-          },
-          orderBy: { updatedAt: 'desc' },
-          skip: (page - 1) * limit,
-          take: limit,
-        }),
-        prisma.shipment.count({ where }),
-      ]);
-
-      const items = await Promise.all(shipments.map((shipment) => this.toApiShipment(shipment)));
-      return { items, total, page, limit };
-    }
-
-    let list = [...inMemoryShipments.values()];
-    if (status) {
-      list = list.filter((s) => s.status.toLowerCase() === status.toLowerCase());
-    }
-    const total = list.length;
-    const startIndex = (page - 1) * limit;
-    const items = list.slice(startIndex, startIndex + limit);
-
-    return {
-      items,
-      total,
-      page,
-      limit,
-    };
+  async listShipments({ page = 1, limit = 20, status = null, where = {} } = {}) {
+    const res = await shipmentRepo.listShipments({ page, limit, status, where });
+    const items = await Promise.all(res.items.map((s) => this.toApiShipment(s)));
+    return { ...res, items };
   }
 
   /**
    * Get single shipment detail by ID
    */
   async getShipmentById(shipmentId) {
-    if (config.dataSource === 'prisma') {
-      const shipment = await prisma.shipment.findFirst({
-        where: {
-          OR: [{ id: shipmentId }, { trackingNumber: shipmentId }, { orderId: shipmentId }],
-        },
-        include: {
-          stops: { orderBy: { sequence: 'asc' } },
-          milestoneHistory: { orderBy: { recordedAt: 'asc' } },
-          locationPings: { orderBy: { recordedAt: 'desc' }, take: 1 },
-        },
-      });
-      if (!shipment) throw new NotFoundError(`Shipment with ID ${shipmentId}`);
-      return this.toApiShipment(shipment);
-    }
-
-    const shipment = inMemoryShipments.get(shipmentId) ||
-      [...inMemoryShipments.values()].find((s) => s.trackingNumber === shipmentId || s.orderId === shipmentId);
-
+    const shipment = await shipmentRepo.findById(shipmentId);
     if (!shipment) {
       throw new NotFoundError(`Shipment with ID ${shipmentId}`);
     }
-    return shipment;
+    return this.toApiShipment(shipment);
   }
 
   async toApiShipment(shipment) {
+    if (config.dataSource === 'mock') {
+      return shipment;
+    }
     const vehicle = shipment.vehicleId ? await vehicleService.findById(shipment.vehicleId) : null;
     const latestPing = shipment.locationPings?.[0];
     return {
@@ -550,58 +527,60 @@ class LogisticsService {
   /**
    * Accept shipment and assign vehicle
    */
-  async acceptShipment(shipmentId, { vehicleId, driverNotes = '' }, userId = 'logistics_operator') {
-    const shipment = await this.getShipmentById(shipmentId);
+  async acceptShipment(shipmentId, { vehicleId, driverNotes = '' }, user = 'logistics_operator') {
+    const shipment = await shipmentRepo.findById(shipmentId);
+    if (!shipment) throw new NotFoundError(`Shipment ${shipmentId}`);
 
     if (shipment.status !== 'UNASSIGNED' && shipment.vehicleId) {
       throw new ConflictError('Shipment is already assigned to a vehicle');
     }
 
-    const vehicle = await vehicleService.findById(vehicleId);
+    const userId = typeof user === 'string' ? user : user?.id || 'logistics_operator';
+    const vehicle = await vehicleService.findById(
+      vehicleId,
+      typeof user === 'string' ? { id: user, role: 'LOGISTICS' } : user,
+    );
     if (!vehicle) {
       throw new NotFoundError(`Vehicle ${vehicleId}`);
     }
 
-    shipment.vehicleId = vehicle.id;
-    shipment.vehicleNumber = vehicle.vehicleNumber;
-    shipment.driverName = vehicle.driverName;
-    shipment.driverPhone = vehicle.driverPhone;
-    shipment.status = 'ASSIGNED';
-    shipment.updatedAt = new Date().toISOString();
+    if (vehicle.verificationStatus && vehicle.verificationStatus !== 'VERIFIED') {
+      throw new BusinessRuleError(
+        `Cannot assign vehicle ${vehicle.vehicleNumber}: Verification status is ${vehicle.verificationStatus}. Only VERIFIED vehicles can be assigned to shipments.`
+      );
+    }
 
-    shipment.milestoneHistory.push({
-      status: 'ASSIGNED',
-      recordedAt: new Date().toISOString(),
-      notes: driverNotes || `Vehicle ${vehicle.vehicleNumber} assigned by driver ${vehicle.driverName}`,
+    const assigned = await shipmentRepo.assignVehicle(shipment.id, vehicle.id, {
+      vehicleDetails: vehicle,
+      driverNotes,
       recordedBy: userId,
     });
 
-    await vehicleService.updateStatus(vehicle.id, 'ASSIGNED');
-
     logisticsEvents.emit('shipment.milestone', {
-      shipmentId: shipment.id,
-      orderId: shipment.orderId,
+      shipmentId: assigned.id,
+      orderId: assigned.orderId,
       milestone: 'ASSIGNED',
       timestamp: new Date().toISOString(),
     });
 
     return {
-      id: shipment.id,
-      trackingNumber: shipment.trackingNumber,
-      status: shipment.status,
+      id: assigned.id,
+      trackingNumber: assigned.trackingNumber,
+      status: assigned.status,
       vehicleId: vehicle.id,
       vehicleNumber: vehicle.vehicleNumber,
       driverName: vehicle.driverName,
-      assignedAt: shipment.updatedAt,
+      assignedAt: assigned.updatedAt,
     };
   }
 
   /**
    * Advance milestone along Finite State Machine:
-   * ASSIGNED -> PICKUP -> TRANSIT -> OUT_FOR_DELIVERY -> DELIVERED
+   * ASSIGNED -> PICKUP -> TRANSIT -> DELIVERED
    */
   async updateMilestone(shipmentId, milestoneData, userId = 'driver') {
-    const shipment = await this.getShipmentById(shipmentId);
+    const shipment = await shipmentRepo.findById(shipmentId);
+    if (!shipment) throw new NotFoundError(`Shipment with ID ${shipmentId}`);
     const nextMilestone = milestoneData.milestone;
 
     // Validate legal transitions
@@ -612,98 +591,173 @@ class LogisticsService {
       );
     }
 
-    // If transitioning to DELIVERED, verify delivery OTP
+    // If transitioning to DELIVERED, verify delivery OTP using constant-time check & attempt limits
     if (nextMilestone === 'DELIVERED') {
       if (!milestoneData.deliveryOtp) {
         throw new BusinessRuleError('deliveryOtp is required to mark shipment as DELIVERED');
       }
-      if (milestoneData.deliveryOtp !== shipment.deliveryOtp) {
-        throw new BusinessRuleError('Invalid delivery OTP. Verification failed.');
+      verifyDeliveryOtp(
+        shipment.id,
+        milestoneData.deliveryOtp,
+        shipment.deliveryOtp,
+        shipment.deliveryOtpExpiresAt
+      );
+    }
+
+    // 200 m Geofence check: When marking PICKUP or DELIVERED, verify driver GPS is within 200 m of target stop
+    if (
+      (nextMilestone === 'PICKUP' || nextMilestone === 'DELIVERED') &&
+      milestoneData.latitude != null &&
+      milestoneData.longitude != null
+    ) {
+      let targetStop = null;
+      if (nextMilestone === 'PICKUP') {
+        targetStop = milestoneData.stopId
+          ? (shipment.stops || []).find((s) => s.id === milestoneData.stopId)
+          : (shipment.stops || []).find((s) => s.stopType === 'PICKUP' && s.status !== 'COMPLETED');
+      } else {
+        targetStop = (shipment.stops || []).find((s) => s.stopType === 'DELIVERY');
       }
-      shipment.deliveredAt = new Date().toISOString();
-      if (shipment.vehicleId) {
-        await vehicleService.updateStatus(shipment.vehicleId, 'AVAILABLE');
+
+      if (targetStop && targetStop.latitude != null && targetStop.longitude != null) {
+        const distMeters =
+          haversineKm(
+            milestoneData.latitude,
+            milestoneData.longitude,
+            targetStop.latitude,
+            targetStop.longitude
+          ) * 1000;
+
+        if (distMeters > 200) {
+          if (!milestoneData.geofenceOverrideReason) {
+            throw new ValidationError(
+              `Vehicle is ${Math.round(distMeters)} meters away from stop '${targetStop.stopName}' (exceeds 200 m geofence). A valid geofenceOverrideReason (GPS_INACCURATE, ACCESS_ROAD_BLOCKED, SECURITY_GATE_DELIVERY, OTHER) is required to proceed.`
+            );
+          }
+          const validOverrides = [
+            'GPS_INACCURATE',
+            'ACCESS_ROAD_BLOCKED',
+            'SECURITY_GATE_DELIVERY',
+            'OTHER',
+          ];
+          if (!validOverrides.includes(milestoneData.geofenceOverrideReason)) {
+            throw new ValidationError(
+              `Invalid geofence override reason. Allowed: ${validOverrides.join(', ')}`
+            );
+          }
+          logger.warn('Geofence boundary override accepted', {
+            shipmentId,
+            stopId: targetStop.id,
+            distMeters,
+            overrideReason: milestoneData.geofenceOverrideReason,
+          });
+        }
       }
     }
 
-    // Update coordinates if provided
+    // Optimistic concurrency locking via updateMany
+    const updated = await shipmentRepo.updateMilestoneWithOptimisticLock({
+      shipmentId: shipment.id,
+      currentStatus: shipment.status,
+      nextStatus: nextMilestone,
+      milestoneData,
+      recordedBy: userId,
+      deliveredAt: nextMilestone === 'DELIVERED' ? new Date().toISOString() : null,
+      vehicleIdToRelease: nextMilestone === 'DELIVERED' ? shipment.vehicleId : null,
+    });
+
+    // Update location ping if provided
     if (milestoneData.latitude && milestoneData.longitude) {
-      shipment.currentLocation = {
+      await shipmentRepo.recordLocationPing({
+        shipmentId: shipment.id,
+        vehicleId: shipment.vehicleId,
         latitude: milestoneData.latitude,
         longitude: milestoneData.longitude,
         speedKmh: nextMilestone === 'TRANSIT' ? 45 : 0,
-        lastPingAt: new Date().toISOString(),
-      };
+        temperatureC: milestoneData.temperatureC,
+      });
+
       if (shipment.vehicleId) {
         await vehicleService.recordLocation(shipment.vehicleId, {
           latitude: milestoneData.latitude,
           longitude: milestoneData.longitude,
-          speedKmh: shipment.currentLocation.speedKmh,
+          speedKmh: nextMilestone === 'TRANSIT' ? 45 : 0,
           temperatureC: milestoneData.temperatureC,
         });
       }
     }
-
-    // If milestone is PICKUP and stopId provided, mark stop completed
-    if (nextMilestone === 'PICKUP') {
-      if (milestoneData.stopId) {
-        const stop = shipment.stops.find((s) => s.id === milestoneData.stopId);
-        if (stop) stop.status = 'COMPLETED';
-      } else {
-        // Mark all pickup stops as completed
-        shipment.stops.forEach((s) => {
-          if (s.stopType === 'PICKUP') s.status = 'COMPLETED';
-        });
-      }
-    }
-
-    if (nextMilestone === 'DELIVERED') {
-      const deliveryStop = shipment.stops.find((s) => s.stopType === 'DELIVERY');
-      if (deliveryStop) deliveryStop.status = 'COMPLETED';
-    }
-
-    shipment.status = nextMilestone;
-    shipment.updatedAt = new Date().toISOString();
-
-    const historyEntry = {
-      status: nextMilestone,
-      milestone: nextMilestone,
-      recordedAt: new Date().toISOString(),
-      latitude: milestoneData.latitude || null,
-      longitude: milestoneData.longitude || null,
-      temperatureC: milestoneData.temperatureC || null,
-      notes: milestoneData.notes || `Milestone reached: ${nextMilestone}`,
-      recordedBy: userId,
-    };
-    shipment.milestoneHistory.push(historyEntry);
 
     // Emit milestone event
     logisticsEvents.emit('shipment.milestone', {
       shipmentId: shipment.id,
       orderId: shipment.orderId,
       milestone: nextMilestone,
-      timestamp: historyEntry.recordedAt,
-      latitude: historyEntry.latitude,
-      longitude: historyEntry.longitude,
+      status: nextMilestone,
+      timestamp: new Date().toISOString(),
+      location: milestoneData.latitude
+        ? { latitude: milestoneData.latitude, longitude: milestoneData.longitude }
+        : null,
     });
 
-    // If DELIVERED, emit delivered event to release payment escrow
+    recordOutboxEvent({
+      aggregateType: 'SHIPMENT',
+      aggregateId: shipment.id,
+      eventType: 'shipment.milestone',
+      payload: {
+        shipmentId: shipment.id,
+        orderId: shipment.orderId,
+        milestone: nextMilestone,
+        status: nextMilestone,
+        timestamp: new Date().toISOString(),
+        location: milestoneData.latitude
+          ? { latitude: milestoneData.latitude, longitude: milestoneData.longitude }
+          : null,
+      },
+    }).catch(() => {});
+
     if (nextMilestone === 'DELIVERED') {
       logisticsEvents.emit('shipment.delivered', {
         shipmentId: shipment.id,
         orderId: shipment.orderId,
-        deliveredAt: shipment.deliveredAt,
+        deliveredAt: updated.deliveredAt || new Date().toISOString(),
         verifiedOtp: milestoneData.deliveryOtp,
       });
+
+      recordOutboxEvent({
+        aggregateType: 'SHIPMENT',
+        aggregateId: shipment.id,
+        eventType: 'shipment.delivered',
+        payload: {
+          shipmentId: shipment.id,
+          orderId: shipment.orderId,
+          deliveredAt: updated.deliveredAt || new Date().toISOString(),
+          verifiedOtp: milestoneData.deliveryOtp,
+        },
+      }).catch(() => {});
     }
 
     return {
       shipmentId: shipment.id,
-      currentStatus: shipment.status,
+      currentStatus: nextMilestone,
       milestone: nextMilestone,
-      recordedAt: historyEntry.recordedAt,
+      recordedAt: new Date().toISOString(),
       temperatureC: milestoneData.temperatureC || null,
     };
+  }
+
+  /**
+   * Verify buyer delivery OTP and transition shipment to DELIVERED
+   */
+  async verifyDeliveryOtp(shipmentId, otp, userId = 'driver') {
+    return this.updateMilestone(
+      shipmentId,
+      {
+        milestone: 'DELIVERED',
+        deliveryOtp: otp,
+        notes: 'Delivered and verified via Buyer OTP',
+      },
+      userId
+    );
   }
 
   /**
@@ -791,7 +845,11 @@ class LogisticsService {
    * Map pins and polyline for an active order
    */
   async getOrderMap(orderId) {
-    const shipment = [...inMemoryShipments.values()].find((s) => s.orderId === orderId);
+    const rawShipment = await shipmentRepo.findByOrderId(orderId);
+    if (!rawShipment) {
+      throw new NotFoundError(`No active shipment found for order ${orderId}`);
+    }
+    const shipment = await this.toApiShipment(rawShipment);
     if (!shipment) {
       throw new NotFoundError(`No active shipment found for order ${orderId}`);
     }
@@ -907,7 +965,7 @@ class LogisticsService {
       };
     }
 
-    const allShipments = [...inMemoryShipments.values()];
+    const { items: allShipments } = await shipmentRepo.listShipments({ limit: 1000 });
 
     const totalOptimizedKm = Math.round(
       allShipments.reduce((sum, s) => sum + (s.totalDistanceKm || 0), 0) * 10,

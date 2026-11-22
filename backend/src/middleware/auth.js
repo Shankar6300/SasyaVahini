@@ -49,7 +49,7 @@ const authenticate = (req, _res, next) => {
   } catch (err) {
     if (err instanceof AuthenticationError) return next(err);
     if (err.name === 'TokenExpiredError') {
-      return next(new AuthenticationError('Access token expired'));
+      return next(new AuthenticationError('Access token expired', 'TOKEN_EXPIRED'));
     }
     if (err.name === 'JsonWebTokenError') {
       return next(new AuthenticationError('Invalid access token'));

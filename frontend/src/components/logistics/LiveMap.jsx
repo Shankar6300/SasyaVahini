@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { MapPin, Navigation, Truck, Warehouse, Maximize2 } from 'lucide-react';
+const demoCoordinates = [];
 
 /**
  * SasyaVahini — Live Logistics Map Component
@@ -14,6 +15,12 @@ import { MapPin, Navigation, Truck, Warehouse, Maximize2 } from 'lucide-react';
  *
  * Owner: Member 4
  */
+const ROUTE_COLORS = [
+  '#10b981', // Route 0: Emerald (Highway)
+  '#3b82f6', // Route 1: Blue (Main Roads)
+  '#f59e0b', // Route 2: Amber (Rural/Alternative)
+];
+
 export default function LiveMap({
   farmers = [],
   buyer = null,
@@ -21,6 +28,10 @@ export default function LiveMap({
   fpo = null,
   routeGeometry = null,
   alternativeGeometry = null,
+  routes = [],
+  selectedRouteIndex = 0,
+  onSelectRoute = null,
+  isEstimated = false,
   activeRouteMode = 'HIGHWAY',
   height = '420px',
   interactive = true,
@@ -85,6 +96,65 @@ export default function LiveMap({
     };
   }, []);
 
+  // Road-snapping: dynamically fetch real turn-by-turn road geometry from OSRM or use corridor highway coordinates
+  const [roadPolyline, setRoadPolyline] = useState(null);
+
+  useEffect(() => {
+    // If multi-routes with road points are already present, use them
+    if (routes && routes.length > 0 && routes[0]?.geometry?.coordinates?.length > 10) {
+      setRoadPolyline(null);
+      return;
+    }
+    // If routeGeometry already has high-density road geometry (> 10 points), use it
+    if (routeGeometry?.coordinates && routeGeometry.coordinates.length > 10) {
+      setRoadPolyline(null);
+      return;
+    }
+
+    const waypoints = [];
+    farmers.forEach((f) => {
+      const c = coordinatesOf(f);
+      if (c.lat && c.lng) waypoints.push([c.lng, c.lat]);
+    });
+    const buyerCoord = coordinatesOf(buyer);
+    if (buyerCoord.lat && buyerCoord.lng) {
+      waypoints.push([buyerCoord.lng, buyerCoord.lat]);
+    }
+
+    if (waypoints.length >= 2) {
+      // 1. Instantly apply high-resolution road coordinates along the Pune highway corridor
+      const isPuneCorridor = waypoints.some(
+        ([lng, lat]) => lat >= 18.2 && lat <= 19.5 && lng >= 73.5 && lng <= 74.6
+      );
+      if (isPuneCorridor && Array.isArray(demoCoordinates) && demoCoordinates.length > 10) {
+        setRoadPolyline(demoCoordinates.map((c) => [c[1], c[0]]));
+      }
+
+      // 2. Fetch live turn-by-turn road geometry from OSRM driving service
+      const osrmQuery = waypoints
+        .slice(0, 6)
+        .map(([lng, lat]) => `${lng.toFixed(5)},${lat.toFixed(5)}`)
+        .join(';');
+
+      let isMounted = true;
+      fetch(`https://router.project-osrm.org/route/v1/driving/${osrmQuery}?overview=full&geometries=geojson`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (isMounted && data?.code === 'Ok' && data.routes?.[0]?.geometry?.coordinates?.length > 10) {
+            const osrmLatLngs = data.routes[0].geometry.coordinates.map((c) => [c[1], c[0]]);
+            setRoadPolyline(osrmLatLngs);
+          }
+        })
+        .catch(() => {
+          // Keep corridor geometry if OSRM is slow or offline
+        });
+
+      return () => {
+        isMounted = false;
+      };
+    }
+  }, [farmers, buyer, routeGeometry, routes]);
+
   // Initialize or update Leaflet map when data changes
   useEffect(() => {
     if (!mapLoaded || !window.L || !mapContainerRef.current || useSvgFallback) return;
@@ -112,6 +182,7 @@ export default function LiveMap({
 
     const defaultCenter = allPoints.length > 0 ? allPoints[0] : [18.7606, 73.8636];
     let resizeTimer;
+    let mapDisposed = false;
 
     // Destroy existing instance if container re-rendered
     if (leafletMapRef.current) {
@@ -125,6 +196,7 @@ export default function LiveMap({
         zoom: 10,
         scrollWheelZoom: interactive,
       });
+      leafletMapRef.current = map;
 
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap contributors | SasyaVahini Logistics',
@@ -218,32 +290,82 @@ export default function LiveMap({
         `);
       }
 
-      // 5. Route Polylines (Primary Solid & Alternative Dashed)
-      if (alternativeGeometry?.coordinates && alternativeGeometry.coordinates.length > 1) {
-        const altLatLngs = alternativeGeometry.coordinates.map((c) => [c[1], c[0]]);
-        const isAltActive = activeRouteMode === 'RURAL';
-        L.polyline(altLatLngs, {
-          color: isAltActive ? '#2563EB' : '#94A3B8',
-          weight: isAltActive ? 5 : 3,
-          opacity: isAltActive ? 0.9 : 0.45,
-          dashArray: '6, 8',
-        }).addTo(map);
-      }
-      if (routeGeometry?.coordinates && routeGeometry.coordinates.length > 1) {
-        const latLngs = routeGeometry.coordinates.map((c) => [c[1], c[0]]);
-        L.polyline(latLngs, {
-          color: '#07875B',
-          weight: 4,
-          opacity: 0.85,
-          dashArray: activeRouteMode === 'RURAL' ? '4, 6' : undefined,
-        }).addTo(map);
-      } else if (allPoints.length > 1) {
-        // Fallback straight lines connecting stops in order
-        L.polyline(allPoints, {
-          color: '#07875B',
-          weight: 3,
-          opacity: 0.7,
-        }).addTo(map);
+      // 5. Route Polylines (Up to 3 comparative routes or fallback single route)
+      if (routes && routes.length > 0) {
+        routes.forEach((r, idx) => {
+          const coords = r.geometry?.coordinates || [];
+          if (!coords || coords.length < 2) return;
+          const latLngs = coords.map((c) => [c[1], c[0]]);
+          latLngs.forEach((pt) => allPoints.push(pt));
+
+          const isSelected = selectedRouteIndex === idx;
+          const routeEstimated = Boolean(r.isEstimated || isEstimated);
+          const routeColor = routeEstimated ? '#94a3b8' : (ROUTE_COLORS[idx % ROUTE_COLORS.length] || '#10b981');
+
+          const line = L.polyline(latLngs, {
+            color: routeColor,
+            weight: isSelected ? 6 : 3.5,
+            opacity: isSelected ? 0.95 : 0.45,
+            dashArray: routeEstimated ? '6, 8' : undefined,
+          }).addTo(map);
+
+          if (isSelected) {
+            line.bringToFront();
+          }
+
+          const tooltipHtml = `
+            <div style="font-family: sans-serif; font-size: 12px; line-height: 1.4;">
+              <strong style="color: ${routeColor};">${r.label || `Route ${idx + 1}`}</strong>
+              ${isSelected ? ' <span style="background: #10b981; color: white; padding: 1px 5px; border-radius: 3px; font-size: 10px; font-weight: bold;">ACTIVE</span>' : ''}<br/>
+              📍 Distance: <b>${r.distanceKm} km</b> | ⏱️ ETA: <b>${r.etaMin || r.etaMinutes || '--'} mins</b><br/>
+              ⛽ Fuel: ${r.fuelLitres || 0} L (₹${r.fuelCostRs || 0}) | 🛣️ Tolls: ₹${r.tollsRs || 0}<br/>
+              <strong style="color: #059669;">💰 Driver Net Earnings: ₹${r.driverNetEarningsRs != null ? r.driverNetEarningsRs : '---'}</strong>
+              ${routeEstimated ? '<br/><span style="color: #d97706; font-weight: bold;">⚠️ Estimated line (road routing unavailable)</span>' : ''}
+            </div>
+          `;
+          line.bindPopup(tooltipHtml);
+
+          if (onSelectRoute) {
+            line.on('click', () => {
+              onSelectRoute(idx);
+            });
+          }
+        });
+      } else {
+        if (alternativeGeometry?.coordinates && alternativeGeometry.coordinates.length > 1) {
+          const altLatLngs = alternativeGeometry.coordinates.map((c) => [c[1], c[0]]);
+          const isAltActive = activeRouteMode === 'RURAL';
+          L.polyline(altLatLngs, {
+            color: isAltActive ? '#2563EB' : '#94A3B8',
+            weight: isAltActive ? 5 : 3,
+            opacity: isAltActive ? 0.9 : 0.45,
+            dashArray: '6, 8',
+          }).addTo(map);
+        }
+        const activeRoadLatLngs =
+          (routeGeometry?.coordinates && routeGeometry.coordinates.length > 10
+            ? routeGeometry.coordinates.map((c) => [c[1], c[0]])
+            : roadPolyline) ||
+          (routeGeometry?.coordinates && routeGeometry.coordinates.length > 1
+            ? routeGeometry.coordinates.map((c) => [c[1], c[0]])
+            : null);
+
+        if (activeRoadLatLngs && activeRoadLatLngs.length > 1) {
+          L.polyline(activeRoadLatLngs, {
+            color: '#07875B',
+            weight: 4.5,
+            opacity: 0.9,
+          }).addTo(map);
+          activeRoadLatLngs.forEach((pt) => allPoints.push(pt));
+        } else if (allPoints.length > 1) {
+          // Fallback straight lines connecting stops in order
+          L.polyline(allPoints, {
+            color: isEstimated ? '#94A3B8' : '#07875B',
+            weight: 3,
+            opacity: 0.7,
+            dashArray: isEstimated ? '6, 8' : undefined,
+          }).addTo(map);
+        }
       }
 
       // Fit map bounds to show all markers
@@ -251,21 +373,39 @@ export default function LiveMap({
         map.fitBounds(allPoints, { padding: [40, 40] });
       }
 
-      leafletMapRef.current = map;
-      requestAnimationFrame(() => map.invalidateSize());
-      resizeTimer = window.setTimeout(() => map.invalidateSize(), 250);
+      requestAnimationFrame(() => {
+        if (!mapDisposed && map._container) map.invalidateSize();
+      });
+      resizeTimer = window.setTimeout(() => {
+        if (!mapDisposed && map._container) map.invalidateSize();
+      }, 250);
     } catch (e) {
       setUseSvgFallback(true);
     }
 
     return () => {
+      mapDisposed = true;
       window.clearTimeout(resizeTimer);
       if (leafletMapRef.current) {
         leafletMapRef.current.remove();
         leafletMapRef.current = null;
       }
     };
-  }, [mapLoaded, farmers, buyer, vehicle, fpo, routeGeometry, useSvgFallback, interactive]);
+  }, [
+    mapLoaded,
+    farmers,
+    buyer,
+    vehicle,
+    fpo,
+    routeGeometry,
+    alternativeGeometry,
+    routes,
+    selectedRouteIndex,
+    isEstimated,
+    useSvgFallback,
+    interactive,
+    roadPolyline,
+  ]);
 
   // Fallback interactive SVG canvas when network is offline
   if (useSvgFallback || mapLoadFailed) {
@@ -333,21 +473,39 @@ export default function LiveMap({
   }
 
   return (
-    <div className="relative rounded-lg overflow-hidden border shadow-sm" style={{ height, borderColor: 'var(--color-border)' }}>
+    <div className="relative z-0 rounded-lg overflow-hidden border shadow-sm" style={{ height, borderColor: 'var(--color-border)', isolation: 'isolate' }}>
       {/* Map Legend Overlay */}
       <div
-        className="absolute top-2 right-2 z-[1000] bg-white/95 backdrop-blur px-2.5 py-1.5 rounded-md border text-xs shadow-sm flex items-center gap-3"
+        className="absolute top-2 right-2 z-[1000] bg-white/95 backdrop-blur px-2.5 py-1.5 rounded-md border text-xs shadow-sm flex flex-wrap items-center gap-3"
         style={{ borderColor: 'var(--color-border)' }}
       >
         <span className="flex items-center gap-1 font-medium text-gray-700">
-          <span className="w-3 h-3 rounded-full bg-emerald-600 inline-block" /> Farmers (Pickups)
+          <span className="w-3 h-3 rounded-full bg-emerald-600 inline-block" /> Pickups
         </span>
         <span className="flex items-center gap-1 font-medium text-gray-700">
-          <span className="w-3 h-3 rounded-full bg-blue-600 inline-block" /> Buyer Hub
+          <span className="w-3 h-3 rounded-full bg-blue-600 inline-block" /> Destination
         </span>
         <span className="flex items-center gap-1 font-medium text-gray-700">
-          <span className="w-3 h-3 rounded-full bg-purple-600 inline-block" /> Live Vehicle
+          <span className="w-3 h-3 rounded-full bg-purple-600 inline-block" /> Vehicle
         </span>
+        {routes && routes.length > 0 ? (
+          <>
+            <span className="flex items-center gap-1 font-semibold text-emerald-700">
+              <span className="w-3 h-3 rounded-full bg-emerald-500 inline-block" /> Route 1 (Hwy)
+            </span>
+            <span className="flex items-center gap-1 font-semibold text-blue-700">
+              <span className="w-3 h-3 rounded-full bg-blue-500 inline-block" /> Route 2 (Main)
+            </span>
+            <span className="flex items-center gap-1 font-semibold text-amber-700">
+              <span className="w-3 h-3 rounded-full bg-amber-500 inline-block" /> Route 3 (Rural)
+            </span>
+            {(isEstimated || routes.some((r) => r.isEstimated)) && (
+              <span className="flex items-center gap-1 font-medium text-slate-500">
+                <span className="w-3 h-1 border-b-2 border-dashed border-slate-500 inline-block" /> Estimated
+              </span>
+            )}
+          </>
+        ) : null}
       </div>
 
       <div ref={mapContainerRef} style={{ width: '100%', height: '100%' }} />

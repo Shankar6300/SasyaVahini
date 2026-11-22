@@ -9,6 +9,7 @@
 
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { v4: uuidv4 } = require('uuid');
 const prisma = require('../lib/prisma');
 const logger = require('../utils/logger');
 const otpService = require('./otp.service');
@@ -34,7 +35,7 @@ function signAccessToken(user) {
 
 function signRefreshToken(user) {
   return jwt.sign(
-    { sub: user.id },
+    { sub: user.id, jti: uuidv4() },
     process.env.JWT_REFRESH_SECRET,
     { expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d' },
   );
@@ -158,6 +159,18 @@ async function register(data) {
   if (existing) {
     if (existing.email.toLowerCase() === normalizedEmail) throw new ConflictError('Email is already registered');
     throw new ConflictError('Phone number is already registered');
+  }
+
+  if (vehicleNumber && prisma.vehicle) {
+    const existingVehicle = await prisma.vehicle.findUnique({
+      where: { vehicleNumber: vehicleNumber.trim().toUpperCase() },
+      select: { id: true },
+    });
+    if (existingVehicle) {
+      throw new ConflictError(
+        `Vehicle number ${vehicleNumber.trim().toUpperCase()} is already registered in the system. Please enter your unique vehicle number.`
+      );
+    }
   }
 
   const passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);

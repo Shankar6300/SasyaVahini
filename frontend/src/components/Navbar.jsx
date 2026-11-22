@@ -1,17 +1,17 @@
 import React from 'react';
 import { Link, NavLink } from 'react-router-dom';
-import { Leaf, LogOut, Menu, X } from 'lucide-react';
+import { Leaf, LogOut, Menu, X, UserCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import RoleBadge from './RoleBadge';
 import LanguageSelector from './LanguageSelector';
+import NotificationBell from './NotificationBell';
 import { useState } from 'react';
 
 export default function Navbar() {
   const { user, isAuthenticated, logout } = useAuth();
   const { t } = useTranslation();
   const [mobileOpen, setMobileOpen] = useState(false);
-
   const ROLE_NAV = {
     FARMER: [
       { label: t('nav.dashboard', 'Dashboard'), to: '/farmer' },
@@ -30,9 +30,8 @@ export default function Navbar() {
     ],
     LOGISTICS: [
       { label: t('nav.dashboard', 'Operations Center'), to: '/logistics' },
-      { label: 'Shipments Dispatch', to: '/logistics/shipments' },
+      { label: '💳 Payments & Settlements', to: '/logistics/payments' },
       { label: 'Live Fleet Map', to: '/logistics/map' },
-      { label: 'Milestone Control', to: '/logistics/milestones' },
     ],
     ADMIN: [
       { label: t('nav.dashboard', 'Admin Center'), to: '/admin' },
@@ -53,8 +52,12 @@ export default function Navbar() {
         </Link>
 
         {/* Desktop nav links */}
-        <ul className="nav-links" aria-label="Navigation links">
-          {!isAuthenticated ? (
+        <ul
+            className={`nav-links${mobileOpen ? ' mobile-open' : ''}`}
+            aria-label="Navigation links"
+            onClick={() => setMobileOpen(false)}
+          >
+            {!isAuthenticated ? (
             <>
               <li>
                 <NavLink to="/" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`} end>
@@ -77,35 +80,55 @@ export default function Navbar() {
                 </NavLink>
               </li>
             </>
-          ) : (
-            navItems.map((item) => (
-              <li key={item.to + item.label}>
-                <NavLink to={item.to} className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`} end>
-                  {item.label}
-                </NavLink>
-              </li>
-            ))
-          )}
-        </ul>
+            ) : (
+              navItems.map((item) => (
+                <li key={item.to + item.label}>
+                  <NavLink to={item.to} className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`} end>
+                    {item.label}
+                  </NavLink>
+                </li>
+              ))
+            )}
+          </ul>
 
         {/* Actions */}
         <div className="nav-actions">
+          {/* Notification Bell (for non-logistics portals, logistics has it in its operations bar) */}
+          {isAuthenticated && user?.role !== 'LOGISTICS' && <NotificationBell />}
+
+          {isAuthenticated && user?.role === 'LOGISTICS' && (
+            <>
+              <NotificationBell />
+              <Link to="/logistics?tab=profile" className="nav-logistics-profile" aria-label="Open logistics profile">
+                <UserCircle size={30} />
+                <span className="nav-logistics-identity">
+                  <strong>{user?.name || 'Logistics Partner'}</strong>
+                  <small>{user?.email || ''}</small>
+                </span>
+              </Link>
+            </>
+          )}
+
           {/* Multilingual Selector */}
-          <LanguageSelector />
+          <LanguageSelector className="nav-language-selector" />
 
           {isAuthenticated ? (
             <>
-              <RoleBadge role={user?.role} />
-              <span className="text-sm font-medium text-slate-700 hidden sm:inline">
-                {user?.name || user?.email}
-              </span>
-              <button className="btn btn-ghost btn-sm" onClick={logout} aria-label="Log out">
+              {user?.role !== 'LOGISTICS' && (
+                <>
+                  <RoleBadge role={user?.role} />
+                  <span className="text-sm font-medium text-slate-700 hidden sm:inline">
+                    {user?.name || user?.email}
+                  </span>
+                </>
+              )}
+              <button className="btn btn-ghost btn-sm nav-logout" onClick={logout} aria-label="Log out">
                 <LogOut size={16} />
                 <span className="hidden sm:inline">{t('nav.logout', 'Logout')}</span>
               </button>
             </>
           ) : (
-            <div className="flex items-center gap-1.5 flex-wrap">
+            <div className="nav-auth-links flex items-center gap-1.5 flex-wrap">
               <NavLink to="/login" className="btn btn-ghost btn-sm" style={{ fontWeight: 600 }}>
                 🌾 {t('nav.farmerLogin', 'Farmer')}
               </NavLink>
