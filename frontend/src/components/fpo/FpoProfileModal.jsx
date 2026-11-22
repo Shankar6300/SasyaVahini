@@ -1,26 +1,41 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import api from '../../services/api';
-import { Building, X, Save, AlertCircle, ShieldCheck } from 'lucide-react';
+import { Building, X, Save, AlertCircle, ShieldCheck, CheckCircle2, MapPin, Phone, User, Users } from 'lucide-react';
 import VoiceInput from '../VoiceInput';
 
 const FpoProfileModal = ({ isOpen, onClose, fpoProfile, user, onProfileUpdated }) => {
   const { t } = useTranslation();
 
   const [formData, setFormData] = useState({
-    fpoName: fpoProfile?.fpoName || 'Pune Sahakari Krishi Producer Co.',
-    registrationNo: fpoProfile?.registrationNo || 'FPO-MH-PUN-2023-089',
-    memberCount: fpoProfile?.memberCount || 45,
-    name: user?.name || 'Suresh Patil (FPO Manager)',
-    phone: user?.phone || '+91 98220 22002',
-    location: user?.location || 'Khed Hub, Pune',
-    district: user?.district || 'Pune',
-    state: user?.state || 'Maharashtra'
+    fpoName: '',
+    registrationNo: '',
+    address: '',
+    district: '',
+    state: '',
+    contactName: '',
+    phone: ''
   });
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setFormData({
+        fpoName: fpoProfile?.fpoName || user?.name || '',
+        registrationNo: fpoProfile?.registrationNo || '',
+        address: fpoProfile?.address || '',
+        district: fpoProfile?.district || user?.district || '',
+        state: fpoProfile?.state || user?.state || 'Maharashtra',
+        contactName: user?.name || '',
+        phone: user?.phone || ''
+      });
+      setError(null);
+      setSuccess(false);
+    }
+  }, [isOpen, fpoProfile, user]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -32,13 +47,13 @@ const FpoProfileModal = ({ isOpen, onClose, fpoProfile, user, onProfileUpdated }
       const res = await api.put('/fpo/profile', formData);
       setSuccess(true);
       if (onProfileUpdated) {
-        onProfileUpdated(res.data?.data?.user || res.data?.user || res.data?.data || res.data);
+        onProfileUpdated(res.data?.data || res.data);
       }
       setTimeout(() => {
         onClose();
-      }, 1000);
+      }, 1200);
     } catch (err) {
-      setError(err.response?.data?.error?.message || err.response?.data?.error || t('fpo.saveFailed', 'Failed to update FPO organization profile.'));
+      setError(err.response?.data?.error?.message || err.response?.data?.message || err.message || t('fpo.saveFailed', 'Failed to update FPO organization profile.'));
     } finally {
       setLoading(false);
     }
@@ -46,14 +61,17 @@ const FpoProfileModal = ({ isOpen, onClose, fpoProfile, user, onProfileUpdated }
 
   if (!isOpen) return null;
 
+  const isVerified = Boolean(fpoProfile?.registrationCertVerified);
+  const verifiedMemberCount = fpoProfile?.memberCount ?? 0;
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
-      <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-5">
-        
+      <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-5 max-h-[90vh] overflow-y-auto">
+
         {/* Header */}
         <div className="flex justify-between items-center border-b border-slate-100 pb-4">
           <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-2xl bg-sky-50 text-sky-700 flex items-center justify-center border border-sky-200">
+            <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-[#07875B] flex items-center justify-center border border-emerald-200">
               <Building className="w-5 h-5" />
             </div>
             <div>
@@ -74,17 +92,48 @@ const FpoProfileModal = ({ isOpen, onClose, fpoProfile, user, onProfileUpdated }
           </button>
         </div>
 
-        {/* Verification Status */}
-        <div className="bg-sky-50 border border-sky-200 rounded-2xl p-3 flex items-center justify-between text-xs">
-          <div className="flex items-center gap-2">
-            <ShieldCheck className="w-5 h-5 text-sky-700 flex-shrink-0" />
+        {/* Verification Status Banner (Evidence-Based: No NABARD/SFAC claimed without cert) */}
+        {isVerified ? (
+          <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-3.5 flex items-center justify-between text-xs">
+            <div className="flex items-center gap-2.5">
+              <ShieldCheck className="w-5 h-5 text-[#07875B] flex-shrink-0" />
+              <div>
+                <p className="font-bold text-slate-900">{t('fpo.certVerifiedTitle', 'Registration Certificate Verified')}</p>
+                <p className="text-[11px] text-emerald-800">{t('fpo.certVerifiedDesc', 'Official DoCA registration verified on platform registry.')}</p>
+              </div>
+            </div>
+            <span className="bg-emerald-600 text-white font-black text-[10px] px-2.5 py-1 rounded-full uppercase tracking-wider">
+              {t('status.VERIFIED', 'VERIFIED')}
+            </span>
+          </div>
+        ) : (
+          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-3.5 flex items-center justify-between text-xs">
+            <div className="flex items-center gap-2.5">
+              <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0" />
+              <div>
+                <p className="font-bold text-slate-900">{t('fpo.certPendingTitle', 'Self-Registered Organization')}</p>
+                <p className="text-[11px] text-amber-800">{t('fpo.certPendingDesc', 'Official government verification pending administrator review.')}</p>
+              </div>
+            </div>
+            <span className="bg-amber-100 text-amber-800 font-extrabold text-[10px] px-2.5 py-1 rounded-full border border-amber-300">
+              {t('status.PENDING', 'PENDING')}
+            </span>
+          </div>
+        )}
+
+        {/* Database-Driven Member Farmers Metric Card (Read-Only) */}
+        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 flex items-center justify-between text-xs">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-sky-50 text-sky-700 flex items-center justify-center border border-sky-200">
+              <Users className="w-4 h-4" />
+            </div>
             <div>
-              <p className="font-bold text-slate-900">{t('fpo.registeredEntity', 'Registered Producer Organization')}</p>
-              <p className="text-[11px] text-sky-700">{t('fpo.verifiedEntityBadge', 'SFAC / NABARD recognized cooperative')}</p>
+              <p className="font-bold text-slate-800">{t('fpo.registeredMembers', 'Cooperative Member Farmers')}</p>
+              <p className="text-[11px] text-slate-500">{t('fpo.memberCountVerifiedNote', 'Calculated from actual member profiles affiliated with this FPO.')}</p>
             </div>
           </div>
-          <span className="bg-white text-sky-800 font-extrabold text-[10px] px-2.5 py-1 rounded-full border border-sky-300">
-            {t('status.VERIFIED', 'VERIFIED')}
+          <span className="font-black text-slate-900 text-sm bg-white px-3 py-1 rounded-xl border border-slate-200">
+            {verifiedMemberCount} {t('fpo.farmers', 'Farmers')}
           </span>
         </div>
 
@@ -96,8 +145,9 @@ const FpoProfileModal = ({ isOpen, onClose, fpoProfile, user, onProfileUpdated }
         )}
 
         {success && (
-          <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 text-xs font-bold">
-            {t('fpo.saveSuccess', 'FPO profile updated successfully! Refreshing...')}
+          <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 text-xs font-bold flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-[#07875B] flex-shrink-0" />
+            <span>{t('fpo.saveSuccess', 'FPO organization profile updated successfully!')}</span>
           </div>
         )}
 
@@ -116,96 +166,95 @@ const FpoProfileModal = ({ isOpen, onClose, fpoProfile, user, onProfileUpdated }
               required
               value={formData.fpoName}
               onChange={(e) => setFormData(prev => ({ ...prev, fpoName: e.target.value }))}
-              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white focus:border-sky-600 outline-none transition-all"
+              placeholder={t('auth.fpoNamePlaceholder', 'e.g. Junnar Farmers Producer Co.')}
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white focus:border-[#07875B] outline-none transition-all"
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-slate-700 font-bold mb-1">{t('fpo.regNoLabel', 'Registration / CIN No. *')}</label>
-              <input
-                type="text"
-                required
-                value={formData.registrationNo}
-                onChange={(e) => setFormData(prev => ({ ...prev, registrationNo: e.target.value }))}
-                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white focus:border-sky-600 outline-none transition-all"
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-slate-700 font-bold">{t('fpo.regNoLabel', 'Registration / CIN Number *')}</label>
+              <VoiceInput
+                onResult={(val) => setFormData(prev => ({ ...prev, registrationNo: val }))}
+                title={t('voice.speakRegNo', 'Speak Registration Number')}
               />
             </div>
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <label className="block text-slate-700 font-bold">{t('fpo.totalMembersLabel', 'Total Member Farmers *')}</label>
-                <VoiceInput
-                  type="number"
-                  onResult={(val) => setFormData(prev => ({ ...prev, memberCount: parseInt(val, 10) || prev.memberCount }))}
-                  title={t('voice.speakMemberCount', 'Speak member count')}
-                />
-              </div>
-              <input
-                type="number"
-                min="1"
-                required
-                value={formData.memberCount}
-                onChange={(e) => setFormData(prev => ({ ...prev, memberCount: parseInt(e.target.value, 10) || 0 }))}
-                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white focus:border-sky-600 outline-none transition-all"
-              />
-            </div>
+            <input
+              type="text"
+              required
+              value={formData.registrationNo}
+              onChange={(e) => setFormData(prev => ({ ...prev, registrationNo: e.target.value }))}
+              placeholder={t('auth.fpoRegNoPlaceholder', 'e.g. FPO-MH-2024-8842')}
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white focus:border-[#07875B] outline-none transition-all"
+            />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label className="block text-slate-700 font-bold">{t('fpo.managerNameLabel', 'Lead Contact / Manager Name *')}</label>
+                <label className="block text-slate-700 font-bold flex items-center gap-1">
+                  <User className="w-3.5 h-3.5 text-slate-400" />
+                  {t('fpo.managerNameLabel', 'Lead Contact / Manager Name')}
+                </label>
                 <VoiceInput
-                  onResult={(val) => setFormData(prev => ({ ...prev, name: val }))}
+                  onResult={(val) => setFormData(prev => ({ ...prev, contactName: val }))}
                   title={t('voice.speakManagerName', 'Speak manager name')}
                 />
               </div>
               <input
                 type="text"
-                required
-                value={formData.name}
-                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white focus:border-sky-600 outline-none transition-all"
+                value={formData.contactName}
+                onChange={(e) => setFormData(prev => ({ ...prev, contactName: e.target.value }))}
+                placeholder={t('auth.fullNamePlaceholder', 'e.g. Ramesh Patil')}
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white focus:border-[#07875B] outline-none transition-all"
               />
             </div>
+
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label className="block text-slate-700 font-bold">{t('auth.phone', 'Contact Phone *')}</label>
+                <label className="block text-slate-700 font-bold flex items-center gap-1">
+                  <Phone className="w-3.5 h-3.5 text-slate-400" />
+                  {t('auth.phone', 'Contact Phone')}
+                </label>
                 <VoiceInput
-                  type="number"
-                  onResult={(val) => setFormData(prev => ({ ...prev, phone: val }))}
+                  onResult={(val) => setFormData(prev => ({ ...prev, phone: val.replace(/[^0-9+]/g, '') }))}
                   title={t('voice.speakPhone', 'Speak phone number')}
                 />
               </div>
               <input
-                type="text"
-                required
+                type="tel"
                 value={formData.phone}
                 onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white focus:border-sky-600 outline-none transition-all"
+                placeholder="+919876543210"
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white focus:border-[#07875B] outline-none transition-all"
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-3">
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <label className="block text-slate-700 font-bold">{t('location.village', 'Hub Location')}</label>
-                <VoiceInput
-                  onResult={(val) => setFormData(prev => ({ ...prev, location: val }))}
-                  title={t('voice.speakHubLocation', 'Speak hub location')}
-                />
-              </div>
-              <input
-                type="text"
-                value={formData.location}
-                onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
-                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white focus:border-sky-600 outline-none transition-all"
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-slate-700 font-bold flex items-center gap-1">
+                <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                {t('fpo.hubAddressLabel', 'Registered Office / Hub Address')}
+              </label>
+              <VoiceInput
+                onResult={(val) => setFormData(prev => ({ ...prev, address: val }))}
+                title={t('voice.speakHubLocation', 'Speak hub location')}
               />
             </div>
+            <input
+              type="text"
+              value={formData.address}
+              onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
+              placeholder={t('fpo.addressPlaceholder', 'e.g. APMC Market Yard, Main Gate')}
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white focus:border-[#07875B] outline-none transition-all"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label className="block text-slate-700 font-bold">{t('location.district', 'District')}</label>
+                <label className="block text-slate-700 font-bold">{t('location.district', 'District *')}</label>
                 <VoiceInput
                   onResult={(val) => setFormData(prev => ({ ...prev, district: val }))}
                   title={t('voice.speakDistrict', 'Speak district')}
@@ -213,14 +262,17 @@ const FpoProfileModal = ({ isOpen, onClose, fpoProfile, user, onProfileUpdated }
               </div>
               <input
                 type="text"
+                required
                 value={formData.district}
                 onChange={(e) => setFormData(prev => ({ ...prev, district: e.target.value }))}
-                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white focus:border-sky-600 outline-none transition-all"
+                placeholder={t('auth.districtPlaceholder', 'e.g. Pune')}
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white focus:border-[#07875B] outline-none transition-all"
               />
             </div>
+
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label className="block text-slate-700 font-bold">{t('location.state', 'State')}</label>
+                <label className="block text-slate-700 font-bold">{t('location.state', 'State *')}</label>
                 <VoiceInput
                   onResult={(val) => setFormData(prev => ({ ...prev, state: val }))}
                   title={t('voice.speakState', 'Speak state')}
@@ -228,9 +280,11 @@ const FpoProfileModal = ({ isOpen, onClose, fpoProfile, user, onProfileUpdated }
               </div>
               <input
                 type="text"
+                required
                 value={formData.state}
                 onChange={(e) => setFormData(prev => ({ ...prev, state: e.target.value }))}
-                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white focus:border-sky-600 outline-none transition-all"
+                placeholder="Maharashtra"
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white focus:border-[#07875B] outline-none transition-all"
               />
             </div>
           </div>
@@ -248,7 +302,7 @@ const FpoProfileModal = ({ isOpen, onClose, fpoProfile, user, onProfileUpdated }
             <button
               type="submit"
               disabled={loading}
-              className="px-5 py-2.5 bg-sky-700 hover:bg-sky-800 text-white font-bold text-xs rounded-xl shadow-md flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
+              className="px-5 py-2.5 bg-[#07875B] hover:bg-[#066e4a] text-white font-bold text-xs rounded-xl shadow-md flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
             >
               <Save className="w-4 h-4" />
               {loading ? t('common.saving', 'Saving Changes...') : t('common.save', 'Save FPO Profile')}

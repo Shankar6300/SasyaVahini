@@ -141,6 +141,36 @@ enum AuditAction {
   DELIVERY_VERIFIED
   PAYMENT_RELEASED
   ADMIN_ACTION
+  LOT_CREATED
+  LOT_UPDATED
+  LOT_STATUS_CHANGED
+  LOT_CANCELLED
+  QUOTATION_CREATED
+  QUOTATION_ACCEPTED
+  QUOTATION_REJECTED
+  QUOTATION_EXPIRED
+  QUOTATION_WITHDRAWN
+  SETTLEMENT_GENERATED
+  SETTLEMENT_PAYMENT_RECORDED
+  SETTLEMENT_DISPUTED
+}
+
+enum QuotationStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  EXPIRED
+  WITHDRAWN
+}
+
+enum LotStatus {
+  DRAFT
+  AGGREGATED
+  TESTED
+  READY_FOR_SALE
+  ALLOCATED
+  FULFILLED
+  CANCELLED
 }
 
 // =============================================================================
@@ -152,6 +182,8 @@ model User {
   email            String      @unique
   phone            String      @unique
   passwordHash     String
+  googleId         String?     @unique
+  avatarUrl        String?
   name             String
   role             Role
   status           UserStatus  @default(PENDING_VERIFICATION)
@@ -199,15 +231,19 @@ model RefreshToken {
 
 model OtpCode {
   id          String    @id @default(uuid())
-  userId      String
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  code        String    // Store hashed in production
+  userId      String?
+  user        User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  identifier  String?   // email or phone number for targeted lookups and rate limiting
+  code        String    // Store hashed (SHA256 or bcrypt)
   purpose     String    // "LOGIN" | "PHONE_VERIFY" | "EMAIL_VERIFY" | "PASSWORD_RESET"
   expiresAt   DateTime
   usedAt      DateTime?
+  attempts    Int       @default(0)
   createdAt   DateTime  @default(now())
 
   @@index([userId])
+  @@index([identifier])
+  @@index([purpose])
 }
 
 // =============================================================================
@@ -241,6 +277,8 @@ model FarmerProfile {
 
   listings        ProduceListing[]
   allocations     AllocationItem[]
+  lotContributions ProduceLotContribution[]
+  settlements     FarmerSettlement[]
 
   @@index([fpoId])
   @@index([district])
@@ -261,6 +299,7 @@ model FPOProfile {
   longitude        Float?
 
   registrationCertVerified Boolean @default(false)
+  commissionRatePercent    Float   @default(0)
 
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
@@ -268,6 +307,9 @@ model FPOProfile {
   members          FarmerProfile[]
   listings         ProduceListing[]
   allocations      AllocationItem[]
+  produceLots      ProduceLot[]
+  quotations       FpoQuotation[]
+  settlements      FarmerSettlement[]
 
   @@index([district])
 }
@@ -456,6 +498,7 @@ model ProduceListing {
   updatedAt        DateTime      @updatedAt
 
   allocationItems  AllocationItem[]
+  lotContributions ProduceLotContribution[]
 
   @@index([cropName])
   @@index([status])
@@ -494,6 +537,7 @@ model BuyerRequirement {
 
   proposals        AllocationProposal[]
   order            Order?
+  quotations       FpoQuotation[]
 
   @@index([cropName])
   @@index([status])
@@ -526,6 +570,7 @@ model AllocationProposal {
 
   items            AllocationItem[]
   reservation      Reservation?
+  fpoQuotation     FpoQuotation?
 
   @@index([requirementId])
   @@index([status])
@@ -614,6 +659,8 @@ model Order {
   delivery         DeliveryRecord?
   payment          Payment?
   notifications    Notification[]
+  fpoQuotation     FpoQuotation?
+  farmerSettlements FarmerSettlement[]
 
   @@index([buyerId])
   @@index([status])
@@ -798,17 +845,19 @@ model Payment {
 // =============================================================================
 
 model Notification {
-  id        String           @id @default(uuid())
-  userId    String
-  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  orderId   String?
-  order     Order?           @relation(fields: [orderId], references: [id])
+  id          String           @id @default(uuid())
+  userId      String
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orderId     String?
+  order       Order?           @relation(fields: [orderId], references: [id])
+  proposalId  String?
+  metadata    Json?
 
-  type      NotificationType @default(INFO)
-  title     String
-  body      String
-  isRead    Boolean          @default(false)
-  readAt    DateTime?
+  type        NotificationType @default(INFO)
+  title       String
+  body        String
+  isRead      Boolean          @default(false)
+  readAt      DateTime?
 
   // Delivery channels (Member 3)
   sentViaSms    Boolean   @default(false)
@@ -931,10 +980,10 @@ model Shipment {
 
   routeGeometryJson   Json?                   // GeoJSON LineString coordinates
   costBreakdownJson   Json?                   // Auditable TLC ledger
-  
+
   scheduledPickupAt   DateTime?
   deliveredAt         DateTime?
-  
+
   createdAt           DateTime                @default(now())
   updatedAt           DateTime                @updatedAt
 
@@ -1106,7 +1155,7 @@ model ShipmentStop {
   latitude     Float
   longitude    Float
   quantityKg   Float
-  
+
   status       StopStatus  @default(PENDING)
   arrivalEta   DateTime?
   arrivedAt    DateTime?
@@ -1154,4 +1203,182 @@ model LocationPing {
   @@index([vehicleId])
   @@index([shipmentId])
   @@index([recordedAt])
+}
+
+// =============================================================================
+// FPO CONSOLIDATED PRODUCE LOTS (PHASE 4)
+// =============================================================================
+
+model ProduceLot {
+  id                    String                   @id @default(uuid())
+  lotNumber             String                   @unique
+  fpoId                 String
+  fpo                   FPOProfile               @relation(fields: [fpoId], references: [id], onDelete: Cascade)
+  cropName              String
+  category              String                   @default("Vegetables")
+  variety               String?
+  qualityGrade          QualityGrade             @default(GRADE_A)
+  unit                  String                   @default("kg")
+  totalQuantityKg       Float
+  availableQuantityKg   Float
+  allocatedQuantityKg   Float                    @default(0)
+  weightedAvgPricePerKg Float
+  status                LotStatus                @default(AGGREGATED)
+  notes                 String?
+  storageLocation       String?
+  harvestDate           DateTime?
+  expiryDate            DateTime?
+  createdAt             DateTime                 @default(now())
+  updatedAt             DateTime                 @updatedAt
+
+  contributions         ProduceLotContribution[]
+  quotations            FpoQuotation[]
+
+  @@index([fpoId])
+  @@index([cropName])
+  @@index([status])
+  @@index([lotNumber])
+}
+
+model ProduceLotContribution {
+  id               String         @id @default(uuid())
+  lotId            String
+  lot              ProduceLot     @relation(fields: [lotId], references: [id], onDelete: Cascade)
+  notificationId   String?        // Ref to accepted contribution notification
+  listingId        String
+  listing          ProduceListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  farmerId         String
+  farmer           FarmerProfile  @relation(fields: [farmerId], references: [id], onDelete: Cascade)
+  allocatedQtyKg   Float
+  agreedPricePerKg Float
+  status           String         @default("COMMITTED") // "COMMITTED" | "RELEASED"
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  settlements      FarmerSettlement[]
+
+  @@index([lotId])
+  @@index([listingId])
+  @@index([farmerId])
+  @@index([notificationId])
+}
+
+// =============================================================================
+// FPO BULK QUOTATIONS (PHASE 5)
+// =============================================================================
+
+model FpoQuotation {
+  id                    String              @id @default(uuid())
+  quotationNumber       String              @unique
+  requirementId         String
+  requirement           BuyerRequirement    @relation(fields: [requirementId], references: [id], onDelete: Cascade)
+  fpoId                 String
+  fpo                   FPOProfile          @relation(fields: [fpoId], references: [id], onDelete: Cascade)
+  produceLotId          String?
+  produceLot            ProduceLot?         @relation(fields: [produceLotId], references: [id], onDelete: SetNull)
+  orderId               String?             @unique
+  order                 Order?              @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  proposalId            String?             @unique
+  proposal              AllocationProposal? @relation(fields: [proposalId], references: [id], onDelete: SetNull)
+
+  offeredQuantityKg     Float
+  offeredPricePerKg     Float
+  totalAmount           Float
+  estimatedDeliveryDate DateTime
+  validityDate          DateTime
+  notes                 String?
+  status                QuotationStatus     @default(PENDING)
+
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+
+  @@index([requirementId])
+  @@index([fpoId])
+  @@index([produceLotId])
+  @@index([status])
+  @@index([quotationNumber])
+}
+
+// =============================================================================
+// FPO FARMER SETTLEMENTS & PAYMENTS (PHASE 7)
+// =============================================================================
+
+enum SettlementStatus {
+  PENDING
+  PARTIALLY_PAID
+  PAID
+  DISPUTED
+  CANCELLED
+}
+
+enum SettlementPaymentMode {
+  BANK_TRANSFER
+  NEFT
+  RTGS
+  UPI
+  CHEQUE
+  CASH
+}
+
+model FarmerSettlement {
+  id                    String                   @id @default(uuid())
+  settlementNumber      String                   @unique
+  orderId               String
+  order                 Order                    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  fpoId                 String
+  fpo                   FPOProfile               @relation(fields: [fpoId], references: [id], onDelete: Cascade)
+  farmerId              String
+  farmer                FarmerProfile            @relation(fields: [farmerId], references: [id], onDelete: Cascade)
+  contributionId        String?
+  contribution          ProduceLotContribution?  @relation(fields: [contributionId], references: [id], onDelete: SetNull)
+
+  cropName              String
+  variety               String?
+  quantityKg            Float
+  agreedPricePerKg      Float
+  grossAmount           Float                    // quantityKg * agreedPricePerKg
+
+  commissionRatePercent Float                    @default(0) // Explicitly configured only (do not invent)
+  commissionAmount      Float                    @default(0) // grossAmount * (commissionRatePercent / 100)
+  logisticsFeeShare     Float                    @default(0) // Optional logistics deduction when available
+
+  netPayable            Float                    // grossAmount - commissionAmount - logisticsFeeShare
+  paidAmount            Float                    @default(0)
+  outstandingAmount     Float                    // netPayable - paidAmount
+
+  status                SettlementStatus         @default(PENDING)
+  dueDate               DateTime?
+  settledAt             DateTime?
+  notes                 String?
+
+  createdAt             DateTime                 @default(now())
+  updatedAt             DateTime                 @updatedAt
+
+  payments              SettlementPaymentRecord[]
+
+  @@unique([orderId, farmerId]) // Invariant: Exactly one settlement record per farmer per order
+  @@index([orderId])
+  @@index([fpoId])
+  @@index([farmerId])
+  @@index([status])
+  @@index([settlementNumber])
+}
+
+model SettlementPaymentRecord {
+  id               String                @id @default(uuid())
+  settlementId     String
+  settlement       FarmerSettlement      @relation(fields: [settlementId], references: [id], onDelete: Cascade)
+
+  amount           Float
+  paymentMode      SettlementPaymentMode @default(BANK_TRANSFER)
+  transactionRef   String                // UTR, Bank transaction ref, Cheque #
+  paymentDate      DateTime              @default(now())
+  recordedBy       String                // FPO user ID
+  receiptUrl       String?
+  notes            String?
+
+  createdAt        DateTime              @default(now())
+
+  @@index([settlementId])
+  @@index([transactionRef])
 }

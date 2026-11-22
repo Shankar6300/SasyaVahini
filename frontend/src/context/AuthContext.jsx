@@ -2,7 +2,7 @@
  * SasyaVahini — Auth Context & Provider
  *
  * Provides authentication state and actions to the entire React tree.
- * 
+ *
  * Usage:
  *   const { user, login, logout, isAuthenticated } = useAuth();
  */
@@ -143,11 +143,39 @@ export function AuthProvider({ children }) {
     dispatch({ type: AUTH_ACTIONS.CLEAR_ERROR });
   }, []);
 
+  const googleLogin = useCallback(async (idToken, role) => {
+    dispatch({ type: AUTH_ACTIONS.CLEAR_ERROR });
+    try {
+      const { data } = await api.post('/auth/google', { idToken, role });
+      if (data.data?.accessToken && data.data?.user) {
+        const { user, accessToken, refreshToken } = data.data;
+        setTokens(accessToken, refreshToken);
+        setStoredUser(user);
+        dispatch({ type: AUTH_ACTIONS.LOGIN_SUCCESS, payload: user });
+        return { user, success: true };
+      }
+      return data.data;
+    } catch (err) {
+      dispatch({ type: AUTH_ACTIONS.SET_ERROR, payload: err.message });
+      throw err;
+    }
+  }, []);
+
+  const loginWithOtpSession = useCallback(({ user, accessToken, refreshToken }) => {
+    if (accessToken && user) {
+      setTokens(accessToken, refreshToken);
+      setStoredUser(user);
+      dispatch({ type: AUTH_ACTIONS.LOGIN_SUCCESS, payload: user });
+    }
+  }, []);
+
   return (
     <AuthContext.Provider
       value={{
         ...state,
         login,
+        googleLogin,
+        loginWithOtpSession,
         previewLogin,
         register,
         logout,

@@ -22,6 +22,9 @@ import Button from '../components/Button';
 import Alert from '../components/Alert';
 import LanguageSelector from '../components/LanguageSelector';
 import VoiceInput from '../components/VoiceInput';
+import VoiceAssistant from '../components/VoiceAssistant';
+import GoogleLoginButton from '../components/GoogleLoginButton';
+import OtpVerificationModal from '../components/OtpVerificationModal';
 import BuyerTypeSelector from '../components/buyer/BuyerTypeSelector';
 import '../styles/buyer-auth.css';
 
@@ -31,6 +34,9 @@ export default function RegisterPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const presetRole = searchParams.get('role');
+  const presetEmail = searchParams.get('email') || '';
+  const presetName = searchParams.get('name') || '';
+  const presetGoogleId = searchParams.get('googleId') || '';
 
   const ROLES = [
     { value: 'FARMER',    label: t('roles.farmer', 'Farmer'),    emoji: '🌾', desc: t('roles.farmerDesc', 'I grow and sell produce') },
@@ -40,8 +46,9 @@ export default function RegisterPage() {
   ];
 
   const [form, setForm] = useState({
-    name: '',
-    email: '',
+    name: presetName,
+    email: presetEmail,
+    googleId: presetGoogleId,
     phone: '',
     password: '',
     role: ROLES.find((r) => r.value === presetRole)?.value || 'FARMER',
@@ -174,22 +181,56 @@ export default function RegisterPage() {
     });
   };
 
-  const handleSendOtp = () => {
+  const [smsUnconfigured, setSmsUnconfigured] = useState(false);
+  const [otpLoading, setOtpLoading] = useState(false);
+
+  const handleSendOtp = async () => {
     if (!form.phone || form.phone.length < 10) {
       setOtpError('Please enter a valid mobile number first.');
       return;
     }
-    setOtpSent(true);
-    setOtpCode('492810'); // Auto-fill sample test OTP for frictionless experience
+    setOtpLoading(true);
     setOtpError('');
+    setSmsUnconfigured(false);
+    try {
+      const res = await api.post('/auth/otp/request', {
+        phone: form.phone.trim(),
+        purpose: 'PHONE_VERIFY',
+      });
+      if (res.data?.data?.delivered) {
+        setOtpSent(true);
+        setOtpError('');
+      } else {
+        setOtpSent(false);
+        setSmsUnconfigured(true);
+        setOtpError(res.data?.data?.message || 'SMS provider is not configured. Mobile OTP delivery is temporarily disabled.');
+      }
+    } catch (err) {
+      setOtpError(err?.response?.data?.message || err.message || 'Failed to send OTP.');
+    } finally {
+      setOtpLoading(false);
+    }
   };
 
-  const handleVerifyOtp = () => {
-    if (otpCode === '492810' || otpCode.length === 6) {
-      setOtpVerified(true);
-      setOtpError('');
-    } else {
-      setOtpError('Invalid OTP. Please enter 492810');
+  const handleVerifyOtp = async () => {
+    if (!otpCode || otpCode.length < 6) {
+      setOtpError('Please enter the 6-digit verification code');
+      return;
+    }
+    try {
+      const res = await api.post('/auth/otp/verify', {
+        phone: form.phone.trim(),
+        code: otpCode.trim(),
+        purpose: 'PHONE_VERIFY',
+      });
+      if (res.data?.data?.verified || res.data?.success) {
+        setOtpVerified(true);
+        setOtpError('');
+      } else {
+        setOtpError(res.data?.message || 'Invalid OTP');
+      }
+    } catch (err) {
+      setOtpError(err?.response?.data?.message || err.message || 'Invalid OTP');
     }
   };
 
@@ -215,6 +256,7 @@ export default function RegisterPage() {
       }
     } else if (form.role === 'FPO') {
       if (!form.fpoName.trim()) errs.fpoName = t('auth.fpoNameRequired', 'FPO organization name is required');
+      if (!form.registrationNo.trim()) errs.registrationNo = t('auth.fpoRegNoRequired', 'FPO registration number is required');
     } else if (form.role === 'LOGISTICS') {
       if (form.partnerType === 'DRIVER') {
         if (!form.drivingLicenceNo.trim()) errs.drivingLicenceNo = 'Driving licence number is required';
@@ -434,8 +476,9 @@ export default function RegisterPage() {
   return (
     <div className="auth-page" style={{ alignItems: 'flex-start', paddingTop: 'var(--space-8)', paddingBottom: 'var(--space-12)' }}>
       <div className="auth-card relative" style={{ maxWidth: isLogistics ? 780 : 520, width: '100%', transition: 'all 0.3s ease' }}>
-        {/* Language selector in top-right */}
-        <div className="flex justify-end mb-3">
+        {/* Voice Assistant & Language selector */}
+        <div className="flex justify-between items-center mb-3">
+          <VoiceAssistant guideType={form.role === 'FPO' ? 'fpo' : (form.role === 'FARMER' ? 'farmer' : 'register')} buttonVariant="pill" />
           <LanguageSelector />
         </div>
 
@@ -455,6 +498,16 @@ export default function RegisterPage() {
             ? 'Register as an individual driver, vehicle owner, or transport fleet company.'
             : t('auth.registerSubtitle', 'Join the platform and start trading fairly')}
         </p>
+
+        {/* Google Quick Sign-Up */}
+        <div className="my-3">
+          <GoogleLoginButton role={form.role} buttonText={t('auth.signUpWithGoogle', 'Sign Up with Google')} />
+          <div className="my-3 flex items-center gap-3">
+            <div className="flex-1 h-px bg-slate-200" />
+            <span className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">{t('common.or', 'or')}</span>
+            <div className="flex-1 h-px bg-slate-200" />
+          </div>
+        </div>
 
         {apiError && <Alert variant="error" className="mb-6">{apiError}</Alert>}
 
@@ -625,9 +678,10 @@ export default function RegisterPage() {
                     <button
                       type="button"
                       onClick={handleSendOtp}
-                      className="px-3.5 py-2 text-xs font-bold rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 whitespace-nowrap"
+                      disabled={otpLoading}
+                      className="px-3.5 py-2 text-xs font-bold rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 whitespace-nowrap disabled:opacity-60"
                     >
-                      {otpSent ? 'Resend OTP' : 'Send OTP'}
+                      {otpLoading ? 'Checking...' : otpSent ? 'Resend OTP' : 'Send SMS OTP'}
                     </button>
                   ) : (
                     <span className="inline-flex items-center gap-1 px-3 py-2 text-xs font-bold text-emerald-800 bg-emerald-100 rounded-lg whitespace-nowrap">
@@ -636,6 +690,17 @@ export default function RegisterPage() {
                   )}
                 </div>
               </div>
+
+              {smsUnconfigured && (
+                <div className="p-3 bg-amber-50 rounded-lg border border-amber-200 text-xs text-amber-900 space-y-1">
+                  <p className="font-semibold flex items-center gap-1">
+                    ⚠️ SMS Gateway Temporarily Unconfigured
+                  </p>
+                  <p className="text-[11px] text-amber-800">
+                    Paid SMS services are currently disabled. Mobile OTP cannot be dispatched via SMS right now. Mobile number remains unverified; you may continue registration with password authentication.
+                  </p>
+                </div>
+              )}
 
               {otpSent && !otpVerified && (
                 <div className="p-2.5 bg-emerald-50 rounded-lg border border-emerald-200 flex items-center gap-2 text-xs">
@@ -646,7 +711,7 @@ export default function RegisterPage() {
                     onChange={(e) => setOtpCode(e.target.value)}
                     maxLength={6}
                     className="w-28 px-2 py-1 text-center font-mono font-bold tracking-widest text-sm bg-white border rounded"
-                    placeholder="492810"
+                    placeholder="123456"
                   />
                   <button
                     type="button"
@@ -655,10 +720,9 @@ export default function RegisterPage() {
                   >
                     Verify
                   </button>
-                  <span className="text-secondary text-[11px]">(Demo code: 492810)</span>
                 </div>
               )}
-              {otpError && <p className="text-xs text-red-600 font-medium">{otpError}</p>}
+              {otpError && !smsUnconfigured && <p className="text-xs text-red-600 font-medium">{otpError}</p>}
             </div>
 
             <FormField
@@ -803,24 +867,44 @@ export default function RegisterPage() {
               <div className="p-4 rounded-xl bg-amber-50/70 border border-amber-200 space-y-3">
                 <p className="text-xs font-bold uppercase tracking-wider text-amber-800">🤝 {t('auth.fpoDetailsTitle', 'FPO Producer Organization Details')}</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <FormField
-                    id="reg-fpoName"
-                    label={`${t('auth.fpoNameLabel', 'FPO Organization Name')} *`}
-                    name="fpoName"
-                    value={form.fpoName}
-                    onChange={handleChange}
-                    error={errors.fpoName}
-                    placeholder={t('auth.fpoNamePlaceholder', 'e.g. Junnar Farmers Producer Co.')}
-                  />
-                  <FormField
-                    id="reg-regNo"
-                    label={`${t('auth.fpoRegNoLabel', 'Registration Number')} *`}
-                    name="registrationNo"
-                    value={form.registrationNo}
-                    onChange={handleChange}
-                    error={errors.registrationNo}
-                    placeholder={t('auth.fpoRegNoPlaceholder', 'e.g. FPO-MH-2024-8842')}
-                  />
+                  <div className="flex items-end gap-1.5">
+                    <div className="flex-1">
+                      <FormField
+                        id="reg-fpoName"
+                        label={`${t('auth.fpoNameLabel', 'FPO Organization Name')} *`}
+                        name="fpoName"
+                        value={form.fpoName}
+                        onChange={handleChange}
+                        error={errors.fpoName}
+                        placeholder={t('auth.fpoNamePlaceholder', 'e.g. Junnar Farmers Producer Co.')}
+                      />
+                    </div>
+                    <div className="pb-1">
+                      <VoiceInput
+                        onResult={(val) => setForm((f) => ({ ...f, fpoName: val }))}
+                        title={t('voice.speakFpoName', 'Speak FPO Name')}
+                      />
+                    </div>
+                  </div>
+                  <div className="flex items-end gap-1.5">
+                    <div className="flex-1">
+                      <FormField
+                        id="reg-regNo"
+                        label={`${t('auth.fpoRegNoLabel', 'Registration Number')} *`}
+                        name="registrationNo"
+                        value={form.registrationNo}
+                        onChange={handleChange}
+                        error={errors.registrationNo}
+                        placeholder={t('auth.fpoRegNoPlaceholder', 'e.g. FPO-MH-2024-8842')}
+                      />
+                    </div>
+                    <div className="pb-1">
+                      <VoiceInput
+                        onResult={(val) => setForm((f) => ({ ...f, registrationNo: val }))}
+                        title={t('voice.speakRegNo', 'Speak Registration Number')}
+                      />
+                    </div>
+                  </div>
                 </div>
                 <FormField
                   id="reg-members"

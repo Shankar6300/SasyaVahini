@@ -59,11 +59,18 @@ services:
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-sasyavahini_jwt_refresh_secret_production_2026}
       JWT_ACCESS_EXPIRES_IN: ${JWT_ACCESS_EXPIRES_IN:-15m}
       JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN:-7d}
-      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000,http://localhost:8080,http://localhost:5173}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000,http://localhost:3001,http://localhost:8080,http://localhost:5173}
       LOGISTICS_DATA_SOURCE: prisma
       ROUTING_SERVICE_URL: http://routing-service:8001
       OSRM_URL: ${OSRM_URL:-https://router.project-osrm.org}
-      ML_SERVICE_URL: "http://ml-service:8000"
+      ML_SERVICE_URL: ${ML_SERVICE_URL:-http://ml-service:8000}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-1038445714238-kmb1rb40vcg7cmuujlv82kir9darqvah.apps.googleusercontent.com}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-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}
+      SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-sasyavahini@gmail.com}
+      SMTP_PASS: ${SMTP_PASS:-kpmy axnh giyn odxe}
+      EMAIL_FROM: ${EMAIL_FROM:-SasyaVahini <sasyavahini@gmail.com>}
     depends_on:
       postgres:
         condition: service_healthy
@@ -83,6 +90,9 @@ services:
     build:
       context: .
       dockerfile: frontend/Dockerfile
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-/api}
+        VITE_GOOGLE_CLIENT_ID: ${VITE_GOOGLE_CLIENT_ID:-1038445714238-kmb1rb40vcg7cmuujlv82kir9darqvah.apps.googleusercontent.com}
     restart: unless-stopped
     ports:
       - "${APP_PORT:-8080}:80"

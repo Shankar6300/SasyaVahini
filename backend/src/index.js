@@ -7,6 +7,7 @@
 const app = require('./app');
 const logger = require('./utils/logger');
 const prisma = require('./lib/prisma');
+const proposalExpiryService = require('./services/proposalExpiry.service');
 
 const PORT = parseInt(process.env.PORT || '5000', 10);
 
@@ -19,9 +20,17 @@ const server = app.listen(PORT, () => {
   });
 });
 
+// ─── Background 30-min Proposal Expiry Sweeper ────────────────────────────────
+const sweeperInterval = setInterval(() => {
+  proposalExpiryService.sweepExpiredProposals().catch((err) => {
+    logger.warn('Background proposal sweep error:', err.message);
+  });
+}, 60000);
+
 // ─── Graceful shutdown ────────────────────────────────────────────────────────
 const shutdown = async (signal) => {
   logger.info(`${signal} received — shutting down gracefully`);
+  clearInterval(sweeperInterval);
   server.close(async () => {
     await prisma.$disconnect();
     logger.info('Database connection closed. Process exiting.');

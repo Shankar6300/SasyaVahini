@@ -46,6 +46,8 @@ export default function VoiceAssistant({
         return t('voice.guideFpoAggregationPrompt');
       case 'marketIntelligence':
         return t('voice.guideMarketIntelligencePrompt');
+      case 'register':
+        return t('voice.guideRegisterPrompt', 'Welcome to SasyaVahini registration. Please enter your name, contact, and profile details to join.');
       default:
         return t('voice.guideFarmerDashboard');
     }

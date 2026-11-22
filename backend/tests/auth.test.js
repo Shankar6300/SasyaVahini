@@ -48,6 +48,7 @@ describe('POST /api/auth/register', () => {
     phone: `+919${Math.floor(100000000 + Math.random() * 899999999)}`,
     password: 'SecurePass1',
     role: 'FARMER',
+    district: 'Pune',
   };
 
   it('registers a new user successfully', async () => {

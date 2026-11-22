@@ -11,6 +11,8 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const prisma = require('../lib/prisma');
 const logger = require('../utils/logger');
+const otpService = require('./otp.service');
+const googleAuthService = require('./googleAuth.service');
 const {
   ConflictError,
   AuthenticationError,
@@ -55,6 +57,8 @@ async function register(data) {
     password,
     role,
     preferredLocale,
+    googleId,
+    avatarUrl,
     // Farmer-specific fields
     landSizeAcres,
     state,
@@ -266,6 +270,10 @@ async function register(data) {
       role,
       preferredLocale: preferredLocale || 'en',
       status: 'PENDING_VERIFICATION',
+      googleId: googleId || undefined,
+      avatarUrl: avatarUrl || undefined,
+      isEmailVerified: Boolean(googleId),
+      isPhoneVerified: false,
       // Create role profile with provided attributes
       farmerProfile:
         role === 'FARMER'
@@ -477,75 +485,162 @@ async function refreshAccessToken(rawRefreshToken) {
   return { accessToken: newAccessToken, refreshToken: newRefreshToken };
 }
 
-// ─── OTP ──────────────────────────────────────────────────────────────────────
+// ─── OTP (Production Ready: Email + SMS) ──────────────────────────────────────
 
-/**
- * Development-only OTP stub.
- * When ENABLE_REAL_OTP=false, OTP is logged (never sent via SMS/email).
- * The code is returned in the response only in development — NOT in production.
- *
- * In production, integrate Twilio or another provider and set ENABLE_REAL_OTP=true.
- */
-async function requestOtp(phone, purpose) {
-  const user = await prisma.user.findUnique({ where: { phone }, select: { id: true } });
-  if (!user) throw new NotFoundError('User with this phone number');
-
-  // Invalidate existing OTPs for this user/purpose
-  await prisma.otpCode.updateMany({
-    where: { userId: user.id, purpose, usedAt: null },
-    data: { usedAt: new Date() },
-  });
-
-  const code = Math.floor(100000 + Math.random() * 900000).toString();
-  const expirySeconds = parseInt(process.env.OTP_EXPIRY_SECONDS || '300', 10);
-  const expiresAt = new Date(Date.now() + expirySeconds * 1000);
-
-  await prisma.otpCode.create({
-    data: { userId: user.id, code, purpose, expiresAt },
-  });
-
-  const enableReal = process.env.ENABLE_REAL_OTP === 'true';
-  if (enableReal) {
-    // TODO: Integrate Twilio / SMS provider (Member 3)
-    throw new BusinessRuleError('Real OTP delivery not yet configured. Set ENABLE_REAL_OTP=false for development.');
+async function requestOtp(identifierOrPhone, purpose = 'LOGIN') {
+  const identifier = identifierOrPhone?.phone || identifierOrPhone?.email || identifierOrPhone?.identifier || identifierOrPhone;
+  if (!identifier) {
+    throw new BusinessRuleError('Phone number or email is required to request OTP');
   }
 
-  logger.info('[DEV-OTP] OTP generated (not sent via SMS)', { phone, purpose, code });
+  // Look up user if exists to personalize
+  const isEmail = identifier.includes('@');
+  const user = await prisma.user.findFirst({
+    where: isEmail
+      ? { email: { equals: identifier.trim().toLowerCase(), mode: 'insensitive' } }
+      : { phone: identifier.trim() },
+    select: { id: true, name: true, email: true, phone: true }
+  });
 
-  // Return code only in development — never in production
-  return {
-    message: 'OTP generated (development mode — check server logs)',
-    expiresIn: expirySeconds,
-    ...(process.env.NODE_ENV !== 'production' ? { devCode: code } : {}),
-  };
+  return await otpService.sendOtp({
+    identifier,
+    purpose,
+    userId: user?.id || null,
+    userName: user?.name || null
+  });
 }
 
-async function verifyOtp(phone, code, purpose) {
-  const user = await prisma.user.findUnique({ where: { phone }, select: { id: true } });
-  if (!user) throw new AuthenticationError('Invalid OTP');
+async function verifyOtp(identifierOrPhone, code, purpose = 'LOGIN') {
+  const identifier = identifierOrPhone?.phone || identifierOrPhone?.email || identifierOrPhone?.identifier || identifierOrPhone;
+  const rawCode = code || identifierOrPhone?.code;
 
-  const otp = await prisma.otpCode.findFirst({
-    where: {
-      userId: user.id,
-      purpose,
-      usedAt: null,
-      expiresAt: { gt: new Date() },
-    },
-    orderBy: { createdAt: 'desc' },
+  const result = await otpService.verifyOtp({
+    identifier,
+    otp: rawCode,
+    purpose
   });
 
-  if (!otp || otp.code !== code) {
-    throw new AuthenticationError('Invalid or expired OTP');
+  if (!result.success) {
+    throw new AuthenticationError(result.message);
   }
 
-  await prisma.otpCode.update({ where: { id: otp.id }, data: { usedAt: new Date() } });
+  // If this was a login OTP, generate tokens
+  if (purpose === 'LOGIN') {
+    const isEmail = identifier.includes('@');
+    const user = await prisma.user.findFirst({
+      where: isEmail
+        ? { email: { equals: identifier.trim().toLowerCase(), mode: 'insensitive' } }
+        : { phone: identifier.trim() },
+      select: { id: true, name: true, email: true, phone: true, role: true, status: true }
+    });
 
-  if (purpose === 'PHONE_VERIFY') {
-    await prisma.user.update({ where: { id: user.id }, data: { isPhoneVerified: true } });
+    if (user) {
+      if (user.status === 'SUSPENDED') {
+        throw new AuthenticationError('Your account has been suspended. Contact support.');
+      }
+      const accessToken = signAccessToken(user);
+      const refreshToken = signRefreshToken(user);
+      const tokenHash = await bcrypt.hash(refreshToken, 10);
+
+      await prisma.refreshToken.create({
+        data: {
+          userId: user.id,
+          tokenHash,
+          expiresAt: calcRefreshExpiry()
+        }
+      });
+
+      return { verified: true, user, accessToken, refreshToken };
+    }
   }
 
-  logger.info('OTP verified', { userId: user.id, purpose });
-  return { verified: true };
+  return { verified: true, message: result.message };
+}
+
+// ─── Google OAuth Login / Registration ─────────────────────────────────────────
+
+async function googleLogin(idToken, intendedRole = null, meta = {}) {
+  const googleData = await googleAuthService.verifyIdToken(idToken);
+  const { googleId, email, name, picture, emailVerified } = googleData;
+
+  // Security Check: Google email MUST be verified to allow authentication or account linking
+  if (!emailVerified) {
+    throw new AuthenticationError('Google account email is not verified. Please verify your email with Google first.');
+  }
+
+  // 1. Try to find user by googleId
+  let user = await prisma.user.findUnique({
+    where: { googleId },
+    select: { id: true, name: true, email: true, phone: true, role: true, status: true, avatarUrl: true, googleId: true }
+  });
+
+  // 2. If not found by googleId, check by email
+  if (!user && email) {
+    const existingByEmail = await prisma.user.findFirst({
+      where: { email: { equals: email, mode: 'insensitive' } },
+      select: { id: true, name: true, email: true, phone: true, role: true, status: true, avatarUrl: true, googleId: true }
+    });
+
+    if (existingByEmail) {
+      // Prevent account takeover on administrative accounts
+      if (existingByEmail.role === 'ADMIN') {
+        throw new AuthenticationError('Administrator accounts cannot be accessed via Google sign-in. Please use administrator credentials.');
+      }
+
+      // Prevent re-linking if already linked to a different Google account
+      if (existingByEmail.googleId && existingByEmail.googleId !== googleId) {
+        throw new ConflictError('This account is already linked to a different Google profile.');
+      }
+
+      // Link Google account to existing user
+      user = await prisma.user.update({
+        where: { id: existingByEmail.id },
+        data: {
+          googleId,
+          isEmailVerified: true,
+          avatarUrl: existingByEmail.avatarUrl || picture || undefined
+        },
+        select: { id: true, name: true, email: true, phone: true, role: true, status: true, avatarUrl: true, googleId: true }
+      });
+      logger.info('Linked Google account to existing user', { userId: user.id, email });
+    }
+  }
+
+  // 3. If still not found, return registration intent (prevents bypass of registration / mobile validation)
+  if (!user) {
+    // Prohibit registering as ADMIN via Google OAuth
+    const safeRole = intendedRole === 'ADMIN' ? 'FARMER' : (intendedRole || 'FARMER');
+    return {
+      requiresRegistration: true,
+      googleId,
+      email,
+      name,
+      avatarUrl: picture,
+      role: safeRole
+    };
+  }
+
+  if (user.status === 'SUSPENDED') {
+    throw new AuthenticationError('Your account has been suspended. Contact support.');
+  }
+
+  // Issue session tokens
+  const accessToken = signAccessToken(user);
+  const refreshToken = signRefreshToken(user);
+  const tokenHash = await bcrypt.hash(refreshToken, 10);
+
+  await prisma.refreshToken.create({
+    data: {
+      userId: user.id,
+      tokenHash,
+      expiresAt: calcRefreshExpiry(),
+      userAgent: meta.userAgent,
+      ipAddress: meta.ipAddress
+    }
+  });
+
+  logger.info('User logged in via Google OAuth', { userId: user.id, role: user.role });
+  return { user, accessToken, refreshToken };
 }
 
 // ─── Logout ───────────────────────────────────────────────────────────────────
@@ -565,4 +660,4 @@ async function logout(userId, rawRefreshToken) {
   logger.info('User logged out', { userId });
 }
 
-module.exports = { register, login, refreshAccessToken, requestOtp, verifyOtp, logout };
+module.exports = { register, login, refreshAccessToken, requestOtp, verifyOtp, logout, googleLogin };

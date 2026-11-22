@@ -9,6 +9,7 @@ const AllocationConsentSection = ({ onAllocationStatusChanged }) => {
   const [proposals, setProposals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [now, setNow] = useState(Date.now());
 
   // Modal Confirmation states
   const [confirmModal, setConfirmModal] = useState({
@@ -19,6 +20,33 @@ const AllocationConsentSection = ({ onAllocationStatusChanged }) => {
   });
   const [processingId, setProcessingId] = useState(null);
   const [actionSuccessMsg, setActionSuccessMsg] = useState(null);
+
+  // Live countdown timer ticking every second
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setNow(Date.now());
+    }, 1000);
+    return () => clearInterval(interval => clearInterval(timer));
+  }, []);
+
+  const getProposalTimerState = (prop) => {
+    const deadlineMs = prop.consentDeadline
+      ? new Date(prop.consentDeadline).getTime()
+      : (prop.createdAt ? new Date(prop.createdAt).getTime() + 30 * 60 * 1000 : now);
+    const diffSec = Math.max(0, Math.floor((deadlineMs - now) / 1000));
+    const isExpired = prop.status === 'EXPIRED' || prop.isExpired || diffSec <= 0;
+    const mins = Math.floor(diffSec / 60);
+    const secs = diffSec % 60;
+    const formatted = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+
+    return {
+      diffSec,
+      isExpired,
+      formatted,
+      isUrgent: diffSec <= 300 && diffSec > 0, // < 5 mins remaining
+      isWarning: diffSec <= 900 && diffSec > 300 // 5-15 mins remaining
+    };
+  };
 
   const fetchProposals = async () => {
     setLoading(true);
@@ -86,7 +114,7 @@ const AllocationConsentSection = ({ onAllocationStatusChanged }) => {
 
   return (
     <div className="space-y-6">
-      
+
       {/* Educational Banner explaining the SasyaVahini differentiator */}
       <div className="bg-gradient-to-r from-emerald-950 to-slate-900 rounded-3xl p-6 sm:p-7 text-white shadow-xl border border-emerald-800/40 space-y-3">
         <div className="flex items-center gap-2">
@@ -151,6 +179,7 @@ const AllocationConsentSection = ({ onAllocationStatusChanged }) => {
             const isReserved = prop.status === 'RESERVED';
             const lotValue = prop.proposedQuantityKg * prop.offeredPricePerKg;
             const priceDiff = prop.offeredPricePerKg - prop.farmerAskingPrice;
+            const timerState = getProposalTimerState(prop);
 
             return (
               <div
@@ -158,11 +187,15 @@ const AllocationConsentSection = ({ onAllocationStatusChanged }) => {
                 className={`bg-white rounded-2xl p-5 border transition-all ${
                   isReserved
                     ? 'border-blue-200 bg-blue-50/20'
+                    : timerState.isExpired
+                    ? 'border-slate-200 bg-slate-50/50 opacity-80'
+                    : timerState.isUrgent
+                    ? 'border-rose-300 bg-rose-50/20 shadow-md ring-1 ring-rose-200'
                     : 'border-slate-200 hover:border-emerald-300 hover:shadow-md'
                 }`}
               >
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                  
+
                   {/* Left: Buyer & Crop Info */}
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 flex-wrap">
@@ -174,9 +207,21 @@ const AllocationConsentSection = ({ onAllocationStatusChanged }) => {
                         <span className="sv-badge-reserved">
                           ✓ Consent Granted • Inventory Reserved
                         </span>
+                      ) : timerState.isExpired ? (
+                        <span className="text-[10px] bg-rose-100 text-rose-800 font-extrabold px-2.5 py-1 rounded-full border border-rose-300 flex items-center gap-1">
+                          <Clock size={11} className="text-rose-600" />
+                          <span>{t('proposals.expiredBadge', '30-Min Window Expired')}</span>
+                        </span>
                       ) : (
-                        <span className="sv-badge-proposed">
-                          Pending Farmer Consent
+                        <span className={`text-[10px] font-extrabold px-2.5 py-1 rounded-full border flex items-center gap-1 ${
+                          timerState.isUrgent
+                            ? 'bg-rose-50 text-rose-700 border-rose-300 animate-pulse'
+                            : timerState.isWarning
+                            ? 'bg-amber-50 text-amber-800 border-amber-300'
+                            : 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                        }`}>
+                          <Clock size={11} className={timerState.isUrgent ? 'text-rose-600' : 'text-emerald-600'} />
+                          <span>{timerState.formatted} {t('proposals.leftToAccept', 'left to accept')}</span>
                         </span>
                       )}
                       <span className="text-[10px] text-emerald-800 bg-emerald-100 font-extrabold px-2 py-0.5 rounded-full">
@@ -228,6 +273,11 @@ const AllocationConsentSection = ({ onAllocationStatusChanged }) => {
                         <ShieldCheck className="w-4 h-4 text-blue-600" />
                         {t('status.RESERVED', 'Reserved')}
                       </div>
+                    ) : timerState.isExpired ? (
+                      <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 bg-slate-100 px-3 py-2 rounded-xl border border-slate-200">
+                        <AlertTriangle size={14} className="text-slate-400" />
+                        <span>{t('proposals.requestExpiredLabel', 'Request Expired (30m elapsed)')}</span>
+                      </div>
                     ) : (
                       <>
                         <button
@@ -240,7 +290,11 @@ const AllocationConsentSection = ({ onAllocationStatusChanged }) => {
                         <button
                           onClick={() => openConfirmation('ACCEPT', prop)}
                           disabled={processingId === prop.id}
-                          className="px-4 py-2 text-xs font-extrabold text-white bg-[#07875B] hover:bg-[#056b48] rounded-xl shadow-md flex items-center gap-1.5 transition-all hover:scale-105"
+                          className={`px-4 py-2 text-xs font-extrabold text-white rounded-xl shadow-md flex items-center gap-1.5 transition-all hover:scale-105 ${
+                            timerState.isUrgent
+                              ? 'bg-rose-600 hover:bg-rose-700 animate-pulse'
+                              : 'bg-[#07875B] hover:bg-[#056b48]'
+                          }`}
                         >
                           <Check className="w-4 h-4" />
                           {t('proposals.acceptBtn', 'Accept & Reserve Inventory')}
@@ -260,7 +314,7 @@ const AllocationConsentSection = ({ onAllocationStatusChanged }) => {
       {confirmModal.isOpen && confirmModal.proposal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
           <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
-            
+
             <div className="flex items-center gap-3">
               <div
                 className={`w-10 h-10 rounded-2xl flex items-center justify-center ${
