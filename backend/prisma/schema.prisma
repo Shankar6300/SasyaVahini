@@ -1415,4 +1415,3 @@ model OutboxEvent {
   @@index([aggregateType, aggregateId])
   @@index([createdAt])
 }
-}
