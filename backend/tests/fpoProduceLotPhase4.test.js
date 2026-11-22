@@ -635,4 +635,34 @@ describe('Phase 4: FPO Produce Aggregation & Produce Lot Management', () => {
       expect(lot.allocatedQuantityKg).toBeGreaterThanOrEqual(0);
     }
   });
+
+  afterAll(async () => {
+    try {
+      if (createdLotIds.length > 0) {
+        await prisma.produceLotContribution.deleteMany({
+          where: { lotId: { in: createdLotIds } }
+        });
+        await prisma.produceLot.deleteMany({
+          where: { id: { in: createdLotIds } }
+        });
+      }
+      if (createdNotificationIds.length > 0) {
+        await prisma.notification.deleteMany({
+          where: { id: { in: createdNotificationIds } }
+        });
+      }
+      if (createdListingIds.length > 0) {
+        await prisma.produceListing.deleteMany({
+          where: { id: { in: createdListingIds } }
+        });
+      }
+      if (createdUserIds.length > 0) {
+        await prisma.user.deleteMany({
+          where: { id: { in: createdUserIds } }
+        });
+      }
+    } catch {
+      // Best-effort test cleanup
+    }
+  });
 });

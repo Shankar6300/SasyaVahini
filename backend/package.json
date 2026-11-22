@@ -13,7 +13,7 @@
     "db:seed": "node prisma/seed.js",
     "db:reset": "prisma migrate reset --force",
     "db:studio": "prisma studio",
-    "test": "jest --forceExit",
+    "test": "jest --runInBand --forceExit",
     "test:watch": "jest --watch",
     "lint": "eslint src --ext .js"
   },

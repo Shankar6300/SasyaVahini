@@ -76,6 +76,15 @@ describe('Phase 5: FPO Bulk Procurement, Matching & Quotations', () => {
     });
     expect(fpoProfile).toBeDefined();
 
+    // Clean up any lingering lots/quotations for primary FPO so requirement matching scores are clean & deterministic
+    try {
+      await prisma.fpoQuotation.deleteMany({ where: { fpoId: fpoProfile.id } });
+      await prisma.produceLotContribution.deleteMany({ where: { lot: { fpoId: fpoProfile.id } } });
+      await prisma.produceLot.deleteMany({ where: { fpoId: fpoProfile.id } });
+    } catch {
+      // Ignore if none
+    }
+
     // 2. Secondary FPO for Tenant Isolation
     const fpo2Email = `fpo2_p5_${Date.now()}@test.sasyavahini.in`;
     fpo2User = await prisma.user.create({
@@ -763,5 +772,28 @@ describe('Phase 5: FPO Bulk Procurement, Matching & Quotations', () => {
     });
     expect(notif).toBeDefined();
     expect(notif.title).toContain('Declined');
+  });
+
+  afterAll(async () => {
+    try {
+      if (createdQuotationIds.length > 0) {
+        await prisma.fpoQuotation.deleteMany({ where: { id: { in: createdQuotationIds } } });
+      }
+      if (createdLotIds.length > 0) {
+        await prisma.produceLotContribution.deleteMany({ where: { lotId: { in: createdLotIds } } });
+        await prisma.produceLot.deleteMany({ where: { id: { in: createdLotIds } } });
+      }
+      if (createdRequirementIds.length > 0) {
+        await prisma.buyerRequirement.deleteMany({ where: { id: { in: createdRequirementIds } } });
+      }
+      if (createdListingIds.length > 0) {
+        await prisma.produceListing.deleteMany({ where: { id: { in: createdListingIds } } });
+      }
+      if (createdUserIds.length > 0) {
+        await prisma.user.deleteMany({ where: { id: { in: createdUserIds } } });
+      }
+    } catch {
+      // Best-effort test cleanup
+    }
   });
 });
