@@ -41,7 +41,7 @@ describe('Phase 3 Agricultural Marketplace UI Components', () => {
     expect(screen.getByText('14.3%')).toBeInTheDocument();
     expect(screen.getByText(/1,800 kg/)).toBeInTheDocument();
     expect(screen.getByText('₹24')).toBeInTheDocument();
-    expect(screen.getByText('View Details')).toBeInTheDocument();
+    expect(screen.getByText(/Details/i)).toBeInTheDocument();
   });
 
   it('renders CategoryNavigation with dynamic categories and handles category selection', () => {

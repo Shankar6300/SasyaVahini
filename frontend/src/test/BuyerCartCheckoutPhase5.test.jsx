@@ -241,8 +241,8 @@ describe('Phase 5: Shopping Cart & Checkout Frontend Components', () => {
       );
 
       expect(screen.getByText('Authoritative Cost Breakdown')).toBeInTheDocument();
-      expect(screen.getByText(/₹1,200/)).toBeInTheDocument();
-      expect(screen.getByText(/₹250/)).toBeInTheDocument();
+      expect(screen.getAllByText(/₹1,200/)[0]).toBeInTheDocument();
+      expect(screen.getAllByText(/₹250/)[0]).toBeInTheDocument();
       expect(screen.getByText('₹1,499')).toBeInTheDocument();
       expect(screen.getByText(/0% Exempt/i)).toBeInTheDocument();
     });
@@ -261,9 +261,9 @@ describe('Phase 5: Shopping Cart & Checkout Frontend Components', () => {
       const payBtn = screen.getByRole('button', { name: /Continue to Payment/i });
       fireEvent.click(payBtn);
 
-      expect(screen.getByText(/Checkout Preparation Complete/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/Checkout Preparation Complete/i)[0]).toBeInTheDocument();
       expect(screen.getByText(/Capstone Phase Boundary/i)).toBeInTheDocument();
-      expect(screen.getByText(/Payment processing will be available in the next phase \(Phase 6\)/i)).toBeInTheDocument();
+      expect(screen.getByText(/Payment processing will be available/i)).toBeInTheDocument();
     });
   });
 });

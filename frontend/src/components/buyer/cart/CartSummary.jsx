@@ -13,15 +13,13 @@ import { useCart } from '@/context/CartContext';
 export default function CartSummary({ onProceedToCheckout }) {
   const { cart, clearCart, isLoading } = useCart();
 
-  if (!cart) return null;
-
   const {
     totalItems = 0,
     totalQuantityKg = 0,
     productSubtotal = 0,
     allValid = true,
     validationIssues = [],
-  } = cart;
+  } = cart || {};
 
   const isBulkOrder = totalQuantityKg >= 1000;
 
