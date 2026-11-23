@@ -6,7 +6,7 @@ import {
   Heart, MapPin, FileText, Bell, Settings,
   Package, TrendingUp, Clock, Leaf, ShieldCheck, CheckCircle,
   Building2, User, ArrowRight, Sparkles, Filter, RefreshCw,
-  SlidersHorizontal, Phone, Check, ChevronRight, Layers, Navigation, CreditCard
+  SlidersHorizontal, Phone, Check, ChevronRight, ChevronLeft, Layers, Navigation, CreditCard
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import RoleBadge from '@/components/RoleBadge';
@@ -128,6 +128,37 @@ export default function BuyerDashboard() {
   const [cartItems, setCartItems] = useState([]);
   const [notification, setNotification] = useState(null);
 
+  // Sidebar collapsed state with localStorage persistence
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
+    try {
+      return localStorage.getItem('sasyavahini_buyer_sidebar_collapsed') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const toggleSidebar = () => {
+    setIsSidebarCollapsed((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem('sasyavahini_buyer_sidebar_collapsed', String(next));
+      } catch {}
+      return next;
+    });
+  };
+
+  // Keyboard shortcut (Ctrl+\ or Cmd+\) to toggle sidebar
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === '\\') {
+        e.preventDefault();
+        toggleSidebar();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   // Sync tab with URL
   useEffect(() => {
     const p = location.pathname;
@@ -201,7 +232,7 @@ export default function BuyerDashboard() {
   return (
     <div className="buyer-dashboard-layout">
       {/* ── Left Sidebar Navigation ─────────────────────────────────── */}
-      <aside className="buyer-sidebar">
+      <aside className={`buyer-sidebar ${isSidebarCollapsed ? 'collapsed' : ''}`}>
         <div className="buyer-sidebar-header">
           <p className="buyer-sidebar-greeting">Signed in as,</p>
           <p className="buyer-sidebar-name">{user?.name || 'Verified Buyer'}</p>
@@ -322,6 +353,25 @@ export default function BuyerDashboard() {
           </div>
         </nav>
       </aside>
+
+      {/* ── Elegant Middle Border Sidebar Toggle Arrow ──────────────── */}
+      <button
+        type="button"
+        onClick={toggleSidebar}
+        className={`buyer-sidebar-toggle-btn ${isSidebarCollapsed ? 'collapsed' : ''}`}
+        aria-label={isSidebarCollapsed ? 'Expand navigation sidebar' : 'Hide navigation sidebar'}
+        title={isSidebarCollapsed ? 'Expand sidebar (Ctrl+\\)' : 'Hide sidebar (Ctrl+\\)'}
+      >
+        {isSidebarCollapsed ? (
+          <ChevronRight size={15} />
+        ) : (
+          <ChevronLeft size={15} />
+        )}
+        <span className="buyer-sidebar-toggle-tooltip">
+          <span>{isSidebarCollapsed ? 'Open Sidebar' : 'Hide Sidebar'}</span>
+          <span className="buyer-sidebar-toggle-kbd">Ctrl+\</span>
+        </span>
+      </button>
 
       {/* ── Main Content Area ────────────────────────────────────────── */}
       <main className="buyer-main-content">
