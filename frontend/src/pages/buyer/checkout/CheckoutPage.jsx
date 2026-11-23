@@ -17,8 +17,11 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '@/context/CartContext';
 import AddressSelector from '@/components/buyer/checkout/AddressSelector';
 import CheckoutSummary from '@/components/buyer/checkout/CheckoutSummary';
+import PaymentModal from '@/components/buyer/payment/PaymentModal';
+import PaymentResultView from '@/components/buyer/payment/PaymentResultView';
 import cartApi from '@/services/cartApi';
 import '@/styles/cart.css';
+import '@/styles/payment.css';
 
 const STEPS = [
   { id: 1, label: 'Review Cart', icon: ShoppingCart },
@@ -37,6 +40,9 @@ export default function CheckoutPage({ onBackToCart: propBackToCart }) {
   const [checkoutData, setCheckoutData] = useState(null);
   const [isLoadingSummary, setIsLoadingSummary] = useState(false);
   const [summaryError, setSummaryError] = useState(null);
+  const [selectedMethod, setSelectedMethod] = useState('UPI');
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [paymentResult, setPaymentResult] = useState(null);
 
   // Fetch authoritative checkout summary from backend
   const loadCheckoutSummary = async (addressId = null) => {
@@ -71,6 +77,20 @@ export default function CheckoutPage({ onBackToCart: propBackToCart }) {
       navigate('/buyer/cart');
     }
   };
+
+  if (paymentResult) {
+    return (
+      <div className="cart-page-container animate-in fade-in duration-200">
+        <PaymentResultView
+          resultData={paymentResult}
+          onReset={() => {
+            setPaymentResult(null);
+            navigate('/buyer/marketplace');
+          }}
+        />
+      </div>
+    );
+  }
 
   if (!cart || cart.totalItems === 0) {
     return (
@@ -183,13 +203,30 @@ export default function CheckoutPage({ onBackToCart: propBackToCart }) {
             </div>
           )}
 
-          {/* Step 5 / Full Summary View */}
+          {/* Step 5 / Full Summary View with Phase 6 Payment Integration */}
           {currentStep >= 3 && (
-            <CheckoutSummary
-              checkoutData={checkoutData}
-              onBackToCart={handleBackToCart}
-              onAddressChangeRequired={() => setCurrentStep(2)}
-            />
+            <>
+              <CheckoutSummary
+                checkoutData={checkoutData}
+                onBackToCart={handleBackToCart}
+                onAddressChangeRequired={() => setCurrentStep(2)}
+                enablePhase6Payment={true}
+                selectedPaymentMethod={selectedMethod}
+                onChangePaymentMethod={setSelectedMethod}
+                onProceedToPayment={() => setIsPaymentModalOpen(true)}
+              />
+
+              <PaymentModal
+                isOpen={isPaymentModalOpen}
+                onClose={() => setIsPaymentModalOpen(false)}
+                addressId={selectedAddressId}
+                selectedMethod={selectedMethod}
+                onPaymentSuccess={(result) => {
+                  setIsPaymentModalOpen(false);
+                  setPaymentResult(result);
+                }}
+              />
+            </>
           )}
         </div>
       )}

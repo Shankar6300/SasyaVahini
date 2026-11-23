@@ -19,6 +19,7 @@ const {
 const controller = require('../controllers/buyer.controller');
 const marketplaceController = require('../controllers/marketplace.controller');
 const cartController = require('../controllers/cart.controller');
+const paymentController = require('../controllers/payment.controller');
 
 const router = Router();
 
@@ -54,6 +55,20 @@ router.delete('/cart/items/:itemId', cartController.removeCartItem);
 router.delete('/cart', cartController.clearCart);
 router.post('/cart/validate', cartController.validateCart);
 router.post('/checkout/summary', cartController.getCheckoutSummary);
+
+// ── Phase 6: Secure Payment Gateway & Invoice Generation ────────────────────
+router.post('/payments/initiate', paymentController.initiatePayment);
+router.post('/payments/verify', paymentController.verifyPayment);
+router.get('/transactions', paymentController.getBuyerTransactions);
+router.get('/payments/transactions', paymentController.getBuyerTransactions);
+router.get('/transactions/:transactionId', paymentController.getTransactionDetails);
+router.get('/payments/transactions/:transactionId', paymentController.getTransactionDetails);
+router.get('/invoices', paymentController.getBuyerInvoices);
+router.get('/payments/invoices', paymentController.getBuyerInvoices);
+router.get('/invoices/:invoiceId', paymentController.getInvoiceDetails);
+router.get('/payments/invoices/:invoiceId', paymentController.getInvoiceDetails);
+router.get('/invoices/:invoiceId/download', paymentController.downloadInvoicePdf);
+router.get('/payments/invoices/:invoiceId/download', paymentController.downloadInvoicePdf);
 
 // ── Security & Password ──────────────────────────────────────────────────────
 router.post('/change-password', validate(changePasswordSchema), controller.changePassword);

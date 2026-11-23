@@ -6,7 +6,7 @@ import {
   Heart, MapPin, FileText, Bell, Settings,
   Package, TrendingUp, Clock, Leaf, ShieldCheck, CheckCircle,
   Building2, User, ArrowRight, Sparkles, Filter, RefreshCw,
-  SlidersHorizontal, Phone, Check, ChevronRight, Layers, Navigation
+  SlidersHorizontal, Phone, Check, ChevronRight, Layers, Navigation, CreditCard
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import RoleBadge from '@/components/RoleBadge';
@@ -23,11 +23,14 @@ import ComparisonPage from './comparison/ComparisonPage';
 import ComparisonSelectionBar from '@/components/buyer/comparison/ComparisonSelectionBar';
 import CartPage from './cart/CartPage';
 import CheckoutPage from './checkout/CheckoutPage';
+import InvoicesPage from './invoices/InvoicesPage';
+import TransactionHistoryPage from './transactions/TransactionHistoryPage';
 import { useCompare } from '@/context/CompareContext';
 import { useCart } from '@/context/CartContext';
 import '@/styles/buyer-auth.css';
 import '@/styles/marketplace.css';
 import '@/styles/cart.css';
+import '@/styles/payment.css';
 
 /* ── Fallback demo produce lots seeded in database ───────────────────────── */
 const DEMO_PRODUCE_FALLBACK = [
@@ -135,6 +138,8 @@ export default function BuyerDashboard() {
     else if (p.includes('/tracking')) setActiveTab('TRACKING');
     else if (p.includes('/checkout')) setActiveTab('CHECKOUT');
     else if (p.includes('/cart')) setActiveTab('CART');
+    else if (p.includes('/invoices')) setActiveTab('INVOICES');
+    else if (p.includes('/transactions')) setActiveTab('TRANSACTIONS');
     else if (p.includes('/orders')) setActiveTab('ORDERS');
     else if (p.includes('/profile')) setActiveTab('PROFILE');
     else if (p.includes('/addresses')) setActiveTab('ADDRESSES');
@@ -268,6 +273,26 @@ export default function BuyerDashboard() {
               <Truck size={18} className="buyer-sidebar-link-icon" />
               <span>Two-Tier Logistics</span>
               <span className="buyer-sidebar-badge">CVRP</span>
+            </button>
+          </div>
+
+          <div className="buyer-sidebar-section">
+            <p className="buyer-sidebar-section-title">Payments & Invoices (Phase 6)</p>
+            <button
+              onClick={() => { setActiveTab('TRANSACTIONS'); navigate('/buyer/transactions'); }}
+              className={`buyer-sidebar-link${activeTab === 'TRANSACTIONS' ? ' active' : ''}`}
+            >
+              <CreditCard size={18} className="buyer-sidebar-link-icon" />
+              <span>Transactions</span>
+              <span className="buyer-sidebar-badge" style={{ background: '#E8F5E9', color: '#1B5E20' }}>HMAC</span>
+            </button>
+            <button
+              onClick={() => { setActiveTab('INVOICES'); navigate('/buyer/invoices'); }}
+              className={`buyer-sidebar-link${activeTab === 'INVOICES' ? ' active' : ''}`}
+            >
+              <FileText size={18} className="buyer-sidebar-link-icon" />
+              <span>Tax Invoices</span>
+              <span className="buyer-sidebar-badge" style={{ background: '#E8F5E9', color: '#1B5E20' }}>0% GST</span>
             </button>
           </div>
 
@@ -427,6 +452,24 @@ export default function BuyerDashboard() {
             >
               <ClipboardList size={15} />
               <span>Order Ledger</span>
+            </button>
+            <button
+              role="tab"
+              aria-selected={activeTab === 'TRANSACTIONS'}
+              onClick={() => { setActiveTab('TRANSACTIONS'); navigate('/buyer/transactions'); }}
+              className={`buyer-nav-tab-btn${activeTab === 'TRANSACTIONS' ? ' active' : ''}`}
+            >
+              <CreditCard size={15} />
+              <span>Transactions</span>
+            </button>
+            <button
+              role="tab"
+              aria-selected={activeTab === 'INVOICES'}
+              onClick={() => { setActiveTab('INVOICES'); navigate('/buyer/invoices'); }}
+              className={`buyer-nav-tab-btn${activeTab === 'INVOICES' ? ' active' : ''}`}
+            >
+              <FileText size={15} />
+              <span>Invoices</span>
             </button>
             <button
               role="tab"
@@ -857,6 +900,12 @@ export default function BuyerDashboard() {
             </div>
           </div>
         )}
+
+        {/* ══════════════════════════════════════════════════════════════
+            PHASE 6: PAYMENT TRANSACTIONS & INVOICES
+            ══════════════════════════════════════════════════════════════ */}
+        {activeTab === 'TRANSACTIONS' && <TransactionHistoryPage />}
+        {activeTab === 'INVOICES' && <InvoicesPage />}
 
         {/* ══════════════════════════════════════════════════════════════
             PHASE 2: BUYER PROFILE

@@ -352,6 +352,8 @@ model BuyerProfile {
   payments         Payment[]
   addresses        BuyerAddress[]
   cart             Cart?
+  transactions     PaymentTransaction[]
+  invoices         Invoice[]
 
   @@index([buyerType])
   @@index([verificationStatus])
@@ -410,6 +412,76 @@ model CartItem {
   @@unique([cartId, listingId])
   @@index([cartId])
   @@index([listingId])
+}
+
+// =============================================================================
+// BUYER PAYMENTS & INVOICES (Phase 6)
+// =============================================================================
+
+model PaymentTransaction {
+  id                  String       @id @default(uuid())
+  buyerId             String
+  buyer               BuyerProfile @relation(fields: [buyerId], references: [id], onDelete: Cascade)
+  checkoutRef         String       @unique
+  gatewayOrderId      String?      @unique
+  gatewayPaymentId    String?      @unique
+  gatewaySignature    String?
+  amount              Float
+  currency            String       @default("INR")
+  paymentMethod       String       @default("UPI") // "UPI" | "CARD" | "NETBANKING" | "ESCROW"
+  status              String       @default("CREATED") // "CREATED" | "PENDING" | "PROCESSING" | "SUCCESS" | "FAILED" | "CANCELLED"
+  breakdownJson       Json
+  itemsSnapshotJson   Json
+  deliveryAddressJson Json
+  failureReason       String?
+  initiatedAt         DateTime     @default(now())
+  verifiedAt          DateTime?
+  invoice             Invoice?
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+
+  @@index([buyerId])
+  @@index([status])
+  @@index([checkoutRef])
+}
+
+model Invoice {
+  id             String             @id @default(uuid())
+  invoiceNumber  String             @unique
+  transactionId  String             @unique
+  transaction    PaymentTransaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  buyerId        String
+  buyer          BuyerProfile       @relation(fields: [buyerId], references: [id], onDelete: Cascade)
+  buyerName      String
+  buyerType      String
+  buyerGstin     String?
+  billingAddress String
+  totalAmount    Float
+  currency       String             @default("INR")
+  itemsJson      Json
+  breakdownJson  Json
+  paymentRef     String
+  paymentMethod  String
+  paidAt         DateTime
+  pdfPath        String?
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  @@index([buyerId])
+  @@index([invoiceNumber])
+  @@index([transactionId])
+}
+
+model WebhookEvent {
+  id          String   @id @default(uuid())
+  eventId     String   @unique
+  gateway     String   @default("Razorpay")
+  eventType   String
+  payloadJson Json
+  processed   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@index([eventId])
 }
 
 model LogisticsProfile {

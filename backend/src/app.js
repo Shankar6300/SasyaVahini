@@ -119,6 +119,7 @@ app.use('/api/tts', require('./routes/tts.routes'));
 app.use('/api/marketplace', require('./routes/marketplace.routes'));
 app.use('/api/buyer/marketplace', require('./routes/marketplace.routes'));
 app.use('/api/buyer', require('./routes/buyer.routes'));
+app.use('/api/payments/webhook', require('./controllers/payment.controller').handleWebhook);
 
 // Member 4 Routes: Logistics
 app.use('/api/logistics', require('./routes/logistics.routes'));

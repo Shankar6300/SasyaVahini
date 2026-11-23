@@ -12,11 +12,16 @@ import {
   ShieldCheck, Truck, Clock, Sparkles, MapPin, CheckCircle2,
   ChevronRight, ArrowLeft, Info, Check, AlertCircle, Building2
 } from 'lucide-react';
+import PaymentMethodSelector from '@/components/buyer/payment/PaymentMethodSelector';
 
 export default function CheckoutSummary({
   checkoutData,
   onBackToCart,
   onAddressChangeRequired,
+  enablePhase6Payment = false,
+  selectedPaymentMethod = 'UPI',
+  onChangePaymentMethod,
+  onProceedToPayment,
 }) {
   const [showPaymentNoticeModal, setShowPaymentNoticeModal] = useState(false);
 
@@ -156,6 +161,16 @@ export default function CheckoutSummary({
               </div>
             ))}
           </div>
+
+          {/* Payment Method Selector Card (Phase 6) */}
+          {enablePhase6Payment && (
+            <div className="p-5 bg-white border border-[#DDE5DC] rounded-xl shadow-sm">
+              <PaymentMethodSelector
+                selectedMethod={selectedPaymentMethod}
+                onSelectMethod={onChangePaymentMethod}
+              />
+            </div>
+          )}
         </div>
 
         {/* ── Right Column: Transparent Cost Breakdown ─────────────────── */}
@@ -226,11 +241,17 @@ export default function CheckoutSummary({
 
             <button
               type="button"
-              onClick={() => setShowPaymentNoticeModal(true)}
+              onClick={() => {
+                if (enablePhase6Payment && onProceedToPayment) {
+                  onProceedToPayment(selectedPaymentMethod);
+                } else {
+                  setShowPaymentNoticeModal(true);
+                }
+              }}
               disabled={!deliveryAddress}
               className="w-full py-3.5 px-4 bg-[#245C43] hover:bg-[#173F30] text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-sm transition-colors"
             >
-              <span>Continue to Payment</span>
+              <span>{enablePhase6Payment ? 'Proceed to Secure Payment' : 'Continue to Payment'}</span>
               <ChevronRight size={16} />
             </button>
 
@@ -265,7 +286,7 @@ export default function CheckoutSummary({
 
             <p className="text-xs text-[#68736B] text-center mb-4 leading-relaxed">
               {nextPhaseNotice ||
-                'Checkout details are ready. Payment processing and escrow will be available in the next phase (Phase 6).'}
+                'Payment processing will be available in the next phase (Phase 6).'}
             </p>
 
             <div className="p-3 bg-[#F8F8F3] border border-[#DDE5DC] rounded-xl text-xs space-y-1.5 mb-5 text-[#202820]">
