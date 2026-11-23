@@ -3,7 +3,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 COPY backend/package.json ./backend/package.json
 COPY frontend/package.json ./frontend/package.json
-RUN npm ci --workspace=frontend
+RUN npm ci --workspace=frontend && npm install @rollup/rollup-linux-x64-musl --save-optional
 COPY frontend ./frontend
 ARG VITE_API_BASE_URL=/api
 ARG VITE_GOOGLE_CLIENT_ID
