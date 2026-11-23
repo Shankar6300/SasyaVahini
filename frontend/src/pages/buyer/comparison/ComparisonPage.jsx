@@ -803,7 +803,7 @@ export default function ComparisonPage() {
           <div className="p-3 bg-[#F8F8F3] rounded-lg border border-[#DDE5DC]">
             <p className="font-bold text-slate-800 mb-1">Two-Tier Logistics</p>
             <p className="text-slate-600">
-              Calculated via Shanmukhananda's Logistics Engine (Port 8001): Base Vehicle Fare + (Road Km × per-km rate). No artificial fuel surcharges.
+              Calculated via SasyaVahini Logistics Engine: Base Vehicle Fare + (Road Km × per-km rate). No artificial fuel surcharges.
             </p>
           </div>
           <div className="p-3 bg-[#F8F8F3] rounded-lg border border-[#DDE5DC]">

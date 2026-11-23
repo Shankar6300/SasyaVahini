@@ -272,8 +272,20 @@ export default function BuyerDashboard() {
             >
               <TrendingUp size={18} className="buyer-sidebar-link-icon" />
               <span>AI Mandi Price Brain</span>
-              <span className="buyer-sidebar-badge" style={{ background: '#FEF6EE', color: '#B54708' }}>Gowtham ML</span>
+              <span className="buyer-sidebar-badge" style={{ background: '#E8F5E9', color: '#1B5E20' }}>AI Powered</span>
             </NavLink>
+            <button
+              onClick={() => { setActiveTab('COMPARE'); navigate('/buyer/compare'); }}
+              className={`buyer-sidebar-link${activeTab === 'COMPARE' ? ' active' : ''}`}
+            >
+              <Scale size={18} className="buyer-sidebar-link-icon" />
+              <span>Compare Produce</span>
+              {compareCount > 0 && (
+                <span className="buyer-sidebar-badge" style={{ background: '#245C43', color: 'white' }}>
+                  {compareCount}
+                </span>
+              )}
+            </button>
             <button
               onClick={() => { setActiveTab('CART'); navigate('/buyer/cart'); }}
               className={`buyer-sidebar-link${activeTab === 'CART' || activeTab === 'CHECKOUT' ? ' active' : ''}`}
@@ -308,7 +320,7 @@ export default function BuyerDashboard() {
           </div>
 
           <div className="buyer-sidebar-section">
-            <p className="buyer-sidebar-section-title">Payments & Invoices (Phase 6)</p>
+            <p className="buyer-sidebar-section-title">Payments & Invoices</p>
             <button
               onClick={() => { setActiveTab('TRANSACTIONS'); navigate('/buyer/transactions'); }}
               className={`buyer-sidebar-link${activeTab === 'TRANSACTIONS' ? ' active' : ''}`}
@@ -328,7 +340,7 @@ export default function BuyerDashboard() {
           </div>
 
           <div className="buyer-sidebar-section">
-            <p className="buyer-sidebar-section-title">Account & Locations (Phase 2)</p>
+            <p className="buyer-sidebar-section-title">Account & Locations</p>
             <button
               onClick={() => { setActiveTab('PROFILE'); navigate('/buyer/profile'); }}
               className={`buyer-sidebar-link${activeTab === 'PROFILE' ? ' active' : ''}`}
@@ -399,7 +411,7 @@ export default function BuyerDashboard() {
                 <h1>
                   <span>Buyer Operations Hub</span>
                   <span className="text-xs font-bold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full border border-emerald-300">
-                    Phase 1 Verified
+                    Enterprise Verified
                   </span>
                 </h1>
                 <p className="buyer-header-subtitle">
@@ -422,13 +434,26 @@ export default function BuyerDashboard() {
               </div>
             </div>
 
-            {/* Top-Right Corner: Ticker & Status */}
+            {/* Top-Right Corner: Ticker & Actions */}
             <div className="buyer-header-right-badges">
               <div className="buyer-live-ticker-badge" title="Real-time Agmarknet / e-NAM benchmark comparison">
                 <span className="buyer-live-indicator-dot" />
                 <span>APMC Pune Avg: ₹28.5/kg · Farm Direct Savings: ~14.5%</span>
               </div>
+              {compareCount > 0 && (
+                <button
+                  type="button"
+                  onClick={() => { setActiveTab('COMPARE'); navigate('/buyer/compare'); }}
+                  className="buyer-btn buyer-btn-outline"
+                  style={{ padding: '8px 12px', fontSize: 13, gap: 6 }}
+                  title="Compare selected produce"
+                >
+                  <Scale size={15} />
+                  <span>Compare ({compareCount})</span>
+                </button>
+              )}
               <button
+                type="button"
                 onClick={() => { setActiveTab('CART'); navigate('/buyer/cart'); }}
                 className="buyer-btn buyer-btn-secondary"
                 style={{ padding: '8px 14px', fontSize: 13 }}
@@ -437,124 +462,6 @@ export default function BuyerDashboard() {
                 <span>Cart ({cartItems.length})</span>
               </button>
             </div>
-          </div>
-
-          {/* Bottom Row: Top Navigation Pills / Tabs in the Middle */}
-          <div className="buyer-top-nav-tabs" role="tablist">
-            <button
-              role="tab"
-              aria-selected={activeTab === 'OVERVIEW'}
-              onClick={() => { setActiveTab('OVERVIEW'); navigate('/buyer'); }}
-              className={`buyer-nav-tab-btn${activeTab === 'OVERVIEW' ? ' active' : ''}`}
-            >
-              <LayoutDashboard size={15} />
-              <span>Overview</span>
-            </button>
-            <button
-              role="tab"
-              aria-selected={activeTab === 'MARKETPLACE'}
-              onClick={() => { setActiveTab('MARKETPLACE'); navigate('/buyer/marketplace'); }}
-              className={`buyer-nav-tab-btn${activeTab === 'MARKETPLACE' ? ' active' : ''}`}
-            >
-              <Search size={15} />
-              <span>Live Produce Marketplace</span>
-              <span className="text-[10px] font-bold px-1.5 py-0.2 bg-white/20 rounded">
-                {produceListings.length} Lots
-              </span>
-            </button>
-            <button
-              role="tab"
-              aria-selected={activeTab === 'COMPARE'}
-              onClick={() => { setActiveTab('COMPARE'); navigate('/buyer/compare'); }}
-              className={`buyer-nav-tab-btn${activeTab === 'COMPARE' ? ' active' : ''}`}
-            >
-              <Scale size={15} />
-              <span>Compare Produce</span>
-              {compareCount > 0 && (
-                <span className="text-[10px] font-bold px-1.5 py-0.2 bg-[#245C43] text-white rounded-full">
-                  {compareCount}
-                </span>
-              )}
-            </button>
-            <button
-              role="tab"
-              aria-selected={activeTab === 'TRACKING'}
-              onClick={() => { setActiveTab('TRACKING'); navigate('/buyer/tracking'); }}
-              className={`buyer-nav-tab-btn${activeTab === 'TRACKING' ? ' active' : ''}`}
-            >
-              <Truck size={15} />
-              <span>Two-Tier Logistics Tracking</span>
-            </button>
-            <button
-              role="tab"
-              aria-selected={activeTab === 'CART'}
-              onClick={() => { setActiveTab('CART'); navigate('/buyer/cart'); }}
-              className={`buyer-nav-tab-btn${activeTab === 'CART' ? ' active' : ''}`}
-            >
-              <ShoppingCart size={15} />
-              <span>Order Cart ({cartItems.length})</span>
-            </button>
-            <button
-              role="tab"
-              aria-selected={activeTab === 'ORDERS'}
-              onClick={() => { setActiveTab('ORDERS'); navigate('/buyer/orders'); }}
-              className={`buyer-nav-tab-btn${activeTab === 'ORDERS' ? ' active' : ''}`}
-            >
-              <ClipboardList size={15} />
-              <span>Order Ledger</span>
-            </button>
-            <button
-              role="tab"
-              aria-selected={activeTab === 'TRANSACTIONS'}
-              onClick={() => { setActiveTab('TRANSACTIONS'); navigate('/buyer/transactions'); }}
-              className={`buyer-nav-tab-btn${activeTab === 'TRANSACTIONS' ? ' active' : ''}`}
-            >
-              <CreditCard size={15} />
-              <span>Transactions</span>
-            </button>
-            <button
-              role="tab"
-              aria-selected={activeTab === 'INVOICES'}
-              onClick={() => { setActiveTab('INVOICES'); navigate('/buyer/invoices'); }}
-              className={`buyer-nav-tab-btn${activeTab === 'INVOICES' ? ' active' : ''}`}
-            >
-              <FileText size={15} />
-              <span>Invoices</span>
-            </button>
-            <button
-              role="tab"
-              aria-selected={activeTab === 'PROFILE'}
-              onClick={() => { setActiveTab('PROFILE'); navigate('/buyer/profile'); }}
-              className={`buyer-nav-tab-btn${activeTab === 'PROFILE' ? ' active' : ''}`}
-            >
-              <User size={15} />
-              <span>My Profile</span>
-            </button>
-            <button
-              role="tab"
-              aria-selected={activeTab === 'ADDRESSES'}
-              onClick={() => { setActiveTab('ADDRESSES'); navigate('/buyer/addresses'); }}
-              className={`buyer-nav-tab-btn${activeTab === 'ADDRESSES' ? ' active' : ''}`}
-            >
-              <MapPin size={15} />
-              <span>Addresses</span>
-            </button>
-            <button
-              role="tab"
-              aria-selected={activeTab === 'SETTINGS'}
-              onClick={() => { setActiveTab('SETTINGS'); navigate('/buyer/settings'); }}
-              className={`buyer-nav-tab-btn${activeTab === 'SETTINGS' ? ' active' : ''}`}
-            >
-              <Settings size={15} />
-              <span>Settings</span>
-            </button>
-            <NavLink
-              to="/market-intelligence"
-              className="buyer-nav-tab-btn ml-auto text-amber-800 bg-amber-50 border-amber-200"
-            >
-              <Sparkles size={14} className="text-amber-600" />
-              <span>Gowtham's AI Pricing Brain</span>
-            </NavLink>
           </div>
         </header>
 
@@ -610,13 +517,13 @@ export default function BuyerDashboard() {
               </div>
             </div>
 
-            {/* Teammate Integration Showcase: Gowtham's AI Pricing Brain */}
+            {/* AI Mandi Intelligence & Price Prediction */}
             <div style={{ marginBottom: 24 }}>
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <Sparkles size={18} className="text-indigo-600" />
                   <h3 className="font-bold text-[#202820] text-base">
-                    Gowtham's AI Buyer Procurement Optimizer & Landed Cost Intelligence
+                    AI Buyer Procurement Optimizer & Landed Cost Intelligence
                   </h3>
                 </div>
                 <span className="text-xs text-[#68736B]">102-D Quantile Model (v0.5.0) • Valley Detector</span>
@@ -631,7 +538,7 @@ export default function BuyerDashboard() {
                 <div className="buyer-content-card-header">
                   <h3 className="buyer-content-card-title flex items-center gap-2">
                     <Leaf size={18} className="text-emerald-700" />
-                    <span>Live Farm Inventory (Shankar's Supply Engine)</span>
+                    <span>Live Farm Inventory (Direct FPO Supply)</span>
                   </h3>
                   <button
                     onClick={() => { setActiveTab('MARKETPLACE'); navigate('/buyer/marketplace'); }}
@@ -686,12 +593,12 @@ export default function BuyerDashboard() {
                 </div>
               </div>
 
-              {/* Shanmukhananda's Logistics Overview */}
+              {/* Two-Tier Logistics Status Overview */}
               <div className="buyer-content-card">
                 <div className="buyer-content-card-header">
                   <h3 className="buyer-content-card-title flex items-center gap-2">
                     <Truck size={18} className="text-blue-700" />
-                    <span>Two-Tier Logistics Status (Shanmukhananda's Routing)</span>
+                    <span>Two-Tier Logistics Status (Intelligent Routing)</span>
                   </h3>
                   <span className="buyer-feature-badge">Active Shipment</span>
                 </div>
@@ -777,7 +684,7 @@ export default function BuyerDashboard() {
                 <div>
                   <h3 className="text-lg font-bold text-[#202820] flex items-center gap-2">
                     <Truck size={22} className="text-[#245C43]" />
-                    <span>Shanmukhananda's Two-Tier Logistics Network & CVRP Routing</span>
+                    <span>Two-Tier Logistics Network & CVRP Route Engine</span>
                   </h3>
                   <p className="text-xs text-slate-600 mt-1">
                     Multi-stop pickup from rural farmers → FPO cold storage consolidation → Direct terminal delivery

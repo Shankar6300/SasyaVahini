@@ -15,7 +15,13 @@ import { useNavigate } from 'react-router-dom';
 
 export default function AddToCartButton({ product, compact = false, showQuantitySelector = false }) {
   const { addToCart, isLoading } = useCart();
-  const { isAuthenticated, user } = useAuth();
+  let authContext = { isAuthenticated: false, user: null };
+  try {
+    authContext = useAuth();
+  } catch {
+    authContext = { isAuthenticated: false, user: null };
+  }
+  const { isAuthenticated = false, user = null } = authContext || {};
   const navigate = useNavigate();
 
   const isBusiness = user?.buyerType === 'BUSINESS' || user?.buyerType === 'Wholesaler' || user?.buyerType === 'Supermarket';

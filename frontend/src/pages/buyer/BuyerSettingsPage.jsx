@@ -214,7 +214,7 @@ export default function BuyerSettingsPage() {
                 },
                 {
                   id: 'priceDrops',
-                  title: 'Gowtham ML Price Intelligence Alerts',
+                  title: 'AI Price Intelligence Alerts',
                   desc: 'Weekly mandi forecast dips and APMC price arbitrage opportunities',
                 },
                 {

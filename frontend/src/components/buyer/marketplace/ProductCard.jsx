@@ -164,8 +164,9 @@ export default function ProductCard({ product, buyerType = 'INDIVIDUAL' }) {
             <Link
               to={`/buyer/marketplace/products/${id}`}
               className="marketplace-card-btn"
+              title="View produce details"
             >
-              <span>Details</span>
+              <span>View Details</span>
               <ArrowRight size={13} />
             </Link>
           </div>

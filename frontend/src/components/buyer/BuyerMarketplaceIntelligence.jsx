@@ -705,7 +705,7 @@ export default function BuyerMarketplaceIntelligence({
                   Freight Index: Stable (1.02x)
                 </div>
                 <p className="text-[11px] text-slate-500 mt-2">
-                  Carrier partner logistics rates (Shanmukh's fleet) are within normal operating bounds.
+                  Carrier partner logistics rates (Verified Carrier Fleet) are within normal operating bounds.
                 </p>
               </div>
 
