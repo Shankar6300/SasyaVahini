@@ -18,6 +18,7 @@ const {
 } = require('../schemas/buyer.schema');
 const controller = require('../controllers/buyer.controller');
 const marketplaceController = require('../controllers/marketplace.controller');
+const cartController = require('../controllers/cart.controller');
 
 const router = Router();
 
@@ -44,6 +45,15 @@ router.patch('/settings', validate(updateSettingsSchema), controller.updateSetti
 router.get('/compare', marketplaceController.getComparisonData);
 router.post('/compare/calculate', marketplaceController.calculateLandedCost);
 router.get('/compare/price-history', marketplaceController.getPriceHistory);
+
+// ── Phase 5: Shopping Cart & Checkout Preparation ───────────────────────────
+router.get('/cart', cartController.getCart);
+router.post('/cart/items', cartController.addToCart);
+router.patch('/cart/items/:itemId', cartController.updateCartItem);
+router.delete('/cart/items/:itemId', cartController.removeCartItem);
+router.delete('/cart', cartController.clearCart);
+router.post('/cart/validate', cartController.validateCart);
+router.post('/checkout/summary', cartController.getCheckoutSummary);
 
 // ── Security & Password ──────────────────────────────────────────────────────
 router.post('/change-password', validate(changePasswordSchema), controller.changePassword);

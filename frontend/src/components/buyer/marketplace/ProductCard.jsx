@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import ProductCompareButton from '@/components/buyer/comparison/ProductCompareButton';
+import AddToCartButton from '@/components/buyer/cart/AddToCartButton';
 import { MapPin, Sparkles, Building2, User, CheckCircle, Clock, ArrowRight, ShieldCheck, Layers } from 'lucide-react';
 
 /**
@@ -159,11 +160,12 @@ export default function ProductCard({ product, buyerType = 'INDIVIDUAL' }) {
 
           <div className="marketplace-card-actions" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <ProductCompareButton product={product} compact />
+            <AddToCartButton product={product} compact />
             <Link
               to={`/buyer/marketplace/products/${id}`}
               className="marketplace-card-btn"
             >
-              <span>View Details</span>
+              <span>Details</span>
               <ArrowRight size={13} />
             </Link>
           </div>

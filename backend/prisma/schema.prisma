@@ -351,6 +351,7 @@ model BuyerProfile {
   orders           Order[]
   payments         Payment[]
   addresses        BuyerAddress[]
+  cart             Cart?
 
   @@index([buyerType])
   @@index([verificationStatus])
@@ -379,6 +380,36 @@ model BuyerAddress {
 
   @@index([buyerId])
   @@index([isDefault])
+}
+
+// =============================================================================
+// BUYER SHOPPING CART (Phase 5)
+// =============================================================================
+
+model Cart {
+  id        String       @id @default(uuid())
+  buyerId   String       @unique
+  buyer     BuyerProfile @relation(fields: [buyerId], references: [id], onDelete: Cascade)
+  items     CartItem[]
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@index([buyerId])
+}
+
+model CartItem {
+  id         String         @id @default(uuid())
+  cartId     String
+  cart       Cart           @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  listingId  String
+  listing    ProduceListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  quantityKg Float
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  @@unique([cartId, listingId])
+  @@index([cartId])
+  @@index([listingId])
 }
 
 model LogisticsProfile {
@@ -499,6 +530,7 @@ model ProduceListing {
 
   allocationItems  AllocationItem[]
   lotContributions ProduceLotContribution[]
+  cartItems        CartItem[]
 
   @@index([cropName])
   @@index([status])

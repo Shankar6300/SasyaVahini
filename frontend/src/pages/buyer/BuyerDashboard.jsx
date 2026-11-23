@@ -21,9 +21,13 @@ import ProductDetailPage from './marketplace/ProductDetailPage';
 import SupplierProfilePage from './marketplace/SupplierProfilePage';
 import ComparisonPage from './comparison/ComparisonPage';
 import ComparisonSelectionBar from '@/components/buyer/comparison/ComparisonSelectionBar';
+import CartPage from './cart/CartPage';
+import CheckoutPage from './checkout/CheckoutPage';
 import { useCompare } from '@/context/CompareContext';
+import { useCart } from '@/context/CartContext';
 import '@/styles/buyer-auth.css';
 import '@/styles/marketplace.css';
+import '@/styles/cart.css';
 
 /* ── Fallback demo produce lots seeded in database ───────────────────────── */
 const DEMO_PRODUCE_FALLBACK = [
@@ -108,6 +112,7 @@ const DEMO_PRODUCE_FALLBACK = [
 export default function BuyerDashboard() {
   const { user } = useAuth();
   const { count: compareCount } = useCompare();
+  const { cartCount, addToCart } = useCart();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -128,6 +133,7 @@ export default function BuyerDashboard() {
     else if (p.includes('/marketplace')) setActiveTab('MARKETPLACE');
     else if (p.includes('/compare')) setActiveTab('COMPARE');
     else if (p.includes('/tracking')) setActiveTab('TRACKING');
+    else if (p.includes('/checkout')) setActiveTab('CHECKOUT');
     else if (p.includes('/cart')) setActiveTab('CART');
     else if (p.includes('/orders')) setActiveTab('ORDERS');
     else if (p.includes('/profile')) setActiveTab('PROFILE');
@@ -234,13 +240,13 @@ export default function BuyerDashboard() {
             </NavLink>
             <button
               onClick={() => { setActiveTab('CART'); navigate('/buyer/cart'); }}
-              className={`buyer-sidebar-link${activeTab === 'CART' ? ' active' : ''}`}
+              className={`buyer-sidebar-link${activeTab === 'CART' || activeTab === 'CHECKOUT' ? ' active' : ''}`}
             >
               <ShoppingCart size={18} className="buyer-sidebar-link-icon" />
               <span>Procurement Cart</span>
-              {cartItems.length > 0 && (
+              {cartCount > 0 && (
                 <span className="buyer-sidebar-badge" style={{ background: '#245C43', color: 'white' }}>
-                  {cartItems.length}
+                  {cartCount}
                 </span>
               )}
             </button>
@@ -756,102 +762,24 @@ export default function BuyerDashboard() {
         )}
 
         {/* ══════════════════════════════════════════════════════════════
-            TAB 4: PROCUREMENT CART & CHECKOUT PREVIEW
+            TAB 4: SHOPPING CART & CHECKOUT PREPARATION (Phase 5)
             ══════════════════════════════════════════════════════════════ */}
         {activeTab === 'CART' && (
-          <div className="buyer-animate-in">
-            {cartItems.length === 0 ? (
-              <div className="p-12 bg-white rounded-xl border border-[#DDE5DC] text-center">
-                <ShoppingCart size={48} className="mx-auto text-slate-300 mb-3" />
-                <h3 className="text-base font-bold text-slate-700 mb-1">Your Procurement Cart is Empty</h3>
-                <p className="text-xs text-slate-500 max-w-sm mx-auto mb-4">
-                  Browse fresh farmer-aggregated lots from the marketplace and add them to your bulk order.
-                </p>
-                <button
-                  onClick={() => setActiveTab('MARKETPLACE')}
-                  className="buyer-btn buyer-btn-primary"
-                >
-                  Browse Marketplace Lots
-                </button>
-              </div>
-            ) : (
-              <div className="grid md:grid-cols-3 gap-6">
-                <div className="md:col-span-2 space-y-4">
-                  <div className="p-5 bg-white rounded-xl border border-[#DDE5DC]">
-                    <h3 className="font-bold text-base text-slate-800 mb-3">Selected Farm Produce Batches</h3>
-                    <div className="divide-y divide-slate-100">
-                      {cartItems.map((item) => (
-                        <div key={item.id} className="py-3 flex items-center justify-between">
-                          <div>
-                            <p className="font-bold text-slate-800">{item.cropName}</p>
-                            <p className="text-xs text-slate-500">
-                              📍 {item.district} · Grade: {item.qualityGrade} · Lot ID: {item.id}
-                            </p>
-                            <span className="text-xs font-semibold text-emerald-700">
-                              ₹{item.askingPricePerKg} / kg
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-4">
-                            <span className="text-xs font-bold text-slate-700">{item.orderQtyKg} kg</span>
-                            <span className="text-sm font-black text-slate-800">
-                              ₹{(item.askingPricePerKg * item.orderQtyKg).toLocaleString()}
-                            </span>
-                            <button
-                              onClick={() => setCartItems((prev) => prev.filter((i) => i.id !== item.id))}
-                              className="text-xs text-red-600 hover:underline"
-                            >
-                              Remove
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
+          <CartPage
+            onProceedToCheckout={() => {
+              setActiveTab('CHECKOUT');
+              navigate('/buyer/checkout');
+            }}
+          />
+        )}
 
-                {/* Checkout Summary */}
-                <div className="p-5 bg-white rounded-xl border border-[#DDE5DC] h-fit">
-                  <h3 className="font-bold text-base text-slate-800 mb-3">Order Cost Ledger (Phase 1)</h3>
-                  <div className="space-y-2 text-xs border-b border-slate-200 pb-3 mb-3">
-                    <div className="flex justify-between text-slate-600">
-                      <span>Produce Net Realization:</span>
-                      <span className="font-bold text-slate-800">₹{cartTotalAmount.toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between text-slate-600">
-                      <span>FPO Handling & Pooling (3%):</span>
-                      <span>₹{(cartTotalAmount * 0.03).toFixed(0)}</span>
-                    </div>
-                    <div className="flex justify-between text-slate-600">
-                      <span>Shankar's CVRP Logistics Quote:</span>
-                      <span className="font-semibold text-emerald-700">₹650 (Optimized)</span>
-                    </div>
-                    <div className="flex justify-between text-slate-600">
-                      <span>Middleman Markup Avoided:</span>
-                      <span className="font-bold text-emerald-700">-₹{(cartTotalAmount * 0.14).toFixed(0)}</span>
-                    </div>
-                  </div>
-
-                  <div className="flex justify-between text-sm font-black text-slate-900 mb-4">
-                    <span>Total Landed Cost:</span>
-                    <span>₹{(cartTotalAmount + cartTotalAmount * 0.03 + 650).toLocaleString()}</span>
-                  </div>
-
-                  <button
-                    onClick={() => {
-                      setNotification('Order allocation proposal requested from farmers & FPO!');
-                      setCartItems([]);
-                    }}
-                    className="w-full buyer-btn buyer-btn-primary"
-                  >
-                    Submit Procurement Order
-                  </button>
-                  <p className="text-[11px] text-slate-500 text-center mt-2">
-                    Atomic inventory reservation initiated upon farmer consent.
-                  </p>
-                </div>
-              </div>
-            )}
-          </div>
+        {activeTab === 'CHECKOUT' && (
+          <CheckoutPage
+            onBackToCart={() => {
+              setActiveTab('CART');
+              navigate('/buyer/cart');
+            }}
+          />
         )}
 
         {/* ══════════════════════════════════════════════════════════════

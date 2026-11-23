@@ -4,6 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import marketplaceApi from '@/services/marketplaceApi';
 import ProductCard from '@/components/buyer/marketplace/ProductCard';
 import ProductCompareButton from '@/components/buyer/comparison/ProductCompareButton';
+import AddToCartButton from '@/components/buyer/cart/AddToCartButton';
 import {
   ChevronLeft, MapPin, Sparkles, Building2, User, CheckCircle,
   Clock, ShieldCheck, Leaf, ArrowRight, Package, Info, AlertTriangle, ExternalLink
@@ -274,11 +275,16 @@ export default function ProductDetailPage({ productId: propProductId }) {
             <ProductCompareButton product={product} />
           </div>
 
-          {/* Phase 3 Scope Notice */}
+          {/* Phase 5: Add to Cart Action */}
+          <div className="mb-4">
+            <AddToCartButton product={product} showQuantitySelector />
+          </div>
+
+          {/* Direct Procurement Assurance */}
           <div className="mt-auto p-3 bg-emerald-50/60 border border-emerald-200 rounded-xl text-xs text-emerald-900 flex items-center gap-2">
-            <Info size={16} className="text-emerald-700 flex-shrink-0" />
+            <ShieldCheck size={16} className="text-emerald-700 flex-shrink-0" />
             <span>
-              <strong>Phase 3 Live Discovery:</strong> Direct farm lot verified. Full order contracting and escrow payment workflow will be unlocked in Phase 4 & 5.
+              <strong>Direct Procurement:</strong> Verified farm lot. Adding to cart validates MOQ and inventory in real time with transparent FPO/farmer attribution.
             </span>
           </div>
         </div>
