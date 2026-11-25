@@ -25,6 +25,9 @@ import CartPage from './cart/CartPage';
 import CheckoutPage from './checkout/CheckoutPage';
 import InvoicesPage from './invoices/InvoicesPage';
 import TransactionHistoryPage from './transactions/TransactionHistoryPage';
+import OrdersPage from './orders/OrdersPage';
+import OrderDetailPage from './orders/OrderDetailPage';
+import OrderTrackingPage from './orders/OrderTrackingPage';
 import { useCompare } from '@/context/CompareContext';
 import { useCart } from '@/context/CartContext';
 import '@/styles/buyer-auth.css';
@@ -121,6 +124,8 @@ export default function BuyerDashboard() {
 
   // Active sub-tab state
   const [activeTab, setActiveTab] = useState('OVERVIEW');
+  const [selectedOrderId, setSelectedOrderId] = useState(null);
+  const [trackingOrderId, setTrackingOrderId] = useState(null);
   const [produceListings, setProduceListings] = useState([]);
   const [loadingProduce, setLoadingProduce] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -166,12 +171,20 @@ export default function BuyerDashboard() {
     else if (p.includes('/marketplace/suppliers/')) setActiveTab('SUPPLIER_PROFILE');
     else if (p.includes('/marketplace')) setActiveTab('MARKETPLACE');
     else if (p.includes('/compare')) setActiveTab('COMPARE');
-    else if (p.includes('/tracking')) setActiveTab('TRACKING');
+    else if (p.includes('/tracking')) {
+      const match = p.match(/\/tracking\/([^/?]+)/);
+      if (match) setTrackingOrderId(match[1]);
+      setActiveTab('TRACKING');
+    }
     else if (p.includes('/checkout')) setActiveTab('CHECKOUT');
     else if (p.includes('/cart')) setActiveTab('CART');
     else if (p.includes('/invoices')) setActiveTab('INVOICES');
     else if (p.includes('/transactions')) setActiveTab('TRANSACTIONS');
-    else if (p.includes('/orders')) setActiveTab('ORDERS');
+    else if (p.includes('/orders')) {
+      const match = p.match(/\/orders\/([^/?]+)/);
+      if (match) setSelectedOrderId(match[1]);
+      setActiveTab('ORDERS');
+    }
     else if (p.includes('/profile')) setActiveTab('PROFILE');
     else if (p.includes('/addresses')) setActiveTab('ADDRESSES');
     else if (p.includes('/settings')) setActiveTab('SETTINGS');
@@ -320,7 +333,7 @@ export default function BuyerDashboard() {
           </div>
 
           <div className="buyer-sidebar-section">
-            <p className="buyer-sidebar-section-title">Payments & Invoices</p>
+            <p className="buyer-sidebar-section-title">Payments</p>
             <button
               onClick={() => { setActiveTab('TRANSACTIONS'); navigate('/buyer/transactions'); }}
               className={`buyer-sidebar-link${activeTab === 'TRANSACTIONS' ? ' active' : ''}`}
@@ -328,14 +341,6 @@ export default function BuyerDashboard() {
               <CreditCard size={18} className="buyer-sidebar-link-icon" />
               <span>Transactions</span>
               <span className="buyer-sidebar-badge" style={{ background: '#E8F5E9', color: '#1B5E20' }}>HMAC</span>
-            </button>
-            <button
-              onClick={() => { setActiveTab('INVOICES'); navigate('/buyer/invoices'); }}
-              className={`buyer-sidebar-link${activeTab === 'INVOICES' ? ' active' : ''}`}
-            >
-              <FileText size={18} className="buyer-sidebar-link-icon" />
-              <span>Tax Invoices</span>
-              <span className="buyer-sidebar-badge" style={{ background: '#E8F5E9', color: '#1B5E20' }}>0% GST</span>
             </button>
           </div>
 
@@ -678,92 +683,50 @@ export default function BuyerDashboard() {
             TAB 3: TWO-TIER LOGISTICS TRACKING
             ══════════════════════════════════════════════════════════════ */}
         {activeTab === 'TRACKING' && (
-          <div className="buyer-animate-in space-y-6">
-            <div className="p-5 bg-white rounded-xl border border-[#DDE5DC]">
-              <div className="flex items-center justify-between mb-4">
+          trackingOrderId ? (
+            <OrderTrackingPage
+              orderId={trackingOrderId}
+              onBack={() => {
+                setTrackingOrderId(null);
+                setActiveTab('ORDERS');
+                navigate('/buyer/orders');
+              }}
+            />
+          ) : (
+            <div className="space-y-6">
+              <div className="p-5 bg-white rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
                 <div>
-                  <h3 className="text-lg font-bold text-[#202820] flex items-center gap-2">
-                    <Truck size={22} className="text-[#245C43]" />
-                    <span>Two-Tier Logistics Network & CVRP Route Engine</span>
-                  </h3>
-                  <p className="text-xs text-slate-600 mt-1">
-                    Multi-stop pickup from rural farmers → FPO cold storage consolidation → Direct terminal delivery
-                  </p>
+                  <h2 className="text-base font-bold text-slate-800">Two-Tier Agricultural Logistics & Tracking</h2>
+                  <p className="text-xs text-slate-500">Select any active order to monitor real verified milestones</p>
                 </div>
-                <span className="px-3 py-1 bg-emerald-100 text-emerald-800 font-bold text-xs rounded-full border border-emerald-300">
-                  Microservice Active (Port 8001)
-                </span>
-              </div>
-
-              {/* Active Route Blueprint */}
-              <div className="p-4 bg-[#F8F8F3] rounded-xl border border-[#DDE5DC] grid md:grid-cols-3 gap-4 mb-4">
-                <div>
-                  <p className="text-[11px] font-bold text-slate-500 uppercase">Dispatch ID</p>
-                  <p className="text-sm font-bold text-slate-800">DISP-2026-MH-9102</p>
-                  <p className="text-xs text-slate-600">Order: SV-2026-00101</p>
-                </div>
-                <div>
-                  <p className="text-[11px] font-bold text-slate-500 uppercase">Assigned Fleet Vehicle</p>
-                  <p className="text-sm font-bold text-slate-800">MH-12-QX-4012 (Refrigerated)</p>
-                  <p className="text-xs text-slate-600">Capacity: 2,500 kg · Driver: Santosh Gaikwad</p>
-                </div>
-                <div>
-                  <p className="text-[11px] font-bold text-slate-500 uppercase">CVRP Optimization Gain</p>
-                  <p className="text-sm font-bold text-emerald-700">22.4 km Saved (OR-Tools)</p>
-                  <p className="text-xs text-slate-600">Estimated transit fuel saved: ₹380</p>
-                </div>
-              </div>
-
-              {/* Progress Milestones */}
-              <div className="grid md:grid-cols-4 gap-3 py-2">
-                <div className="p-3 bg-emerald-50 rounded-lg border border-emerald-200">
-                  <div className="flex items-center gap-2 text-emerald-800 font-bold text-xs mb-1">
-                    <CheckCircle size={16} /> 1. Farm Collection
-                  </div>
-                  <p className="text-[11px] text-emerald-700">Collected from Ramesh Kulkarni (Manchar)</p>
-                  <span className="text-[10px] text-slate-500">OTP Verified 10:15 AM</span>
-                </div>
-                <div className="p-3 bg-emerald-50 rounded-lg border border-emerald-200">
-                  <div className="flex items-center gap-2 text-emerald-800 font-bold text-xs mb-1">
-                    <CheckCircle size={16} /> 2. FPO Hub Check
-                  </div>
-                  <p className="text-[11px] text-emerald-700">Chakan Aggregation Facility QC passed</p>
-                  <span className="text-[10px] text-slate-500">Sorted 11:30 AM</span>
-                </div>
-                <div className="p-3 bg-blue-50 rounded-lg border border-blue-200 ring-2 ring-blue-500/30">
-                  <div className="flex items-center gap-2 text-blue-800 font-bold text-xs mb-1">
-                    <Navigation size={16} className="animate-spin" /> 3. City Transit
-                  </div>
-                  <p className="text-[11px] text-blue-700">En route on NH-60 towards Pune Hub</p>
-                  <span className="text-[10px] text-blue-600 font-semibold">Speed: 42 km/h · Temp: 4°C</span>
-                </div>
-                <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 opacity-60">
-                  <div className="flex items-center gap-2 text-slate-600 font-bold text-xs mb-1">
-                    <Clock size={16} /> 4. Buyer Handover
-                  </div>
-                  <p className="text-[11px] text-slate-500">Delivery verification & Escrow Release</p>
-                  <span className="text-[10px] text-slate-400">Handshake PIN: 492810</span>
-                </div>
-              </div>
-
-              <div className="mt-4 pt-3 border-t border-slate-200 flex justify-between items-center text-xs">
-                <span className="text-slate-500">
-                  Need custom route planning for bulk institutional procurement?
-                </span>
                 <NavLink
                   to="/logistics"
-                  className="font-bold text-[#245C43] hover:underline flex items-center gap-1"
+                  className="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl transition-all inline-flex items-center gap-1.5"
                 >
-                  Open Full Logistics Operations Console <ArrowRight size={14} />
+                  <Truck size={14} />
+                  <span>Logistics Console</span>
                 </NavLink>
               </div>
+
+              <OrdersPage
+                onSelectOrder={(id) => {
+                  setSelectedOrderId(id);
+                  setActiveTab('ORDERS');
+                  navigate(`/buyer/orders/${id}`);
+                }}
+                onTrackOrder={(id) => {
+                  setTrackingOrderId(id);
+                  navigate(`/buyer/tracking/${id}`);
+                }}
+                onBrowseMarketplace={() => {
+                  setActiveTab('MARKETPLACE');
+                  navigate('/buyer/marketplace');
+                }}
+              />
             </div>
-          </div>
+          )
         )}
 
-        {/* ══════════════════════════════════════════════════════════════
-            TAB 4: SHOPPING CART & CHECKOUT PREPARATION (Phase 5)
-            ══════════════════════════════════════════════════════════════ */}
         {activeTab === 'CART' && (
           <CartPage
             onProceedToCheckout={() => {
@@ -786,81 +749,38 @@ export default function BuyerDashboard() {
             TAB 5: ORDER LEDGER & SETTLEMENTS
             ══════════════════════════════════════════════════════════════ */}
         {activeTab === 'ORDERS' && (
-          <div className="buyer-animate-in">
-            <div className="p-5 bg-white rounded-xl border border-[#DDE5DC]">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h3 className="text-base font-bold text-slate-800">Buyer Order History & Escrow Tracking</h3>
-                  <p className="text-xs text-slate-500">
-                    Transparent anti-exploitation ledger with digital delivery verification
-                  </p>
-                </div>
-                <span className="text-xs font-semibold px-2.5 py-1 bg-emerald-100 text-emerald-800 rounded-full border border-emerald-300">
-                  Escrow Protected
-                </span>
-              </div>
-
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead className="bg-[#F8F8F3] text-slate-600 font-bold border-y border-slate-200">
-                    <tr>
-                      <th className="py-2.5 px-3">Order Number</th>
-                      <th className="py-2.5 px-3">Produce & Qty</th>
-                      <th className="py-2.5 px-3">FPO Hub Source</th>
-                      <th className="py-2.5 px-3">Landed Price</th>
-                      <th className="py-2.5 px-3">Status</th>
-                      <th className="py-2.5 px-3">Escrow Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    <tr className="hover:bg-slate-50">
-                      <td className="py-3 px-3 font-mono font-bold text-slate-800">SV-2026-00101</td>
-                      <td className="py-3 px-3">
-                        <span className="font-semibold text-slate-800">Grade A Tomatoes</span>
-                        <p className="text-[11px] text-slate-500">1,500 kg @ ₹24/kg</p>
-                      </td>
-                      <td className="py-3 px-3">Pune Sahakari Krishi FPO (Manchar)</td>
-                      <td className="py-3 px-3 font-bold text-slate-800">₹36,650</td>
-                      <td className="py-3 px-3">
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800">
-                          IN_TRANSIT
-                        </span>
-                      </td>
-                      <td className="py-3 px-3">
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">
-                          ESCROW_HELD
-                        </span>
-                      </td>
-                    </tr>
-                    <tr className="hover:bg-slate-50">
-                      <td className="py-3 px-3 font-mono font-bold text-slate-800">SV-2026-00084</td>
-                      <td className="py-3 px-3">
-                        <span className="font-semibold text-slate-800">Organic Sharbati Wheat</span>
-                        <p className="text-[11px] text-slate-500">2,000 kg @ ₹34/kg</p>
-                      </td>
-                      <td className="py-3 px-3">Narmada Valley Farmers Co.</td>
-                      <td className="py-3 px-3 font-bold text-slate-800">₹68,900</td>
-                      <td className="py-3 px-3">
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
-                          DELIVERY_VERIFIED
-                        </span>
-                      </td>
-                      <td className="py-3 px-3">
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
-                          PAYMENT_RELEASED
-                        </span>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
+          selectedOrderId ? (
+            <OrderDetailPage
+              orderId={selectedOrderId}
+              onBack={() => {
+                setSelectedOrderId(null);
+                navigate('/buyer/orders');
+              }}
+              onTrack={(id) => {
+                setTrackingOrderId(id);
+                setActiveTab('TRACKING');
+                navigate(`/buyer/tracking/${id}`);
+              }}
+            />
+          ) : (
+            <OrdersPage
+              onSelectOrder={(id) => {
+                setSelectedOrderId(id);
+                navigate(`/buyer/orders/${id}`);
+              }}
+              onTrackOrder={(id) => {
+                setTrackingOrderId(id);
+                setActiveTab('TRACKING');
+                navigate(`/buyer/tracking/${id}`);
+              }}
+              onBrowseMarketplace={() => {
+                setActiveTab('MARKETPLACE');
+                navigate('/buyer/marketplace');
+              }}
+            />
+          )
         )}
 
-        {/* ══════════════════════════════════════════════════════════════
-            PHASE 6: PAYMENT TRANSACTIONS & INVOICES
-            ══════════════════════════════════════════════════════════════ */}
         {activeTab === 'TRANSACTIONS' && <TransactionHistoryPage />}
         {activeTab === 'INVOICES' && <InvoicesPage />}
 

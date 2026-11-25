@@ -611,15 +611,16 @@ if (generatedSignature !== signature) {
 
 ---
 
-### 7.8 Page 1: Tax Invoices Archive (`/buyer/invoices` & `InvoicesPage.jsx`)
+### 7.8 Page 1: Tax Invoices Archive & Direct Transaction Integration (`InvoicesPage.jsx`)
 
 #### 💡 In Simple Words:
-> *"Your digital filing cabinet for agricultural invoices. You can view past purchase bills, search by invoice number or date, and download or print them anytime for accounting and tax audits."*
+> *"Your digital filing cabinet for agricultural invoices. To keep the buyer navigation clean and eliminate duplication, official tax invoices can be downloaded directly from each transaction entry in the Transactions ledger or viewed through the dedicated archive."*
 
 #### 🔍 Detailed Technical Breakdown:
-* **Route:** `/buyer/invoices`.
+* **Route:** `/buyer/invoices` (and direct one-click PDF streaming from `/buyer/transactions`).
 * **Component:** `frontend/src/pages/buyer/invoices/InvoicesPage.jsx`.
 * **Features:** Search by invoice ID, filter by financial date range, view summary modals, and one-click direct PDF stream download via `/api/buyer/payments/invoices/:id/download`.
+* **Navigation Streamlining:** Every transaction row in the Transaction History ledger includes an integrated "Invoice" download button, avoiding duplicate sidebar links and presenting a unified billing experience.
 
 ---
 
